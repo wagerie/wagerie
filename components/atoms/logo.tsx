@@ -7,7 +7,7 @@ const montserratAlternates = Montserrat_Alternates({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
 
-export const PrimaryLogo = () => {
+export const PrimaryLogo = ({className}: {className?: string}) => {
   return (
     <>
       {/* <Image
@@ -17,7 +17,7 @@ export const PrimaryLogo = () => {
         height={28}
         draggable={false}
       /> */}
-      <h1 className={cn("text-white text-3xl font-semibold", montserratAlternates.className)}>
+      <h1 className={cn("text-main-bg text-3xl font-semibold dark:text-primary", montserratAlternates.className, className)}>
         Wagerie
       </h1>
     </>
