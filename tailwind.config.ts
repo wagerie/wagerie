@@ -1,4 +1,4 @@
-import type { Config } from "tailwindcss"
+import type { Config } from "tailwindcss";
 
 const config = {
   darkMode: ["class"],
@@ -32,6 +32,17 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      colors: {
+        primary: "#fcfcfc",
+        secondary: "#b1b4bb",
+        "main-bg": "#12151e",
+        "dark-bg": "#323846",
+        "secondary-dark-bg": "#1c202c",
+        cards: "#20242f",
+        hover: "#323846",
+        "border-color": "#3d4353",
+        separator: "#363a46",
+      },
       boxShadow: {
         testimonial:
           "0px 20px 24px -4px rgba(0, 0, 0, 0.10), 0px 8px 8px -4px rgba(0, 0, 0, 0.04)",
@@ -41,4 +52,4 @@ const config = {
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
 
-export default config
+export default config;

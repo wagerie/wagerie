@@ -15,17 +15,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { errorToJSON } from "next/dist/server/render";
+import Link from "next/link";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-const formSchema = z.object({
-  email: z
-    .string().email().nonempty(),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters" }),
-}).required();
+const formSchema = z
+  .object({
+    email: z.string().email().nonempty(),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters" }),
+  })
+  .required();
 
 export default function Login() {
   // 1. Define your form
@@ -43,9 +45,17 @@ export default function Login() {
     // This will be type-safe validated
     console.log(values);
   };
+
+  const pageInfo = {
+    heading: "Welcome back",
+    desc: "Don't have an account?",
+    link_tag: "Sign up",
+    path: "/",
+  };
+
   return (
     <AuthLayout>
-      <AuthComponent auths>
+      <AuthComponent pageInfo={pageInfo} auths>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -59,9 +69,7 @@ export default function Login() {
                   placeholder="enter email"
                   rhk
                   hasRightIcon
-                  state={
-                    form.formState.errors.email?.message ? "error" : null
-                  }
+                  state={form.formState.errors.email?.message ? "error" : null}
                   {...field}
                 />
               )}
@@ -86,12 +94,18 @@ export default function Login() {
               )}
             />
 
-
             <BtnComponent className="w-full" size="lg">
               Login
             </BtnComponent>
           </form>
         </Form>
+
+        <p className="text-sm font-normal text-[#645D5D] dark:text-secondary">
+          Don&apos;t have an account?{" "}
+          <Link href={"/"} className="capitalize text-blue-600 font-semibold">
+            Recover
+          </Link>
+        </p>
       </AuthComponent>
     </AuthLayout>
   );

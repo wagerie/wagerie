@@ -1,42 +1,45 @@
 import Link from "next/link";
 import React from "react";
 import { Separator } from "../ui/separator";
-import { Button } from "../ui/button";
 import { BtnComponent } from "../atoms/button-component";
 import Image from "next/image";
 
 function AuthComponent({
   children,
   auths,
+  pageInfo,
 }: {
   children: React.ReactNode;
   auths?: boolean;
+  pageInfo?: {
+    heading?: string;
+    desc?: string;
+    link_tag?: string;
+    path?: string;
+  };
 }) {
   return (
     <div className="flex flex-col gap-8 max-w-[454px] w-full">
       <div className="flex flex-col gap-2">
-        <h1 className="text-[#1B1818] text-[36px] font-semibold">
-          Welcome back!
+        <h1 className="text-[#1B1818] dark:text-primary text-[36px] font-semibold">
+          {pageInfo?.heading}
         </h1>
-        <p className="text-sm font-normal text-[#645D5D]">
-          Don`&apos;`t have an account?{" "}
-          <Link href={"/"} className="capitalize text-[#EB5017] font-semibold">
-            sign up
+        <p className="text-sm font-normal text-[#645D5D] dark:text-secondary">
+          {pageInfo?.desc}{" "}
+          <Link
+            href={pageInfo?.path ?? "/"}
+            className="capitalize text-blue-600 font-semibold"
+          >
+            {pageInfo?.link_tag}
           </Link>
         </p>
       </div>
-      {children}
       {auths ? (
         <div className="flex flex-col gap-3">
-          <div className="relative h-7 flex items-center">
-            <Separator className="" />
-            <span className="bg-white px-2 text-gray-500 text-sm font-normal absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
-              Or
-            </span>
-          </div>
           <BtnComponent
-            className="flex gap-4 border-gray-300 h-auto p-4 text-gray-700 font-semibold"
-            variant="outline"
+            className="flex gap-4 font-semibold"
+            variant="secondary"
+            size="lg"
           >
             <Image
               src={"/assets/brand/google.png"}
@@ -46,8 +49,15 @@ function AuthComponent({
             />
             Continue with Google
           </BtnComponent>
+          <div className="relative h-7 flex items-center">
+            <Separator />
+            <span className="bg-white dark:bg-main-bg px-2 text-gray-500 dark:text-secondary text-sm font-normal absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
+              Or
+            </span>
+          </div>
         </div>
       ) : null}
+      {children}
     </div>
   );
 }

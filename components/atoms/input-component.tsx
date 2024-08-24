@@ -49,11 +49,11 @@ function InputComponent({
 
         <div
           className={cn(
-            "border h-11 rounded-md border-gray-300 px-3 flex items-center hover:border-gray-900 duration-200",
+            "border h-11 rounded-md border-gray-300 dark:border-border-color px-3 flex items-center hover:border-blue-600 dark:hover:border-blue-600 duration-200",
             size === "lg" ? "h-14 px-4" : size === "sm" ? "h-9" : null,
             state === "error" ? "border-red-500" : null,
             state === "success" ? "border-green-500" : null,
-            focus && !rhk ? "border-gray-950" : null
+            focus && !rhk ? "border-blue-600" : null
           )}
         >
           {hasLeftIcon ? "icon" : null}
