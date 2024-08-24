@@ -19,7 +19,7 @@ function AuthComponent({
           Welcome back!
         </h1>
         <p className="text-sm font-normal text-[#645D5D]">
-          Don't have an account?{" "}
+          Don`&apos;`t have an account?{" "}
           <Link href={"/"} className="capitalize text-[#EB5017] font-semibold">
             sign up
           </Link>
