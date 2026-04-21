@@ -10,31 +10,26 @@ import {
 } from "../ui/form";
 import { icons } from "@/public/assets/icons/icons";
 
-type InputProp = {
-  type: string;
+interface InputProp extends React.InputHTMLAttributes<HTMLInputElement> {
   state?: "typing" | "success" | "error" | "readonly" | null;
-  size?: "lg" | "sm";
+  inputSize?: "lg" | "sm";
   label?: string;
   hasLeftIcon?: boolean;
   hasRightIcon?: boolean;
   hasHelperText?: string;
-  defaultValue?: any;
-  placeholder?: string;
   rhk?: boolean;
-  // ...props?: any
-};
+}
 
 function InputComponent({
   type,
   state,
-  size,
   label,
   hasLeftIcon,
   hasRightIcon,
   hasHelperText,
-  defaultValue,
-  placeholder,
   rhk,
+  inputSize,
+  className,
   ...props
 }: InputProp) {
   const [focus, setFocus] = useState(false);
@@ -42,6 +37,7 @@ function InputComponent({
 
   const togglePassword = () =>
     inputType === "password" ? setInputType("text") : setInputType("password");
+    
   return (
     <FormItem className="">
       <div className="space-y-1">
@@ -50,7 +46,7 @@ function InputComponent({
         <div
           className={cn(
             "border h-11 rounded-md border-gray-300 dark:border-border-color px-3 flex items-center hover:border-blue-600 dark:hover:border-blue-600 duration-200",
-            size === "lg" ? "h-14 px-4" : size === "sm" ? "h-9" : null,
+            inputSize === "lg" ? "h-14 px-4" : inputSize === "sm" ? "h-9" : null,
             state === "error" ? "border-red-500" : null,
             state === "success" ? "border-green-500" : null,
             focus && !rhk ? "border-blue-600" : null
@@ -61,14 +57,14 @@ function InputComponent({
           <FormControl>
             <Input
               type={inputType}
-              defaultValue={defaultValue}
-              placeholder={placeholder}
-              className="border-none focus-visible:ring-0 rounded-none shadow-none px-1"
-              onFocus={() => {
+              className={cn("border-none focus-visible:ring-0 rounded-none shadow-none px-1", className)}
+              onFocus={(e) => {
                 setFocus(true);
+                props.onFocus?.(e);
               }}
-              onBlur={() => {
+              onBlur={(e) => {
                 setFocus(false);
+                props.onBlur?.(e);
               }}
               {...props}
             />

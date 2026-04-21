@@ -19,10 +19,13 @@ import Link from "next/link";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { usePost } from "@/hooks/use-api";
+import { useRouter } from "next/navigation";
+import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
 
 const formSchema = z
   .object({
-    email: z.string().email().nonempty(),
+    email: z.string().email().nonempty("Email is required"),
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters" }),
@@ -30,6 +33,8 @@ const formSchema = z
   .required();
 
 export default function Login() {
+  const router = useRouter();
+
   // 1. Define your form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,18 +44,26 @@ export default function Login() {
     },
   });
 
+  const { mutate: login, isPending } = usePost(API_ROUTES.LOGIN, {
+    onSuccess: (response: any) => {
+      // Assuming response.token exists
+      if (response.token || response.accessToken) {
+        localStorage.setItem("token", response.token || response.accessToken);
+        router.push(APP_ROUTES.DASHBOARD);
+      }
+    },
+  });
+
   // 2. Define a submit handler.
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // do something with the form values.
-    // This will be type-safe validated
-    console.log(values);
+    login(values);
   };
 
   const pageInfo = {
     heading: "Welcome back",
     desc: "Don't have an account?",
     link_tag: "Sign up",
-    path: "/",
+    path: APP_ROUTES.REGISTER,
   };
 
   return (
@@ -65,7 +78,6 @@ export default function Login() {
                 <InputComponent
                   label="Email"
                   type="email"
-                  defaultValue={field.name}
                   placeholder="enter email"
                   rhk
                   hasRightIcon
@@ -82,7 +94,6 @@ export default function Login() {
                 <InputComponent
                   label="Password"
                   type="password"
-                  defaultValue={field.name}
                   placeholder="enter password"
                   rhk
                   hasRightIcon
@@ -94,8 +105,13 @@ export default function Login() {
               )}
             />
 
-            <BtnComponent className="w-full" size="lg">
-              Login
+            <BtnComponent
+              className="w-full"
+              size="lg"
+              loading={isPending}
+              disabled={isPending}
+            >
+              {isPending ? "Logging in..." : "Login"}
             </BtnComponent>
           </form>
         </Form>

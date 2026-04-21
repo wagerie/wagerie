@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "../ui/button";
 
-interface BtnProps {
+interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   variant?:
     | "default"
@@ -11,31 +11,27 @@ interface BtnProps {
     | "ghost"
     | "link";
   size?: "default" | "sm" | "lg" | "icon";
-  className?: string;
-  onClick?: () => void;
-  asChild?: boolean;
   loading?: boolean;
-  disabled?: boolean;
 }
 
- export const BtnComponent = ({
+export const BtnComponent = ({
   children,
   variant,
   size,
   className,
-  onClick,
-  asChild,
   loading,
-  disabled
+  disabled,
+  type = "button",
+  ...props
 }: BtnProps) => {
   return (
     <Button
       variant={variant}
       size={size}
       className={className}
-      onClick={onClick}
-      asChild={asChild}
       disabled={loading ?? disabled}
+      type={type}
+      {...props}
     >
       {children} {loading ? "..." : null}
     </Button>
