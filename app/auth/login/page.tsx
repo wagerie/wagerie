@@ -3,18 +3,8 @@ import { BtnComponent } from "@/components/atoms/button-component";
 import InputComponent from "@/components/atoms/input-component";
 import AuthLayout from "@/components/layout/auth-layout";
 import AuthComponent from "@/components/molecules/auth-component";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form, FormField } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { errorToJSON } from "next/dist/server/render";
 import Link from "next/link";
 
 import { useForm } from "react-hook-form";
@@ -25,7 +15,7 @@ import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
 
 const formSchema = z
   .object({
-    email: z.string().email().nonempty("Email is required"),
+    email: z.string().email("Invalid email").min(1, "Email is required"),
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters" }),
@@ -56,7 +46,12 @@ export default function Login() {
 
   // 2. Define a submit handler.
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log("Login validated:", values);
     login(values);
+  };
+
+  const onInvalid = (errors: any) => {
+    console.log("Login validation failed:", errors);
   };
 
   const pageInfo = {
@@ -70,7 +65,10 @@ export default function Login() {
     <AuthLayout>
       <AuthComponent pageInfo={pageInfo} auths>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+            className="space-y-6"
+          >
             <FormField
               control={form.control}
               name="email"
@@ -110,6 +108,7 @@ export default function Login() {
               size="lg"
               loading={isPending}
               disabled={isPending}
+              type="submit"
             >
               {isPending ? "Logging in..." : "Login"}
             </BtnComponent>

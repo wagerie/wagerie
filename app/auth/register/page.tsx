@@ -4,17 +4,9 @@ import { BtnComponent } from "@/components/atoms/button-component";
 import InputComponent from "@/components/atoms/input-component";
 import AuthLayout from "@/components/layout/auth-layout";
 import AuthComponent from "@/components/molecules/auth-component";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { usePost } from "@/hooks/use-api";
 import { useRouter } from "next/navigation";
@@ -59,15 +51,22 @@ export default function Register() {
     },
   });
 
+  const { watch, handleSubmit, control, formState, trigger } = form;
+
   // Re-validate confirmPassword when password changes
-  const password = form.watch("password");
-  const confirmPassword = form.watch("confirmPassword");
+  const password = watch("password");
+  const confirmPassword = watch("confirmPassword");
+  const allValues = watch();
+
+  React.useEffect(() => {
+    console.log("Current Form Values:", allValues);
+  }, [allValues]);
 
   React.useEffect(() => {
     if (confirmPassword) {
-      form.trigger("confirmPassword");
+      trigger("confirmPassword");
     }
-  }, [password, confirmPassword, form]);
+  }, [password, confirmPassword, trigger]);
 
   const { mutate: register, isPending } = usePost(API_ROUTES.REGISTER, {
     onSuccess: (response: any) => {
@@ -76,8 +75,12 @@ export default function Register() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Extract only the fields needed for the payload
+  const onSubmit = (
+    values: z.infer<typeof formSchema>,
+    e?: React.BaseSyntheticEvent,
+  ) => {
+    e?.preventDefault();
+    console.log("Form data:", values);
     const { confirmPassword, ...payload } = values;
     register(payload);
   };
@@ -93,9 +96,9 @@ export default function Register() {
     <AuthLayout>
       <AuthComponent pageInfo={pageInfo} auths>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <Controller
+              control={control}
               name="email"
               render={({ field }) => (
                 <InputComponent
@@ -103,14 +106,14 @@ export default function Register() {
                   type="text"
                   placeholder="Enter your name"
                   rhk
-                  state={form.formState.errors.email?.message ? "error" : null}
+                  state={formState.errors.email?.message ? "error" : null}
                   {...field}
                 />
               )}
             />
 
-            <FormField
-              control={form.control}
+            <Controller
+              control={control}
               name="username"
               render={({ field }) => (
                 <InputComponent
@@ -118,16 +121,14 @@ export default function Register() {
                   type="email"
                   placeholder="Enter your email"
                   rhk
-                  state={
-                    form.formState.errors.username?.message ? "error" : null
-                  }
+                  state={formState.errors.username?.message ? "error" : null}
                   {...field}
                 />
               )}
             />
 
-            <FormField
-              control={form.control}
+            <Controller
+              control={control}
               name="password"
               render={({ field }) => (
                 <InputComponent
@@ -136,16 +137,14 @@ export default function Register() {
                   placeholder="Enter password"
                   rhk
                   hasRightIcon
-                  state={
-                    form.formState.errors.password?.message ? "error" : null
-                  }
+                  state={formState.errors.password?.message ? "error" : null}
                   {...field}
                 />
               )}
             />
 
-            <FormField
-              control={form.control}
+            <Controller
+              control={control}
               name="confirmPassword"
               render={({ field }) => (
                 <InputComponent
@@ -155,9 +154,7 @@ export default function Register() {
                   rhk
                   hasRightIcon
                   state={
-                    form.formState.errors.confirmPassword?.message
-                      ? "error"
-                      : null
+                    formState.errors.confirmPassword?.message ? "error" : null
                   }
                   {...field}
                 />
