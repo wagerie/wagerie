@@ -19,7 +19,7 @@ function AuthComponent({
   };
 }) {
   return (
-    <div className="flex flex-col gap-8 max-w-[454px] w-full">
+    <div className="flex flex-col gap-8 max-w-113.5 w-full">
       <div className="flex flex-col gap-2">
         <h1 className="text-[#1B1818] dark:text-primary text-[36px] font-semibold">
           {pageInfo?.heading}

@@ -56,11 +56,6 @@ export default function Register() {
   // Re-validate confirmPassword when password changes
   const password = watch("password");
   const confirmPassword = watch("confirmPassword");
-  const allValues = watch();
-
-  React.useEffect(() => {
-    console.log("Current Form Values:", allValues);
-  }, [allValues]);
 
   React.useEffect(() => {
     if (confirmPassword) {
@@ -80,7 +75,6 @@ export default function Register() {
     e?: React.BaseSyntheticEvent,
   ) => {
     e?.preventDefault();
-    console.log("Form data:", values);
     const { confirmPassword, ...payload } = values;
     register(payload);
   };

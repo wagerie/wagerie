@@ -1,5 +1,7 @@
 import React from "react";
 import { Button } from "../ui/button";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -28,12 +30,16 @@ export const BtnComponent = ({
     <Button
       variant={variant}
       size={size}
-      className={className}
-      disabled={loading ?? disabled}
+      className={cn(
+        "disabled:opacity-50 disabled:cursor-not-allowed flex gap-1",
+        className,
+      )}
+      disabled={loading || disabled}
       type={type}
       {...props}
     >
-      {children} {loading ? "..." : null}
+      {children}{" "}
+      {loading ? <Loader2 className="animate-spin" size={18} /> : null}
     </Button>
   );
 };

@@ -34,7 +34,7 @@ const InputComponent = forwardRef<HTMLInputElement, InputProp>(
       className,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [focus, setFocus] = useState(false);
     const [inputType, setInputType] = useState(type);
@@ -55,11 +55,11 @@ const InputComponent = forwardRef<HTMLInputElement, InputProp>(
               inputSize === "lg"
                 ? "h-14 px-4"
                 : inputSize === "sm"
-                ? "h-9"
-                : null,
+                  ? "h-9"
+                  : null,
               state === "error" ? "border-red-500" : null,
               state === "success" ? "border-green-500" : null,
-              focus && !rhk ? "border-blue-600" : null
+              focus && !rhk ? "border-blue-600" : null,
             )}
           >
             {hasLeftIcon ? "icon" : null}
@@ -69,7 +69,7 @@ const InputComponent = forwardRef<HTMLInputElement, InputProp>(
                 type={inputType}
                 className={cn(
                   "border-none focus-visible:ring-0 rounded-none shadow-none px-1",
-                  className
+                  className,
                 )}
                 onFocus={(e) => {
                   setFocus(true);
@@ -105,7 +105,7 @@ const InputComponent = forwardRef<HTMLInputElement, InputProp>(
         <FormMessage />
       </FormItem>
     );
-  }
+  },
 );
 
 InputComponent.displayName = "InputComponent";

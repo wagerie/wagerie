@@ -1,5 +1,5 @@
-import { icons } from '@/public/assets/icons/icons';
-import React from 'react'
+import { icons } from "@/public/assets/icons/icons";
+import React from "react";
 
 function AuthTestimonials() {
   return (
@@ -30,4 +30,4 @@ function AuthTestimonials() {
   );
 }
 
-export default AuthTestimonials
+export default AuthTestimonials;
