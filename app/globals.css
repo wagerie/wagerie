@@ -1,32 +1,40 @@
 @import "tailwindcss";
-@config "../tailwind.config.ts";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --color-primary: #fcfcfc;
+  --color-secondary: #b1b4bb;
+  --color-main-bg: #12151e;
+  --color-dark-bg: #323846;
+  --color-secondary-dark-bg: #1c202c;
+  --color-cards: #20242f;
+  --color-hover: #323846;
+  --color-border-color: #3d4353;
+  --color-separator: #363a46;
+
+  --shadow-testimonial: 0px 20px 24px -4px rgba(0, 0, 0, 0.10), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+}
 
 @variant dark (&:where(.dark, .dark *));
-
-@keyframes accordion-down {
-  from {
-    height: 0;
-  }
-  to {
-    height: var(--radix-accordion-content-height);
-  }
-}
-
-@keyframes accordion-up {
-  from {
-    height: var(--radix-accordion-content-height);
-  }
-  to {
-    height: 0;
-  }
-}
 
 @layer base {
   body {
     @apply bg-white text-black;
   }
   
-  html.dark body {
-    @apply bg-[#12151e] text-white;
+  .dark body {
+    @apply bg-main-bg text-white;
   }
 }

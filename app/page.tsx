@@ -13,12 +13,14 @@ export default function Home() {
   return (
     <main className="flex min-h-screen justify-between p-4 gap-4 container mx-auto">
       <PrimaryLogo />
-      <div className="flex justify-end gap-4">
+      <div className="flex justify-end gap-4 relative z-10">
         <ModeToggle />
 
         <BtnComponent
           variant="outline"
-          onClick={() => router.push(APP_ROUTES.LOGIN)}
+          onClick={() => {
+            router.push(APP_ROUTES.LOGIN);
+          }}
         >
           login
         </BtnComponent>
