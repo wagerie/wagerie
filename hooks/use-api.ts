@@ -27,9 +27,10 @@ export function usePost<T, TVariables = any>(
   options?: UseMutationOptions<T, AxiosError, TVariables>,
   method: 'post' | 'put' | 'patch' = 'post'
 ) {
-  const queryClient = useQueryClient();
+  const { onSuccess, onError, onSettled, ...restOptions } = options || {};
 
   return useMutation<T, AxiosError, TVariables>({
+    ...restOptions,
     mutationFn: async (data: TVariables) => {
       const response = await api[method](url, data);
       return response.data;
@@ -37,12 +38,24 @@ export function usePost<T, TVariables = any>(
     onSuccess: (...args) => {
       const data = args[0];
       toast.success((data as any)?.message || 'Success');
+      // console.log("success", data);
       // Common logic on success, like invalidating queries
       // queryClient.invalidateQueries();
-      if (options?.onSuccess) {
-        (options.onSuccess as any)(...args);
+      if (onSuccess) {
+        (onSuccess as any)(...args);
       }
     },
-    ...options,
+    onError: (...args) => {
+      const data = args[0];
+      toast.error((data as any)?.message || 'Error');
+      if (onError) {
+        (onError as any)(...args);
+      }
+    },
+    onSettled: (...args) => {
+      if (onSettled) {
+        (onSettled as any)(...args);
+      }
+    }
   });
 }

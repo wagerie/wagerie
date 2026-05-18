@@ -99,7 +99,7 @@ const InputComponent = forwardRef<HTMLInputElement, InputProp>(
           </div>
         </div>
         {hasHelperText && (
-          <FormDescription>This is your public display name.</FormDescription>
+          <FormDescription>{hasHelperText}</FormDescription>
         )}
 
         <FormMessage />

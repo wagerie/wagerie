@@ -1,86 +1,101 @@
 "use client";
+
 import { BtnComponent } from "@/components/atoms/button-component";
 import InputComponent from "@/components/atoms/input-component";
 import AuthLayout from "@/components/layout/auth-layout";
 import AuthComponent from "@/components/molecules/auth-component";
 import { Form, FormField } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { usePost } from "@/hooks/use-api";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
-import { setCookie } from "@/hooks/use-cookies";
+import React from "react";
 
 const formSchema = z
   .object({
-    email: z.string().email("Invalid email").min(1, "Email is required"),
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters" }),
+    confirmPassword: z.string().min(1, "Confirmation is required"),
   })
-  .required();
+  .superRefine(({ confirmPassword, password }, ctx) => {
+    if (confirmPassword !== password) {
+      ctx.addIssue({
+        code: "custom",
+        message: "The passwords did not match",
+        path: ["confirmPassword"],
+        fatal: true,
+      });
+    }
+  });
 
-export default function Login() {
+export default function ResetPassword() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email");
 
-  // 1. Define your form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
-      email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
-  const { mutate: login, isPending } = usePost(API_ROUTES.SIGNIN, {
-    onSuccess: (response: any) => {
-      // Assuming response.token exists
-      if (response?.data?.accessToken) {
-        setCookie("wagerie_token", response?.data?.accessToken);
-        router.push(APP_ROUTES.DASHBOARD);
-      }
-    },
-  });
+  const { watch, trigger } = form;
+  const password = watch("password");
+  const confirmPassword = watch("confirmPassword");
 
-  // 2. Define a submit handler.
+  React.useEffect(() => {
+    if (confirmPassword) {
+      trigger("confirmPassword");
+    }
+  }, [password, confirmPassword, trigger]);
+
+  const { mutate: resetPassword, isPending } = usePost(
+    API_ROUTES.RESET_PASSWORD,
+    {
+      onSuccess: () => {
+        router.push(APP_ROUTES.LOGIN);
+      },
+    }
+  );
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log("Login validated:", values);
-    login(values);
-  };
-
-  const onInvalid = (errors: any) => {
-    console.log("Login validation failed:", errors);
+    resetPassword({
+      email,
+      password: values.password,
+      confirmPassword: values.confirmPassword,
+    });
   };
 
   const pageInfo = {
-    heading: "Welcome back",
-    desc: "Don't have an account?",
-    link_tag: "Sign up",
-    path: APP_ROUTES.REGISTER,
+    heading: "Reset Password",
+    desc: "Please enter your new password.",
   };
 
   return (
     <AuthLayout>
-      <AuthComponent pageInfo={pageInfo} auths>
+      <AuthComponent pageInfo={pageInfo}>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+            onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-6"
           >
             <FormField
               control={form.control}
-              name="email"
+              name="password"
               render={({ field }) => (
                 <InputComponent
-                  label="Email"
-                  type="email"
-                  placeholder="enter email"
+                  label="New Password"
+                  type="password"
+                  placeholder="Enter new password"
                   rhk
                   hasRightIcon
-                  state={form.formState.errors.email?.message ? "error" : null}
+                  state={form.formState.errors.password?.message ? "error" : null}
                   {...field}
                 />
               )}
@@ -88,16 +103,16 @@ export default function Login() {
 
             <FormField
               control={form.control}
-              name="password"
+              name="confirmPassword"
               render={({ field }) => (
                 <InputComponent
-                  label="Password"
+                  label="Confirm New Password"
                   type="password"
-                  placeholder="enter password"
+                  placeholder="Confirm your new password"
                   rhk
                   hasRightIcon
                   state={
-                    form.formState.errors.password?.message ? "error" : null
+                    form.formState.errors.confirmPassword?.message ? "error" : null
                   }
                   {...field}
                 />
@@ -111,20 +126,10 @@ export default function Login() {
               disabled={isPending}
               type="submit"
             >
-              {isPending ? "Logging in..." : "Login"}
+              Reset Password
             </BtnComponent>
           </form>
         </Form>
-
-        <p className="text-sm font-normal text-[#645D5D] dark:text-secondary">
-          Don&apos;t have an account?{" "}
-          <Link
-            href={APP_ROUTES.FORGOT_PASSWORD}
-            className="capitalize text-blue-600 font-semibold"
-          >
-            Recover
-          </Link>
-        </p>
       </AuthComponent>
     </AuthLayout>
   );

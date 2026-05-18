@@ -3,8 +3,7 @@
 import { BtnComponent } from "@/components/atoms/button-component";
 import { PrimaryLogo } from "@/components/atoms/logo";
 import { ModeToggle } from "@/components/atoms/toggle-theme";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+
 import { APP_ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
 

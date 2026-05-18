@@ -3,28 +3,41 @@ import React from "react";
 import { Separator } from "../ui/separator";
 import { BtnComponent } from "../atoms/button-component";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 function AuthComponent({
   children,
   auths,
   pageInfo,
+  otp,
 }: {
   children: React.ReactNode;
   auths?: boolean;
   pageInfo?: {
     heading?: string;
-    desc?: string;
+    desc?: string | React.ReactNode;
     link_tag?: string;
     path?: string;
   };
+  otp?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-8 max-w-113.5 w-full">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-[#1B1818] dark:text-primary text-[36px] font-semibold">
+      <div className={cn("flex flex-col gap-2", otp && "items-center")}>
+        <h1
+          className={cn(
+            "text-[#1B1818] dark:text-primary text-[36px] font-semibold",
+            otp ? "text-center" : "",
+          )}
+        >
           {pageInfo?.heading}
         </h1>
-        <p className="text-sm font-normal text-[#645D5D] dark:text-secondary">
+        <p
+          className={cn(
+            "text-sm font-normal text-[#645D5D] dark:text-secondary",
+            otp ? "text-center" : "",
+          )}
+        >
           {pageInfo?.desc}{" "}
           <Link
             href={pageInfo?.path ?? "/"}

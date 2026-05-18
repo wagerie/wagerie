@@ -1,3 +1,4 @@
+import { getCookie } from '@/hooks/use-cookies';
 import axios from 'axios';
 
 const api = axios.create({
@@ -10,7 +11,7 @@ const api = axios.create({
 // Add a request interceptor to add the auth token to every request if it exists
 api.interceptors.request.use(
   (config) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = getCookie("wagerie_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

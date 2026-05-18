@@ -4,9 +4,9 @@ import { BtnComponent } from "@/components/atoms/button-component";
 import InputComponent from "@/components/atoms/input-component";
 import AuthLayout from "@/components/layout/auth-layout";
 import AuthComponent from "@/components/molecules/auth-component";
-import { Form } from "@/components/ui/form";
+import { Form, FormField } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { usePost } from "@/hooks/use-api";
 import { useRouter } from "next/navigation";
@@ -14,14 +14,11 @@ import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
 
 const formSchema = z
   .object({
-    username: z
-      .string()
-      .email("Please enter a valid email")
-      .nonempty("Email is required"), // Maps to "username" in payload
     email: z
       .string()
-      .min(2, "Name must be at least 2 characters")
-      .nonempty("Name is required"), // Maps to "email" in payload
+      .email("Please enter a valid email")
+      .nonempty("Email is required"),
+    // username: z.string().nonempty("Username is required"),
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters" }),
@@ -44,7 +41,7 @@ export default function Register() {
     resolver: zodResolver(formSchema),
     mode: "onChange",
     defaultValues: {
-      username: "",
+      // username: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -63,10 +60,9 @@ export default function Register() {
     }
   }, [password, confirmPassword, trigger]);
 
-  const { mutate: register, isPending } = usePost(API_ROUTES.REGISTER, {
-    onSuccess: (response: any) => {
-      // Assuming registration successful, redirect to login or home
-      router.push(APP_ROUTES.LOGIN);
+  const { mutate: register, isPending } = usePost(API_ROUTES.SIGNUP, {
+    onSuccess: (response: any, variables: any) => {
+      router.push(`${APP_ROUTES.OTP_VERIFICATION}?email=${variables?.email}`);
     },
   });
 
@@ -91,14 +87,29 @@ export default function Register() {
       <AuthComponent pageInfo={pageInfo} auths>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <Controller
+            {/* <FormField
+              control={control}
+              name="username"
+              render={({ field }) => (
+                <InputComponent
+                  label="Username"
+                  type="text"
+                  placeholder="Enter your username"
+                  rhk
+                  state={formState.errors.username?.message ? "error" : null}
+                  {...field}
+                />
+              )}
+            /> */}
+
+            <FormField
               control={control}
               name="email"
               render={({ field }) => (
                 <InputComponent
-                  label="Name"
-                  type="text"
-                  placeholder="Enter your name"
+                  label="Email"
+                  type="email"
+                  placeholder="Enter your email"
                   rhk
                   state={formState.errors.email?.message ? "error" : null}
                   {...field}
@@ -106,22 +117,7 @@ export default function Register() {
               )}
             />
 
-            <Controller
-              control={control}
-              name="username"
-              render={({ field }) => (
-                <InputComponent
-                  label="Email"
-                  type="email"
-                  placeholder="Enter your email"
-                  rhk
-                  state={formState.errors.username?.message ? "error" : null}
-                  {...field}
-                />
-              )}
-            />
-
-            <Controller
+            <FormField
               control={control}
               name="password"
               render={({ field }) => (
@@ -137,7 +133,7 @@ export default function Register() {
               )}
             />
 
-            <Controller
+            <FormField
               control={control}
               name="confirmPassword"
               render={({ field }) => (
