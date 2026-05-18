@@ -14,6 +14,14 @@ import {
 } from "@/components/ui/input-otp";
 
 export default function VerifyForgotPassword() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <VerifyForgotPasswordContent />
+    </React.Suspense>
+  );
+}
+
+function VerifyForgotPasswordContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
   const router = useRouter();

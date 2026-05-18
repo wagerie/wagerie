@@ -32,6 +32,14 @@ const formSchema = z
   });
 
 export default function ResetPassword() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordContent />
+    </React.Suspense>
+  );
+}
+
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");

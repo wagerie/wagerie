@@ -14,6 +14,14 @@ import {
 } from "@/components/ui/input-otp";
 
 export default function Page() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <OtpVerificationContent />
+    </React.Suspense>
+  );
+}
+
+function OtpVerificationContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
   const router = useRouter();
