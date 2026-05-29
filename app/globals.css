@@ -1,40 +1,65 @@
-@import "tailwindcss";
-@plugin "tailwindcss-animate";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --color-primary: #fcfcfc;
-  --color-secondary: #b1b4bb;
-  --color-main-bg: #12151e;
-  --color-dark-bg: #323846;
-  --color-secondary-dark-bg: #1c202c;
-  --color-cards: #20242f;
-  --color-hover: #323846;
-  --color-border-color: #3d4353;
-  --color-separator: #363a46;
-
-  --shadow-testimonial: 0px 20px 24px -4px rgba(0, 0, 0, 0.10), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
-
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-
-  @keyframes accordion-down {
-    from { height: 0; }
-    to { height: var(--radix-accordion-content-height); }
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.6%;
+    --card: 0 0% 96.3%;
+    --card-foreground: 0 0% 3.6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.6%;
+    --muted: 0 0% 89.8%;
+    --muted-foreground: 0 0% 39.2%;
+    --accent: 262.1 80% 50.4%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --primary: 262.1 80% 50.4%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --ring: 262.1 80% 50.4%;
   }
-  @keyframes accordion-up {
-    from { height: var(--radix-accordion-content-height); }
-    to { height: 0; }
+
+  .dark {
+    --background: 217.2 32.6% 17.5%;
+    --foreground: 210 40% 98%;
+    --card: 217.2 26.8% 23.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217.2 32.6% 17.5%;
+    --popover-foreground: 210 40% 98%;
+    --muted: 215 27.9% 33.3%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 280.2 97.3% 61.8%;
+    --accent-foreground: 217.2 32.6% 17.5%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 215 27.9% 33.3%;
+    --input: 215 27.9% 33.3%;
+    --primary: 280.2 97.3% 61.8%;
+    --primary-foreground: 217.2 32.6% 17.5%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --ring: 280.2 97.3% 61.8%;
   }
 }
 
-@variant dark (&:where(.dark, .dark *));
-
 @layer base {
-  body {
-    @apply bg-white text-black;
+  * {
+    @apply border-border;
   }
-  
-  .dark body {
-    @apply bg-main-bg text-white;
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }

@@ -51,15 +51,16 @@ const InputComponent = forwardRef<HTMLInputElement, InputProp>(
 
           <div
             className={cn(
-              "border h-11 rounded-md border-gray-300 dark:border-border-color px-3 flex items-center hover:border-blue-600 dark:hover:border-blue-600 duration-200",
+              "border h-11 rounded-lg bg-background border-input px-3 flex items-center transition-all duration-200",
+              "hover:border-primary/50 dark:hover:border-primary/70",
               inputSize === "lg"
                 ? "h-14 px-4"
                 : inputSize === "sm"
                   ? "h-9"
                   : null,
-              state === "error" ? "border-red-500" : null,
-              state === "success" ? "border-green-500" : null,
-              focus && !rhk ? "border-blue-600" : null,
+              state === "error" ? "border-destructive hover:border-destructive/80" : null,
+              state === "success" ? "border-green-500 hover:border-green-600" : null,
+              focus && !rhk ? "border-primary ring-1 ring-primary/30" : null,
             )}
           >
             {hasLeftIcon ? "icon" : null}

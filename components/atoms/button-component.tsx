@@ -14,32 +14,38 @@ interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | "link";
   size?: "default" | "sm" | "lg" | "icon";
   loading?: boolean;
+  isLoading?: boolean;
 }
 
 export const BtnComponent = ({
   children,
-  variant,
-  size,
+  variant = "default",
+  size = "default",
   className,
   loading,
+  isLoading,
   disabled,
   type = "button",
   ...props
 }: BtnProps) => {
+  const isLoaded = loading || isLoading;
+  
   return (
     <Button
       variant={variant}
       size={size}
       className={cn(
-        "disabled:opacity-50 disabled:cursor-not-allowed flex gap-1",
+        "transition-all duration-200 flex gap-2 items-center justify-center",
+        "disabled:opacity-50 disabled:cursor-not-allowed",
+        "hover:shadow-md active:scale-95",
         className,
       )}
-      disabled={loading || disabled}
+      disabled={isLoaded || disabled}
       type={type}
       {...props}
     >
-      {children}{" "}
-      {loading ? <Loader2 className="animate-spin" size={18} /> : null}
+      {children}
+      {isLoaded && <Loader2 className="w-4 h-4 animate-spin" />}
     </Button>
   );
 };

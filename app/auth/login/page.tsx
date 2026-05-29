@@ -47,7 +47,6 @@ export default function Login() {
 
   // 2. Define a submit handler.
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log("Login validated:", values);
     login(values);
   };
 

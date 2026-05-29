@@ -1,15 +1,20 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
-import api from '@/lib/axios';
-import { AxiosError, AxiosResponse } from 'axios';
-import { toast } from 'sonner';
+import {
+  useQuery,
+  useMutation,
+  UseQueryOptions,
+  UseMutationOptions,
+} from "@tanstack/react-query";
+import api from "@/lib/axios";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
 
 // Reusable GET hook
 export function useGet<T>(
   key: string[],
   url: string,
-  options?: Omit<UseQueryOptions<T, AxiosError>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<T, AxiosError>, "queryKey" | "queryFn">,
 ) {
   return useQuery<T, AxiosError>({
     queryKey: key,
@@ -25,7 +30,7 @@ export function useGet<T>(
 export function usePost<T, TVariables = any>(
   url: string,
   options?: UseMutationOptions<T, AxiosError, TVariables>,
-  method: 'post' | 'put' | 'patch' = 'post'
+  method: "post" | "put" | "patch" = "post",
 ) {
   const { onSuccess, onError, onSettled, ...restOptions } = options || {};
 
@@ -37,7 +42,7 @@ export function usePost<T, TVariables = any>(
     },
     onSuccess: (...args) => {
       const data = args[0];
-      toast.success((data as any)?.message || 'Success');
+      toast.success((data as any)?.message || "Success");
       // console.log("success", data);
       // Common logic on success, like invalidating queries
       // queryClient.invalidateQueries();
@@ -47,7 +52,7 @@ export function usePost<T, TVariables = any>(
     },
     onError: (...args) => {
       const data = args[0];
-      toast.error((data as any)?.message || 'Error');
+      toast.error((data as any)?.response?.data.message || "Error");
       if (onError) {
         (onError as any)(...args);
       }
@@ -56,6 +61,6 @@ export function usePost<T, TVariables = any>(
       if (onSettled) {
         (onSettled as any)(...args);
       }
-    }
+    },
   });
 }
