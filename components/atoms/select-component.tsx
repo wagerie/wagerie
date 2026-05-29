@@ -40,7 +40,11 @@ export function SelectComponent({
 }: SelectComponentProps) {
   return (
     <div className={`space-y-2 ${className}`}>
-      {label && (\n        <label className=\"text-sm font-semibold block text-foreground\">\n          {label}\n        </label>\n      )}
+      {label && (
+        <label className="text-sm font-semibold block text-foreground">
+          {label}
+        </label>
+      )}
 
       <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger

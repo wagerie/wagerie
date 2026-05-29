@@ -76,7 +76,7 @@ export function WithdrawModal({
       title="Withdraw Funds"
       description="Transfer funds from your wallet to your bank account."
       size="md"
-      className="sm:max-w-[500px]"
+      className="sm:max-w-125"
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -184,7 +184,7 @@ export function WithdrawModal({
 
           {/* Info */}
           <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="text-sm text-amber-900 dark:text-amber-400">
               Withdrawals typically process within 2-3 business days.
             </div>

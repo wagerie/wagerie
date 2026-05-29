@@ -163,7 +163,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Info Banner */}
-          <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-6">
+          <div className="bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-6">
             <h3 className="font-bold mb-2">Welcome to Admin Panel</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Phase 1 Implementation: Wallet system and admin dashboard

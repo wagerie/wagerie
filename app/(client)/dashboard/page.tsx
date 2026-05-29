@@ -198,7 +198,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Getting Started Section */}
-          <div className="mt-8 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-6">
+          <div className="mt-8 bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-6">
             <h3 className="text-lg font-bold mb-3">Getting Started</h3>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2">

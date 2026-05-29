@@ -74,7 +74,7 @@ export function DepositModal({
       title="Deposit Funds"
       description="Add funds to your wallet to start staking on polls."
       size="md"
-      className="sm:max-w-[500px]"
+      className="sm:max-w-125"
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

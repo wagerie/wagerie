@@ -21,9 +21,9 @@ export function WalletCard({
   isLoading = false,
 }: WalletCardProps) {
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/80 dark:from-primary dark:via-primary/90 dark:to-accent/30 p-8 shadow-xl transition-all hover:shadow-2xl animate-fade-in">
+    <div className="relative w-full overflow-hidden rounded-2xl bg-linear-to-br from-primary via-primary to-primary/80 dark:from-primary dark:via-primary/90 dark:to-accent/30 p-8 shadow-xl transition-all hover:shadow-2xl animate-fade-in">
       {/* Decorative gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent dark:from-black/20 pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/5 to-transparent dark:from-black/20 pointer-events-none" />
       
       <div className="relative z-10 space-y-8">
         {/* Header */}
