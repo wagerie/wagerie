@@ -12,6 +12,8 @@ import {
   X,
   Users,
   Settings,
+  TrendingUp,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,12 +45,12 @@ const navItems = [
   {
     label: "Polls",
     href: "/polls",
-    icon: Coins,
+    icon: TrendingUp,
   },
   {
     label: "My Stakes",
     href: "/my-stakes",
-    icon: Coins,
+    icon: Target,
   },
   {
     label: "Transactions",
@@ -163,7 +165,7 @@ export function DashboardLayout({
           {/* Right side of navbar */}
           <div className="flex items-center gap-3">
             {/* Wallet Balance */}
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/5 to-accent/5 hover:from-primary/10 hover:to-accent/10 dark:from-primary/20 dark:to-accent/20 border border-border/50 rounded-xl transition-all duration-200 cursor-default">
+            <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-linear-to-r from-primary/5 to-accent/5 hover:from-primary/10 hover:to-accent/10 dark:from-primary/20 dark:to-accent/20 border border-border/50 rounded-xl transition-all duration-200 cursor-default">
               <Coins className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">
                 ${userBalance.toFixed(2)}
@@ -177,7 +179,7 @@ export function DashboardLayout({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="rounded-full w-10 h-10 p-0 hover:bg-muted/70 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 dark:from-primary dark:to-accent flex items-center justify-center text-primary-foreground font-semibold shadow-md hover:shadow-lg transition-shadow">
+                  <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-primary/80 dark:from-primary dark:to-accent flex items-center justify-center text-primary-foreground font-semibold shadow-md hover:shadow-lg transition-shadow">
                     {userEmail.charAt(0).toUpperCase()}
                   </div>
                 </Button>
