@@ -1,63 +1,12 @@
 @import "tailwindcss";
+@import "tailwindcss-animate";
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.6%;
-    --card: 0 0% 96.3%;
-    --card-foreground: 0 0% 3.6%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.6%;
-    --muted: 0 0% 89.8%;
-    --muted-foreground: 0 0% 39.2%;
-    --accent: 262.1 80% 50.4%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --primary: 262.1 80% 50.4%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --ring: 262.1 80% 50.4%;
-  }
-
-  .dark {
-    --background: 217.2 32.6% 17.5%;
-    --foreground: 210 40% 98%;
-    --card: 217.2 26.8% 23.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 217.2 32.6% 17.5%;
-    --popover-foreground: 210 40% 98%;
-    --muted: 215 27.9% 33.3%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 280.2 97.3% 61.8%;
-    --accent-foreground: 217.2 32.6% 17.5%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 27.9% 33.3%;
-    --input: 215 27.9% 33.3%;
-    --primary: 280.2 97.3% 61.8%;
-    --primary-foreground: 217.2 32.6% 17.5%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --ring: 280.2 97.3% 61.8%;
-  }
-
-  * {
-    border-color: hsl(var(--border));
-  }
-
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-white text-black;
   }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  
+  .dark body {
+    @apply bg-main-bg text-white;
   }
 }

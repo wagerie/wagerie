@@ -7,7 +7,7 @@ function AuthTestimonials() {
       <span className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
         {icons.message_bold}
       </span>
-      <div className="flex flex-col gap-6 items-center w-[290px]">
+      <div className="flex flex-col gap-6 items-center w-72.5">
         <p className="text-primary font-normal text-center">
           Wagerie has completely transformed the way I win products and cash
           prizes. it is a game changer in the world of digitalized raffle draw

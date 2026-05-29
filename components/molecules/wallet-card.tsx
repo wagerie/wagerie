@@ -24,15 +24,19 @@ export function WalletCard({
     <div className="relative w-full overflow-hidden rounded-2xl bg-linear-to-br from-primary via-primary to-primary/80 dark:from-primary dark:via-primary/90 dark:to-accent/30 p-8 shadow-xl transition-all hover:shadow-2xl animate-fade-in">
       {/* Decorative gradient overlay */}
       <div className="absolute inset-0 bg-linear-to-t from-black/5 to-transparent dark:from-black/20 pointer-events-none" />
-      
+
       <div className="relative z-10 space-y-8">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-primary-foreground/80">Total Balance</p>
+            <p className="text-sm font-medium text-primary-foreground/80">
+              Total Balance
+            </p>
             <h2 className="text-5xl font-bold text-primary-foreground tracking-tight">
               ${balance.toFixed(2)}
-              <span className="text-2xl ml-3 font-semibold text-primary-foreground/70">{currency}</span>
+              <span className="text-2xl ml-3 font-semibold text-primary-foreground/70">
+                {currency}
+              </span>
             </h2>
           </div>
           <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors">

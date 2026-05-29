@@ -178,7 +178,10 @@ export function DashboardLayout({
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="rounded-full w-10 h-10 p-0 hover:bg-muted/70 transition-colors">
+                <Button
+                  variant="ghost"
+                  className="rounded-full w-10 h-10 p-0 hover:bg-muted/70 transition-colors"
+                >
                   <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-primary/80 dark:from-primary dark:to-accent flex items-center justify-center text-primary-foreground font-semibold shadow-md hover:shadow-lg transition-shadow">
                     {userEmail.charAt(0).toUpperCase()}
                   </div>

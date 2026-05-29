@@ -39,7 +39,9 @@ export function ModalLayout({
 }: ModalLayoutProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${sizeClass[size]} ${className} bg-card/95 backdrop-blur-sm border-border/50 shadow-xl rounded-2xl animate-in fade-in-0 zoom-in-95 duration-200`}>
+      <DialogContent
+        className={`${sizeClass[size]} ${className} bg-card/95 backdrop-blur-sm border-border/50 shadow-xl rounded-2xl animate-in fade-in-0 zoom-in-95 duration-200`}
+      >
         {(title || description) && (
           <DialogHeader className="space-y-2">
             {title && (
@@ -57,7 +59,9 @@ export function ModalLayout({
 
         <div className="space-y-6">{children}</div>
 
-        {footer && <div className="mt-6 pt-4 border-t border-border/30">{footer}</div>}
+        {footer && (
+          <div className="mt-6 pt-4 border-t border-border/30">{footer}</div>
+        )}
       </DialogContent>
     </Dialog>
   );

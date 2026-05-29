@@ -29,7 +29,8 @@ const mockPolls: Poll[] = [
   {
     id: "poll-2",
     title: "Will the Fed cut rates in Q2?",
-    description: "Predict if Federal Reserve will cut interest rates in Q2 2024",
+    description:
+      "Predict if Federal Reserve will cut interest rates in Q2 2024",
     category: "economics",
     status: "active",
     endsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
@@ -44,7 +45,8 @@ const mockPolls: Poll[] = [
   {
     id: "poll-3",
     title: "AI will create 5M+ new jobs",
-    description: "Will AI create more than 5 million new jobs globally this year?",
+    description:
+      "Will AI create more than 5 million new jobs globally this year?",
     category: "technology",
     status: "active",
     endsAt: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
