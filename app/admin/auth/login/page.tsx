@@ -14,9 +14,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { InputComponent } from "@/components/atoms/input-component";
+import InputComponent from "@/components/atoms/input-component";
 import { BtnComponent } from "@/components/atoms/button-component";
-import { AuthComponent } from "@/components/molecules/auth-component";
+import AuthComponent from "@/components/molecules/auth-component";
 import { loginSchema, LoginInput } from "@/lib/schemas";
 import { setCookie } from "@/hooks/use-cookies";
 import { toast } from "sonner";

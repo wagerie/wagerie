@@ -172,6 +172,10 @@ export default function PollsPage() {
     (pageIndex + 1) * pageSize,
   );
 
+  const handlePaginationChange = (state: any) => {
+    setPageIndex(state.pageIndex);
+  };
+
   const stats = [
     {
       label: "Active Polls",
@@ -181,13 +185,13 @@ export default function PollsPage() {
     },
     {
       label: "Total Staked",
-      value: `$${(mockPolls.reduce((sum, p) => sum + p.totalStaked, 0) / 1000).toFixed(0)}k`,
+      value: `$${(mockPolls.reduce((sum, p) => sum + (p.totalStaked || 0), 0) / 1000).toFixed(0)}k`,
       icon: Trophy,
       color: "text-primary",
     },
     {
       label: "Total Participants",
-      value: mockPolls.reduce((sum, p) => sum + p.participants, 0),
+      value: mockPolls.reduce((sum, p) => sum + (p.participants || 0), 0),
       icon: Users,
       color: "text-blue-500",
     },
@@ -240,7 +244,7 @@ export default function PollsPage() {
           pageCount={totalPages}
           pageIndex={pageIndex}
           pageSize={pageSize}
-          onPaginationChange={(newPageIndex) => setPageIndex(newPageIndex)}
+          onPaginationChange={handlePaginationChange}
           emptyMessage="No polls found"
         />
       </div>

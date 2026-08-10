@@ -89,32 +89,43 @@ export interface Prize {
 
 export interface Poll {
   id: string;
-  prizeId: string;
-  prize: Prize;
-  totalSlots: number;
-  filledSlots: number;
-  pricePerSlot: number;
+  prizeId?: string;
+  prize?: Prize;
+  totalSlots?: number;
+  filledSlots?: number;
+  pricePerSlot?: number;
   status: PollStatus;
   endsAt: Date;
   createdAt: Date;
-  updatedAt: Date;
-  createdBy: string;
+  updatedAt?: Date;
+  createdBy?: string;
   winningNumber?: number;
   winnerUserId?: string;
+  // Display/UI properties
+  title?: string;
+  description?: string;
+  category?: string;
+  totalStaked?: number;
+  participants?: number;
+  options?: Array<{ id: string; label: string; votes: number }>;
 }
 
-export type StakeStatus = "active" | "won" | "lost" | "claimed";
+export type StakeStatus = "active" | "won" | "lost" | "claimed" | "pending";
 
 export interface Stake {
   id: string;
   userId: string;
   pollId: string;
-  numbers: number[]; // array of unique numbers purchased
+  numbers?: number[]; // array of unique numbers purchased
   amount: number; // total amount staked
-  quantity: number; // number of slots
+  quantity?: number; // number of slots
   status: StakeStatus;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
+  // Display/UI properties
+  pollTitle?: string;
+  selectedOption?: string;
+  potentialWinnings?: number;
 }
 
 // ============================================

@@ -198,6 +198,10 @@ export default function MyStakesPage() {
     (pageIndex + 1) * pageSize,
   );
 
+  const handlePaginationChange = (state: any) => {
+    setPageIndex(state.pageIndex);
+  };
+
   const stats = [
     {
       label: "Total Staked",
@@ -215,7 +219,7 @@ export default function MyStakesPage() {
       label: "Total Winnings",
       value: `$${mockStakes
         .filter((s) => s.status === "won")
-        .reduce((sum, s) => sum + s.potentialWinnings, 0)
+        .reduce((sum, s) => sum + (s?.potentialWinnings || 0), 0)
         .toLocaleString()}`,
       icon: TrendingUp,
       color: "text-green-500",
@@ -279,7 +283,7 @@ export default function MyStakesPage() {
           pageCount={totalPages}
           pageIndex={pageIndex}
           pageSize={pageSize}
-          onPaginationChange={(newPageIndex) => setPageIndex(newPageIndex)}
+          onPaginationChange={handlePaginationChange}
           emptyMessage="No stakes yet. Start staking on polls to see them here!"
         />
       </div>
