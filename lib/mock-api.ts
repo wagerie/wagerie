@@ -186,14 +186,24 @@ export const mockApiHandlers = {
       throw new Error("Wallet not found");
     }
 
-    const totalAmount = quantity * poll.pricePerSlot;
+    const { pricePerSlot, filledSlots, totalSlots, prize } = poll;
+    if (
+      pricePerSlot === undefined ||
+      filledSlots === undefined ||
+      totalSlots === undefined ||
+      !prize
+    ) {
+      throw new Error("Poll is missing stake configuration");
+    }
+
+    const totalAmount = quantity * pricePerSlot;
 
     if (wallet.balance < totalAmount) {
       throw new Error("Insufficient funds");
     }
 
     // Check if poll has available slots
-    if (poll.filledSlots + quantity > poll.totalSlots) {
+    if (filledSlots + quantity > totalSlots) {
       throw new Error("Not enough slots available");
     }
 
@@ -202,7 +212,7 @@ export const mockApiHandlers = {
     wallet.updatedAt = new Date();
 
     // Generate unique numbers for this stake
-    const numbers = generateUniqueNumbers(quantity, poll.totalSlots);
+    const numbers = generateUniqueNumbers(quantity, totalSlots);
 
     // Create stake
     const stake: Stake = {
@@ -218,7 +228,7 @@ export const mockApiHandlers = {
     };
 
     // Update poll filled slots
-    poll.filledSlots += quantity;
+    poll.filledSlots = filledSlots + quantity;
     poll.updatedAt = new Date();
 
     // Create transaction
@@ -228,7 +238,7 @@ export const mockApiHandlers = {
       type: "stake",
       amount: totalAmount,
       status: "completed",
-      description: `Staked in ${poll.prize.name} poll`,
+      description: `Staked in ${prize.name} poll`,
       reference: `STK-${new Date().toISOString().split("T")[0]}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
       pollId,
       stakeId: stake.id,
@@ -267,12 +277,18 @@ export const mockApiHandlers = {
       throw new Error("No stakes in this poll");
     }
 
+    if (poll.totalSlots === undefined || !poll.prize) {
+      throw new Error("Poll is missing winner configuration");
+    }
+
     // Select random winning number
     const winningNumber = Math.floor(Math.random() * poll.totalSlots) + 1;
     poll.winningNumber = winningNumber;
 
     // Find winning stake
-    const winningStake = stakes.find((s) => s.numbers.includes(winningNumber));
+    const winningStake = stakes.find((s) =>
+      s.numbers?.includes(winningNumber),
+    );
     if (!winningStake) {
       throw new Error("No winner found");
     }

@@ -1,40 +1,69 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function proxy(request: NextRequest) {
-  const token = request.cookies.get("wagerie_token")?.value;
-  const adminToken = request.cookies.get("wagerie_admin_token")?.value;
-  const isAuthenticated = !!token;
-  const isAdmin = !!adminToken;
+type Session = {
+  authenticated: boolean;
+  user?: { role: "user" | "admin" };
+};
+
+async function getSession(request: NextRequest): Promise<Session | null> {
+  const configuredApiBaseUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://127.0.0.1:8080/api"
+      : process.env.NEXT_PUBLIC_BASE_API_URL || "/api";
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const forwardedProtocol =
+    request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ??
+    request.nextUrl.protocol.replace(":", "");
+  const requestOrigin = forwardedHost
+    ? `${forwardedProtocol}://${forwardedHost}`
+    : request.nextUrl.origin;
+  const apiBaseUrl = /^https?:\/\//.test(configuredApiBaseUrl)
+    ? configuredApiBaseUrl
+    : new URL(configuredApiBaseUrl, requestOrigin).toString().replace(/\/$/, "");
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/auth/session`, {
+      headers: { cookie: request.headers.get("cookie") ?? "" },
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as Session;
+  } catch {
+    return null;
+  }
+}
+
+export async function proxy(request: NextRequest) {
+  const session = await getSession(request);
+  const isAuthenticated = session?.authenticated === true;
+  const isAdmin = session?.user?.role === "admin";
   const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+  const isAdminAuthRoute = request.nextUrl.pathname.startsWith("/admin/auth");
 
-  // ========== ADMIN ROUTES ==========
-  if (isAdminRoute) {
-    // If admin route but not authenticated as admin, redirect to admin login
-    if (!isAdmin) {
-      return NextResponse.redirect(new URL("/admin/auth/login", request.url));
-    }
-    // Admin is authenticated, allow access
-    return NextResponse.next();
+  if (isAdminRoute && !isAdminAuthRoute) {
+    return isAdmin
+      ? NextResponse.next()
+      : NextResponse.redirect(new URL("/admin/auth/login", request.url));
   }
 
-  // ========== AUTH ROUTES ==========
-  // If authenticated and on auth page, redirect to dashboard
   if (isAuthenticated && isAuthRoute) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // ========== DASHBOARD/CLIENT ROUTES ==========
-  // If not authenticated and not on auth page, redirect to login
-  if (!isAuthenticated && !isAuthRoute && request.nextUrl.pathname !== "/") {
+  if (
+    !isAuthenticated &&
+    !isAuthRoute &&
+    !isAdminAuthRoute &&
+    request.nextUrl.pathname !== "/"
+  ) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
   return NextResponse.next();
 }
 
-// Match all routes except static files
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

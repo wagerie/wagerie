@@ -27,7 +27,7 @@ import {
 import { PrimaryLogo } from "@/components/atoms/logo";
 import { ModeToggle } from "@/components/atoms/toggle-theme";
 import { cn } from "@/lib/utils";
-import { removeCookie, getCookie } from "@/hooks/use-cookies";
+import api from "@/lib/axios";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -82,9 +82,12 @@ export function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
-    removeCookie("wagerie_token");
-    router.push("/auth/login");
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/signout");
+    } finally {
+      router.push("/auth/login");
+    }
   };
 
   const items = isAdmin ? [...navItems, ...adminNavItems] : navItems;
