@@ -8,19 +8,13 @@ type Session = {
 
 async function getSession(request: NextRequest): Promise<Session | null> {
   const configuredApiBaseUrl =
-    process.env.NODE_ENV === "development"
+    process.env.WAGERIE_API_INTERNAL_URL ??
+    (process.env.NODE_ENV === "development"
       ? "http://127.0.0.1:8080/api"
-      : process.env.NEXT_PUBLIC_BASE_API_URL || "/api";
-  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
-  const forwardedProtocol =
-    request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ??
-    request.nextUrl.protocol.replace(":", "");
-  const requestOrigin = forwardedHost
-    ? `${forwardedProtocol}://${forwardedHost}`
-    : request.nextUrl.origin;
+      : "/api");
   const apiBaseUrl = /^https?:\/\//.test(configuredApiBaseUrl)
     ? configuredApiBaseUrl
-    : new URL(configuredApiBaseUrl, requestOrigin).toString().replace(/\/$/, "");
+    : new URL(configuredApiBaseUrl, request.url).toString().replace(/\/$/, "");
 
   try {
     const response = await fetch(`${apiBaseUrl}/auth/session`, {
