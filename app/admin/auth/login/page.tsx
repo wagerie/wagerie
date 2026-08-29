@@ -20,6 +20,7 @@ import AuthComponent from "@/components/molecules/auth-component";
 import { loginSchema, LoginInput } from "@/lib/schemas";
 import { toast } from "sonner";
 import api from "@/lib/axios";
+import { API_ROUTES } from "@/constants/routes";
 
 export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +39,7 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     try {
       // For Phase 1, use mock login
-      const { data: response } = await api.post("/auth/admin/signin", {
+      await api.post(API_ROUTES.ADMIN_SIGNIN, {
         email: data.email,
         password: data.password,
       });

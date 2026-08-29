@@ -28,6 +28,7 @@ import { PrimaryLogo } from "@/components/atoms/logo";
 import { ModeToggle } from "@/components/atoms/toggle-theme";
 import { cn } from "@/lib/utils";
 import api from "@/lib/axios";
+import { API_ROUTES } from "@/constants/routes";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -84,7 +85,7 @@ export function DashboardLayout({
 
   const handleLogout = async () => {
     try {
-      await api.post("/auth/signout");
+      await api.post(API_ROUTES.SIGNOUT);
     } finally {
       router.push("/auth/login");
     }
@@ -97,14 +98,14 @@ export function DashboardLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transition-transform duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-50 w-64 border-r border-slate-200 bg-white/85 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-950/90",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
           "lg:relative lg:translate-x-0",
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-6 border-b border-border">
+          <div className="border-b border-slate-200 p-6 dark:border-slate-800">
             <Link href="/dashboard" className="flex items-center gap-2">
               <PrimaryLogo />
             </Link>
@@ -121,10 +122,10 @@ export function DashboardLayout({
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-2 rounded-lg transition-colors",
+                    "flex items-center gap-3 rounded-2xl px-4 py-2.5 transition-all",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted",
+                      ? "bg-violet-600 text-white shadow-[0_12px_26px_rgba(124,58,237,0.28)]"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800",
                   )}
                 >
                   <Icon className="w-5 h-5" />
@@ -151,7 +152,7 @@ export function DashboardLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Navbar */}
-        <header className="h-16 bg-card/50 backdrop-blur-md border-b border-border/50 shadow-sm flex items-center justify-between px-4 lg:px-8 transition-all">
+        <header className="h-16 border-b border-slate-200 bg-white/70 shadow-sm backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/70 flex items-center justify-between px-4 lg:px-8 transition-all">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -168,7 +169,7 @@ export function DashboardLayout({
           {/* Right side of navbar */}
           <div className="flex items-center gap-3">
             {/* Wallet Balance */}
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-linear-to-r from-primary/5 to-accent/5 hover:from-primary/10 hover:to-accent/10 dark:from-primary/20 dark:to-accent/20 border border-border/50 rounded-xl transition-all duration-200 cursor-default">
+            <div className="hidden sm:flex items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700 shadow-sm dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-200">
               <Coins className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">
                 ${userBalance.toFixed(2)}
@@ -183,9 +184,9 @@ export function DashboardLayout({
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="rounded-full w-10 h-10 p-0 hover:bg-muted/70 transition-colors"
+                  className="h-10 w-10 rounded-full p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
-                  <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-primary/80 dark:from-primary dark:to-accent flex items-center justify-center text-primary-foreground font-semibold shadow-md hover:shadow-lg transition-shadow">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-indigo-500 font-semibold text-white shadow-md transition-shadow hover:shadow-lg">
                     {userEmail.charAt(0).toUpperCase()}
                   </div>
                 </Button>

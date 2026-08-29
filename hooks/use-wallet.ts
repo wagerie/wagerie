@@ -6,6 +6,7 @@ import api from "@/lib/axios";
 import { Wallet, Transaction, TransactionFilter } from "@/lib/types";
 import { DepositInput, WithdrawInput } from "@/lib/schemas";
 import { PaginatedResponse } from "@/lib/types";
+import { API_ROUTES } from "@/constants/routes";
 
 // ============================================
 // QUERY KEYS
@@ -30,7 +31,7 @@ export const useGetBalance = (userId: string) => {
   return useQuery({
     queryKey: walletQueryKeys.balance(userId),
     queryFn: async () => {
-      const { data } = await api.get<Wallet>(`/wallet/balance`, {
+      const { data } = await api.get<Wallet>(API_ROUTES.WALLET_BALANCE, {
         params: { userId },
       });
       return data;
@@ -138,7 +139,7 @@ export const useTransactionHistory = (
         params.append("pageSize", filter.pageSize.toString());
 
       const { data } = await api.get<PaginatedResponse<Transaction>>(
-        "/wallet/transactions",
+        API_ROUTES.WALLET_TRANSACTIONS,
         { params: Object.fromEntries(params) },
       );
       return data;
