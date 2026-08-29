@@ -12,7 +12,6 @@ import { z } from "zod";
 import { usePost } from "@/hooks/use-api";
 import { useRouter } from "next/navigation";
 import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
-import { setCookie } from "@/hooks/use-cookies";
 
 const formSchema = z
   .object({
@@ -36,12 +35,8 @@ export default function Login() {
   });
 
   const { mutate: login, isPending } = usePost(API_ROUTES.SIGNIN, {
-    onSuccess: (response: any) => {
-      // Assuming response.token exists
-      if (response?.data?.accessToken) {
-        setCookie("wagerie_token", response?.data?.accessToken);
+      onSuccess: () => {
         router.push(APP_ROUTES.DASHBOARD);
-      }
     },
   });
 

@@ -18,7 +18,6 @@ import InputComponent from "@/components/atoms/input-component";
 import { BtnComponent } from "@/components/atoms/button-component";
 import AuthComponent from "@/components/molecules/auth-component";
 import { loginSchema, LoginInput } from "@/lib/schemas";
-import { setCookie } from "@/hooks/use-cookies";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 
@@ -30,8 +29,8 @@ export default function AdminLoginPage() {
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "admin@wagerie.com",
-      password: "password123",
+      email: "",
+      password: "",
     },
   });
 
@@ -43,9 +42,6 @@ export default function AdminLoginPage() {
         email: data.email,
         password: data.password,
       });
-
-      // Store admin token
-      setCookie("wagerie_admin_token", response.token);
 
       toast.success("Admin login successful");
       router.push("/admin/dashboard");
@@ -62,8 +58,10 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen bg-background">
       <AuthComponent
-        heading="Admin Login"
-        description="Sign in to access the admin dashboard"
+        pageInfo={{
+          heading: "Admin Login",
+          desc: "Sign in to access the admin dashboard",
+        }}
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -78,8 +76,8 @@ export default function AdminLoginPage() {
                     <InputComponent
                       {...field}
                       type="email"
-                      placeholder="admin@wagerie.com"
-                      icon="mail"
+                      placeholder="Enter your email"
+                      hasRightIcon
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -110,7 +108,7 @@ export default function AdminLoginPage() {
                         {...field}
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
-                        icon="lock"
+                        hasRightIcon
                         disabled={isLoading}
                       />
                     </div>
@@ -124,32 +122,10 @@ export default function AdminLoginPage() {
             <BtnComponent
               type="submit"
               className="w-full"
-              isLoading={isLoading}
+              loading={isLoading}
             >
               Sign In as Admin
             </BtnComponent>
-
-            {/* Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Demo Credentials
-                </span>
-              </div>
-            </div>
-
-            {/* Demo Info */}
-            <div className="p-3 bg-muted rounded-lg text-xs text-muted-foreground space-y-1">
-              <p>
-                <strong>Email:</strong> admin@wagerie.com
-              </p>
-              <p>
-                <strong>Password:</strong> password123
-              </p>
-            </div>
 
             {/* User Login Link */}
             <div className="text-center text-sm">

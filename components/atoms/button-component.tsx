@@ -14,6 +14,7 @@ interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | "link";
   size?: "default" | "sm" | "lg" | "icon";
   loading?: boolean;
+  asChild?: boolean;
 }
 
 export const BtnComponent = ({
@@ -22,6 +23,7 @@ export const BtnComponent = ({
   size,
   className,
   loading,
+  asChild,
   disabled,
   type = "button",
   ...props
@@ -34,12 +36,19 @@ export const BtnComponent = ({
         "disabled:opacity-50 disabled:cursor-not-allowed flex gap-1",
         className,
       )}
+      asChild={asChild}
       disabled={loading || disabled}
       type={type}
       {...props}
     >
-      {children}{" "}
-      {loading ? <Loader2 className="animate-spin" size={18} /> : null}
+      {asChild ? (
+        children
+      ) : (
+        <>
+          {children}{" "}
+          {loading ? <Loader2 className="animate-spin" size={18} /> : null}
+        </>
+      )}
     </Button>
   );
 };
