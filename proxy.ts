@@ -1,43 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-type Session = {
-  authenticated: boolean;
-  user?: { role: "user" | "admin" };
-};
-
-async function getSession(request: NextRequest): Promise<Session | null> {
-  const configuredApiBaseUrl =
-    process.env.WAGERIE_API_INTERNAL_URL ??
-    (process.env.NODE_ENV === "development"
-      ? "http://127.0.0.1:8080/api"
-      : "/api");
-  const apiBaseUrl = /^https?:\/\//.test(configuredApiBaseUrl)
-    ? configuredApiBaseUrl
-    : new URL(configuredApiBaseUrl, request.url).toString().replace(/\/$/, "");
-
-  try {
-    const response = await fetch(`${apiBaseUrl}/auth/session`, {
-      headers: { cookie: request.headers.get("cookie") ?? "" },
-      cache: "no-store",
-    });
-    if (!response.ok) return null;
-    return (await response.json()) as Session;
-  } catch {
-    return null;
-  }
-}
-
 export async function proxy(request: NextRequest) {
-  const session = await getSession(request);
-  const isAuthenticated = session?.authenticated === true;
-  const isAdmin = session?.user?.role === "admin";
+  const token = request.cookies.get("wagerie_token")?.value;
+  const isAuthenticated = Boolean(token);
   const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
   const isAdminAuthRoute = request.nextUrl.pathname.startsWith("/admin/auth");
 
   if (isAdminRoute && !isAdminAuthRoute) {
-    return isAdmin
+    return isAuthenticated
       ? NextResponse.next()
       : NextResponse.redirect(new URL("/admin/auth/login", request.url));
   }

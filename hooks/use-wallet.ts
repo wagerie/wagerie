@@ -51,7 +51,7 @@ export const useDeposit = () => {
       const { data } = await api.post<{
         wallet: Wallet;
         transaction: Transaction;
-      }>("/wallet/deposit", {
+      }>(API_ROUTES.WALLET_DEPOSIT, {
         userId: input.userId,
         amount: input.amount,
         paymentMethod: input.paymentMethod,
@@ -89,7 +89,7 @@ export const useWithdraw = () => {
       const { data } = await api.post<{
         wallet: Wallet;
         transaction: Transaction;
-      }>("/wallet/withdraw", {
+      }>(API_ROUTES.WALLET_WITHDRAW, {
         userId: input.userId,
         amount: input.amount,
         bankDetails: input.bankDetails,

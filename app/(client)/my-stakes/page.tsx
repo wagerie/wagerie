@@ -9,6 +9,7 @@ import { useGet } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
 import type { Stake } from "@/lib/types";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
   Zap,
   TrendingUp,
@@ -199,53 +200,60 @@ export default function MyStakesPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col gap-8 p-6 lg:p-8 overflow-auto">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold text-foreground">My Stakes</h1>
-        <p className="text-muted-foreground">
-          Track your prediction stakes and winnings.
-        </p>
-      </div>
+    <DashboardLayout>
+      <div className="flex min-h-full flex-1 flex-col gap-8 bg-[#f5f3ff] p-6 lg:p-8 dark:bg-[#0b1020]">
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
+            Your positions
+          </p>
+          <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">
+            My Stakes
+          </h1>
+          <p className="text-muted-foreground">
+            Track your prediction stakes and winnings.
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={stat.label}
-              className="flex items-center gap-3 p-4 bg-card border border-border/50 rounded-xl hover:border-border transition-colors"
-            >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
               <div
-                className={`p-2.5 rounded-lg bg-primary/10 dark:bg-primary/20 ${
-                  stat.color
-                }`}
+                key={stat.label}
+                className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-white/80 p-4 shadow-[0_8px_24px_rgba(37,99,235,0.06)] transition-colors hover:border-blue-200 dark:border-slate-800 dark:bg-slate-900/80"
               >
-                <Icon className="w-5 h-5" />
+                <div
+                  className={`p-2.5 rounded-lg bg-primary/10 dark:bg-primary/20 ${
+                    stat.color
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm text-muted-foreground font-medium">
+                    {stat.label}
+                  </p>
+                  <p className="text-xl font-bold text-foreground">
+                    {stat.value}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <p className="text-sm text-muted-foreground font-medium">
-                  {stat.label}
-                </p>
-                <p className="text-xl font-bold text-foreground">
-                  {stat.value}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
 
-      <div className="bg-card border border-border/50 rounded-xl overflow-hidden">
-        <DataTable
-          columns={columns}
-          data={stakes}
-          pageCount={totalPages}
-          pageIndex={pageIndex}
-          pageSize={pageSize}
-          onPaginationChange={handlePaginationChange}
-          emptyMessage={isLoading ? "Loading stakes..." : "No stakes found"}
-        />
+        <div className="overflow-hidden rounded-2xl border border-blue-100 bg-white/80 dark:border-slate-800 dark:bg-slate-900/80">
+          <DataTable
+            columns={columns}
+            data={stakes}
+            pageCount={totalPages}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            onPaginationChange={handlePaginationChange}
+            emptyMessage={isLoading ? "Loading stakes..." : "No stakes found"}
+          />
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

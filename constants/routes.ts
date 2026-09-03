@@ -40,6 +40,7 @@ export const APP_ROUTES = {
   VERIFY_FORGOT_PASSWORD: "/auth/verify-forgot-password",
   RESET_PASSWORD: "/auth/reset-password",
   DASHBOARD: "/dashboard",
+  PROFILE: "/profile",
   POLLS: "/polls",
   MY_STAKES: "/my-stakes",
   TRANSACTIONS: "/transactions",

@@ -65,7 +65,7 @@ export function DataTable<TData>({
   return (
     <div className="space-y-4">
       {/* Table */}
-      <div className="border border-border rounded-lg overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white/60 dark:border-slate-800 dark:bg-slate-950/30">
         {isLoading ? (
           <div className="flex items-center justify-center p-8">
             <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -81,7 +81,7 @@ export function DataTable<TData>({
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow
                     key={headerGroup.id}
-                    className="border-b border-border"
+                    className="border-b border-slate-200 dark:border-slate-800"
                   >
                     {headerGroup.headers.map((header) => (
                       <TableHead key={header.id}>
@@ -98,7 +98,10 @@ export function DataTable<TData>({
               </TableHeader>
               <TableBody>
                 {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className="border-b border-border">
+                  <TableRow
+                    key={row.id}
+                    className="border-b border-slate-200 dark:border-slate-800"
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(

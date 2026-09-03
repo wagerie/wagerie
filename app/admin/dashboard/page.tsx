@@ -23,7 +23,7 @@ const statCards = [
     label: "Total Revenue",
     value: "$12,450",
     icon: Wallet,
-    color: "text-purple-500",
+    color: "text-blue-500",
   },
   {
     label: "Conversion Rate",
@@ -67,11 +67,16 @@ export default function AdminDashboardPage() {
       userBalance={50000}
       isAdmin={true}
     >
-      <div className="min-h-full bg-background p-4 lg:p-8">
+      <div className="min-h-full bg-[#f5f3ff] p-4 lg:p-8 dark:bg-[#0b1020]">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
+              Operator workspace
+            </p>
+            <h1 className="mb-2 text-3xl font-black tracking-tight text-[#172119] dark:text-[#f3f4ed]">
+              Admin Dashboard
+            </h1>
             <p className="text-muted-foreground">
               Manage polls, users, and track platform analytics
             </p>
@@ -84,7 +89,7 @@ export default function AdminDashboardPage() {
               return (
                 <div
                   key={card.label}
-                  className="bg-card border border-border rounded-lg p-6"
+                  className="rounded-2xl border border-blue-100 bg-white/80 p-6 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
@@ -106,7 +111,7 @@ export default function AdminDashboardPage() {
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             {/* Recent Transactions */}
-            <div className="lg:col-span-2 bg-card border border-border rounded-lg p-6">
+            <div className="lg:col-span-2 rounded-2xl border border-blue-100 bg-white/80 p-6 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold">Recent Transactions</h2>
                 <Link
@@ -121,7 +126,7 @@ export default function AdminDashboardPage() {
                 {recentTransactions.map((tx) => (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
+                    className="flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50/60 p-4 dark:border-slate-700 dark:bg-slate-800/80"
                   >
                     <div className="flex-1">
                       <p className="font-medium">{tx.user}</p>
@@ -137,24 +142,24 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-card border border-border rounded-lg p-6">
+            <div className="rounded-2xl border border-blue-100 bg-white/80 p-6 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80">
               <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
               <div className="space-y-2">
                 <Link
                   href="/admin/polls"
-                  className="block w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-center font-medium"
+                  className="block w-full rounded-xl bg-blue-600 px-4 py-2 text-center font-medium text-white transition-colors hover:bg-blue-700"
                 >
                   Manage Polls
                 </Link>
                 <Link
                   href="/admin/users"
-                  className="block w-full px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-center font-medium"
+                  className="block w-full rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2 text-center font-medium transition-colors hover:bg-blue-100 dark:border-slate-700 dark:bg-slate-800/80 dark:hover:bg-slate-700"
                 >
                   View Users
                 </Link>
                 <Link
                   href="/admin/transactions"
-                  className="block w-full px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-center font-medium"
+                  className="block w-full rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2 text-center font-medium transition-colors hover:bg-blue-100 dark:border-slate-700 dark:bg-slate-800/80 dark:hover:bg-slate-700"
                 >
                   View Transactions
                 </Link>
@@ -163,16 +168,15 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Info Banner */}
-          <div className="bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg p-6">
+          <div className="rounded-2xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-500/20 dark:bg-blue-500/10">
             <h3 className="font-bold mb-2">Welcome to Admin Panel</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Phase 1 Implementation: Wallet system and admin dashboard
-              foundation complete. Use the navigation menu to access polls,
-              users, and transaction management.
+              Monitor wallet activity and manage the platform from the
+              navigation menu.
             </p>
-            <div className="bg-muted/50 border border-border rounded p-3 text-xs text-muted-foreground">
-              <strong>Demo Data:</strong> All data shown is from mock API. Real
-              backend integration will be seamless when endpoints are ready.
+            <div className="rounded-xl border border-blue-100 bg-white/70 p-3 text-xs text-slate-600 dark:border-blue-500/20 dark:bg-slate-900/50 dark:text-slate-300">
+              <strong>Workspace status:</strong> Monitor platform activity,
+              manage live polls, and review account movement from one place.
             </div>
           </div>
         </div>

@@ -4,9 +4,7 @@ import React, { useState } from "react";
 import { ArrowRight, Loader, TrendingUp, Wallet, Zap } from "lucide-react";
 import Link from "next/link";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { WalletCard } from "@/components/molecules/wallet-card";
 import { DepositModal } from "@/components/molecules/modals/deposit-modal";
-import { WithdrawModal } from "@/components/molecules/modals/withdraw-modal";
 import { useGetBalance, useTransactionHistory } from "@/hooks/use-wallet";
 import { Button } from "@/components/ui/button";
 import formatDate from "@/lib/format-date";
@@ -44,7 +42,6 @@ function getTransactionSign(type: string) {
 
 export default function DashboardPage() {
   const [depositOpen, setDepositOpen] = useState(false);
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   const { data: wallet, isLoading: walletLoading } = useGetBalance(
     CURRENT_USER.id,
@@ -61,7 +58,7 @@ export default function DashboardPage() {
       value: "3",
       hint: "Across live polls",
       icon: Zap,
-      glow: "from-violet-500/20 to-indigo-500/10",
+      glow: "from-blue-500/20 to-cyan-500/10",
     },
     {
       label: "Open polls",
@@ -83,30 +80,22 @@ export default function DashboardPage() {
     <DashboardLayout
       userEmail={CURRENT_USER.email}
       userBalance={wallet?.balance || 0}
+      onDeposit={() => setDepositOpen(true)}
     >
-      <div className="min-h-full bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.12),_transparent_20%),linear-gradient(to_bottom,#f8fafc,#f4f7fb)] p-4 dark:bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.18),_transparent_22%),linear-gradient(to_bottom,#0b1020,#0f172a)] lg:p-8">
+      <div className="min-h-full bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.12),_transparent_20%),linear-gradient(to_bottom,#f8fafc,#f4f7fb)] p-4 dark:bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.18),_transparent_22%),linear-gradient(to_bottom,#0b1020,#0f172a)] lg:p-8">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-violet-600 dark:text-violet-300">
+              <p className="text-sm font-medium uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
                 Overview
               </p>
               <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl">
                 Welcome back, player.
               </h1>
             </div>
-            <div className="rounded-full border border-violet-200 bg-white/80 px-3 py-1.5 text-sm text-slate-600 shadow-sm dark:border-violet-500/20 dark:bg-slate-900/80 dark:text-slate-200">
+            <div className="rounded-full border border-blue-200 bg-white/80 px-3 py-1.5 text-sm text-slate-600 shadow-sm dark:border-blue-500/20 dark:bg-slate-900/80 dark:text-slate-200">
               Updated just now
             </div>
-          </div>
-
-          <div className="mb-8">
-            <WalletCard
-              balance={wallet?.balance || 0}
-              onDeposit={() => setDepositOpen(true)}
-              onWithdraw={() => setWithdrawOpen(true)}
-              isLoading={walletLoading}
-            />
           </div>
 
           <div className="mb-8 grid gap-4 md:grid-cols-3">
@@ -144,7 +133,7 @@ export default function DashboardPage() {
                         ? "/polls"
                         : "/transactions"
                   }
-                  className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-violet-600 dark:text-violet-300"
+                  className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-300"
                 >
                   View all
                   <ArrowRight className="h-4 w-4" />
@@ -161,7 +150,7 @@ export default function DashboardPage() {
                 </h2>
                 <Link
                   href="/transactions"
-                  className="text-sm font-medium text-violet-600 dark:text-violet-300"
+                  className="text-sm font-medium text-blue-600 dark:text-blue-300"
                 >
                   View all
                 </Link>
@@ -169,7 +158,7 @@ export default function DashboardPage() {
 
               {isLoading ? (
                 <div className="flex min-h-[160px] items-center justify-center">
-                  <Loader className="h-6 w-6 animate-spin text-violet-600" />
+                  <Loader className="h-6 w-6 animate-spin text-blue-600" />
                 </div>
               ) : recentTransactions.length === 0 ? (
                 <div className="flex min-h-[160px] flex-col items-center justify-center text-center">
@@ -229,7 +218,7 @@ export default function DashboardPage() {
                     key={step}
                     className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/80"
                   >
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-600 text-sm font-bold text-white">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
                       {index + 1}
                     </div>
                     <p className="text-sm text-slate-700 dark:text-slate-200">
@@ -242,15 +231,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
       <DepositModal
         open={depositOpen}
         onOpenChange={setDepositOpen}
-        userId={CURRENT_USER.id}
-      />
-      <WithdrawModal
-        open={withdrawOpen}
-        onOpenChange={setWithdrawOpen}
         userId={CURRENT_USER.id}
       />
     </DashboardLayout>

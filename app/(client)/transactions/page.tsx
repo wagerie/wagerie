@@ -204,11 +204,16 @@ export default function TransactionsPage() {
       userEmail="user@example.com"
       userBalance={wallet?.balance || 0}
     >
-      <div className="min-h-full bg-background p-4 lg:p-8">
+      <div className="min-h-full bg-[#f5f3ff] p-4 lg:p-8 dark:bg-[#0b1020]">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Transactions</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
+              Money movement
+            </p>
+            <h1 className="mb-2 text-3xl font-black tracking-tight text-slate-950 dark:text-white">
+              Transactions
+            </h1>
             <p className="text-muted-foreground">
               View and manage all your wallet transactions
             </p>
@@ -216,7 +221,7 @@ export default function TransactionsPage() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-card border border-border rounded-lg p-4">
+            <div className="rounded-2xl border border-blue-100 bg-white/80 p-5 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80">
               <p className="text-sm text-muted-foreground mb-2">
                 Current Balance
               </p>
@@ -224,7 +229,7 @@ export default function TransactionsPage() {
                 ${(wallet?.balance || 0).toFixed(2)}
               </p>
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            <div className="rounded-2xl border border-blue-100 bg-white/80 p-5 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80">
               <p className="text-sm text-muted-foreground mb-2">
                 Total Transactions
               </p>
@@ -232,14 +237,14 @@ export default function TransactionsPage() {
                 {transactionsData?.total || 0}
               </p>
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            <div className="rounded-2xl border border-blue-100 bg-white/80 p-5 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80">
               <p className="text-sm text-muted-foreground mb-2">Currency</p>
               <p className="text-2xl font-bold">{wallet?.currency || "USD"}</p>
             </div>
           </div>
 
           {/* Filters */}
-          <div className="bg-card border border-border rounded-lg p-4 mb-6">
+          <div className="mb-6 rounded-2xl border border-blue-100 bg-white/80 p-5 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SelectComponent
                 label="Transaction Type"

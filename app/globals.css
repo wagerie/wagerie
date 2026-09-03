@@ -2,7 +2,8 @@
 @plugin "tailwindcss-animate";
 
 @theme {
-  --color-primary: #fcfcfc;
+  --color-primary: #2563eb;
+  --color-primary-foreground: #ffffff;
   --color-secondary: #b1b4bb;
   --color-main-bg: #12151e;
   --color-dark-bg: #323846;
@@ -62,7 +63,7 @@
 
 @layer base {
   body {
-    @apply bg-white text-black;
+    @apply bg-[#f5f3ff] text-slate-900;
   }
 
   .dark body {

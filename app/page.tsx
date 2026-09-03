@@ -45,28 +45,28 @@ const stats = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#f5f3ff] text-slate-900 dark:bg-[#0b1020] dark:text-white">
+    <main className="min-h-screen bg-[#0b1020] text-white">
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
-        <header className="rounded-full border border-slate-200/80 bg-white/70 px-4 py-3 shadow-[0_10px_40px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/70">
+        <header className="rounded-2xl border border-slate-800 bg-slate-950/85 px-4 py-3 shadow-[0_16px_40px_rgba(2,6,23,0.28)] backdrop-blur-xl">
           <div className="flex items-center justify-between gap-4">
-            <PrimaryLogo className="text-lg sm:text-xl" />
+            <PrimaryLogo className="text-lg text-white sm:text-xl" />
 
-            <nav className="hidden items-center gap-6 text-sm text-slate-600 dark:text-slate-300 md:flex">
+            <nav className="hidden items-center gap-2 text-sm text-slate-400 md:flex">
               <Link
                 href="#features"
-                className="transition hover:text-slate-900 dark:hover:text-white"
+                className="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white"
               >
                 Features
               </Link>
               <Link
                 href="#benefits"
-                className="transition hover:text-slate-900 dark:hover:text-white"
+                className="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white"
               >
                 Benefits
               </Link>
               <Link
                 href="#insights"
-                className="transition hover:text-slate-900 dark:hover:text-white"
+                className="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white"
               >
                 Insights
               </Link>
@@ -74,7 +74,10 @@ export default function Home() {
 
             <div className="flex items-center gap-3">
               <ModeToggle />
-              <BtnComponent variant="outline" asChild>
+              <BtnComponent
+                className="border-slate-700 bg-transparent text-slate-200 hover:bg-white/10 hover:text-white"
+                asChild
+              >
                 <Link href={APP_ROUTES.LOGIN}>Login</Link>
               </BtnComponent>
             </div>
@@ -82,11 +85,11 @@ export default function Home() {
         </header>
 
         <section className="relative overflow-hidden pt-16 sm:pt-20">
-          <div className="absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_top,_rgba(168,85,247,0.18),_transparent_40%),radial-gradient(circle_at_right,_rgba(59,130,246,0.18),_transparent_30%)]" />
+          <div className="absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_40%),radial-gradient(circle_at_right,_rgba(14,165,233,0.18),_transparent_30%)]" />
 
           <div className="grid items-center gap-10 lg:grid-cols-[1.08fr_0.92fr]">
             <div>
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-200">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
                 <Sparkles className="h-4 w-4" />
                 Built for modern prediction communities
               </div>
@@ -127,11 +130,11 @@ export default function Home() {
 
             <div className="relative">
               <div className="rounded-[32px] border border-slate-200 bg-white p-4 shadow-[0_25px_80px_rgba(79,70,229,0.18)] dark:border-slate-800 dark:bg-slate-900">
-                <div className="rounded-[28px] bg-[linear-gradient(135deg,#111827_0%,#312e81_30%,#7c3aed_100%)] p-3 text-white">
+                <div className="rounded-[28px] bg-[linear-gradient(135deg,#111827_0%,#1d4ed8_48%,#06b6d4_100%)] p-3 text-white">
                   <div className="rounded-[24px] bg-white/5 p-5 backdrop-blur-sm">
                     <div className="mb-6 flex items-center justify-between">
                       <div>
-                        <p className="text-xs uppercase tracking-[0.22em] text-violet-200">
+                        <p className="text-xs uppercase tracking-[0.22em] text-blue-200">
                           Portfolio
                         </p>
                         <h2 className="mt-2 text-3xl font-bold">$24,860</h2>
@@ -143,17 +146,17 @@ export default function Home() {
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p className="text-xs text-violet-200">Active stakes</p>
+                        <p className="text-xs text-blue-200">Active stakes</p>
                         <p className="mt-2 text-2xl font-bold">127</p>
                       </div>
                       <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p className="text-xs text-violet-200">This month</p>
+                        <p className="text-xs text-blue-200">This month</p>
                         <p className="mt-2 text-2xl font-bold">+18.4%</p>
                       </div>
                     </div>
 
                     <div className="mt-6 rounded-2xl border border-white/10 bg-slate-950/20 p-4">
-                      <div className="mb-3 flex items-center justify-between text-sm text-violet-100">
+                      <div className="mb-3 flex items-center justify-between text-sm text-blue-100">
                         <span>Poll momentum</span>
                         <span>Live</span>
                       </div>
@@ -164,13 +167,13 @@ export default function Home() {
                           { label: "Sports", value: "83%" },
                         ].map((item) => (
                           <div key={item.label}>
-                            <div className="mb-1 flex items-center justify-between text-xs text-violet-100">
+                            <div className="mb-1 flex items-center justify-between text-xs text-blue-100">
                               <span>{item.label}</span>
                               <span>{item.value}</span>
                             </div>
                             <div className="h-2 rounded-full bg-white/10">
                               <div
-                                className="h-2 rounded-full bg-gradient-to-r from-violet-400 to-cyan-400"
+                                className="h-2 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400"
                                 style={{ width: item.value }}
                               />
                             </div>
@@ -206,7 +209,7 @@ export default function Home() {
 
         <section id="features" className="mt-24">
           <div className="mb-8 max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600 dark:text-violet-300">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
               Everything in one place
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-4xl">
@@ -220,7 +223,7 @@ export default function Home() {
                 key={title}
                 className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(79,70,229,0.1)] dark:border-slate-800 dark:bg-slate-900"
               >
-                <div className="mb-5 inline-flex rounded-2xl bg-violet-100 p-3 text-violet-700 dark:bg-violet-500/15 dark:text-violet-200">
+                <div className="mb-5 inline-flex rounded-2xl bg-blue-100 p-3 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
                   <Icon className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
@@ -270,7 +273,7 @@ export default function Home() {
           <div className="rounded-[32px] bg-[linear-gradient(135deg,#111827_0%,#1f2937_30%,#4338ca_100%)] p-8 text-white shadow-[0_25px_80px_rgba(79,70,229,0.2)] sm:p-10">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-violet-200">
+                <p className="text-sm uppercase tracking-[0.2em] text-blue-200">
                   Player feedback
                 </p>
                 <h2 className="mt-3 text-3xl font-bold tracking-tight">
