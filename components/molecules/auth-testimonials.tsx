@@ -8,14 +8,14 @@ function AuthTestimonials() {
         {icons.message_bold}
       </span>
       <div className="flex flex-col gap-6 items-center w-72.5">
-        <p className="text-primary font-normal text-center">
+        <p className="text-white font-normal text-center">
           Wagerie has completely transformed the way I win products and cash
           prizes. it is a game changer in the world of digitalized raffle draw
           system
         </p>
 
         <div className="flex flex-col gap-1 items-center">
-          <h1 className="text-sm font-semibold text-primary">Ariana Grande</h1>
+          <h1 className="text-sm font-semibold text-white">Ariana Grande</h1>
           <p className="text-xs font-normal text-secondary ">
             Visual Designer, Google
           </p>

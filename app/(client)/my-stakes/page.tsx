@@ -51,7 +51,7 @@ export default function MyStakesPage() {
           </p>
           <p className="text-xs text-muted-foreground font-medium">
             Your prediction:{" "}
-            <span className="text-primary capitalize">
+            <span className="text-blue-600 capitalize dark:text-blue-300">
               {row.original.selectedOption ?? "pending"}
             </span>
           </p>
@@ -63,7 +63,7 @@ export default function MyStakesPage() {
       header: "Staked",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-primary" />
+          <DollarSign className="w-4 h-4 text-blue-600 dark:text-blue-300" />
           <span className="text-sm font-semibold">
             ${(Number(row.getValue("amount")) || 0).toLocaleString()}
           </span>
@@ -170,7 +170,7 @@ export default function MyStakesPage() {
       label: "Total Staked",
       value: `$${stakes.reduce((sum, s) => sum + Number(s.amount || 0), 0).toLocaleString()}`,
       icon: DollarSign,
-      color: "text-primary",
+      color: "text-blue-600 dark:text-blue-300",
     },
     {
       label: "Active Stakes",

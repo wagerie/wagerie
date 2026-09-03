@@ -19,7 +19,7 @@ export const PrimaryLogo = ({ className }: { className?: string }) => {
       /> */}
       <h1
         className={cn(
-          "text-main-bg text-3xl font-semibold dark:text-primary",
+          "text-main-bg text-3xl font-semibold dark:text-white",
           montserratAlternates.className,
           className,
         )}

@@ -9,7 +9,7 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
     <div className="grid grid-cols-2 min-h-screen p-5 container mx-auto">
       <div className="p-15 bg-secondary-dark-bg dark:bg-[url('/assets/images/soft-light.png'),_url('/assets/images/overlay.png')] rounded-[30px] bg-[url('/assets/images/overlay.png'),_url('/assets/images/group.png')]_bg-[size:cover,_cover] bg-position-[center,center] flex flex-col justify-between">
         <Link href={"/"}>
-          <PrimaryLogo className="text-primary" />
+          <PrimaryLogo className="text-white" />
         </Link>
 
         <AuthTestimonials />

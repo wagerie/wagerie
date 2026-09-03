@@ -215,7 +215,7 @@ export function DashboardLayout({
           <div className="flex items-center gap-3">
             {/* Wallet Balance */}
             <div className="hidden items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-200 sm:flex">
-              <Coins className="w-4 h-4 text-primary" />
+              <Coins className="w-4 h-4 text-blue-500" />
               <span className="text-sm font-semibold text-slate-900 dark:text-white">
                 ${userBalance.toFixed(2)}
               </span>

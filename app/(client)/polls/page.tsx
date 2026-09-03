@@ -86,7 +86,7 @@ export default function PollsPage() {
       header: "Total Staked",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-primary" />
+          <Trophy className="w-4 h-4 text-blue-600 dark:text-blue-300" />
           <span className="text-sm font-semibold">
             ${Number(row.getValue("totalStaked") || 0).toLocaleString()}
           </span>
@@ -112,7 +112,7 @@ export default function PollsPage() {
             size="sm"
             className={`${
               status === "active"
-                ? "bg-primary text-primary-foreground hover:shadow-md"
+                ? "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
                 : "bg-muted text-muted-foreground cursor-not-allowed"
             } transition-all`}
             disabled={status !== "active"}
@@ -135,7 +135,7 @@ export default function PollsPage() {
       label: "Total Staked",
       value: `$${polls.reduce((sum, p) => sum + (Number(p.totalStaked) || 0), 0).toLocaleString()}`,
       icon: Trophy,
-      color: "text-primary",
+      color: "text-blue-600 dark:text-blue-300",
     },
     {
       label: "Total Participants",

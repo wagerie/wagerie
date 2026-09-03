@@ -116,7 +116,7 @@ export default function AdminDashboardPage() {
                 <h2 className="text-xl font-bold">Recent Transactions</h2>
                 <Link
                   href="/admin/transactions"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-blue-600 hover:underline dark:text-blue-300"
                 >
                   View all
                 </Link>

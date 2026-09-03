@@ -26,7 +26,7 @@ function AuthComponent({
       <div className={cn("flex flex-col gap-2", otp && "items-center")}>
         <h1
           className={cn(
-            "text-[#1B1818] dark:text-primary text-[36px] font-semibold",
+            "text-[#1B1818] dark:text-white text-[36px] font-semibold",
             otp ? "text-center" : "",
           )}
         >
