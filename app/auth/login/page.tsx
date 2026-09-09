@@ -38,7 +38,7 @@ export default function Login() {
   const { mutate: login, isPending } = usePost(API_ROUTES.SIGNIN, {
     onSuccess: (data) => {
       console.log("Login successful:", data);
-      setCookie("wagerie_token", (data as any).data.accessToken);
+      setCookie("wagerie_token", (data as any).data.refreshToken);
       router.push(APP_ROUTES.DASHBOARD);
     },
   });

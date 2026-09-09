@@ -6,7 +6,7 @@ import {
   UseQueryOptions,
   UseMutationOptions,
 } from "@tanstack/react-query";
-import api from "@/lib/axios";
+import client from "@/lib/axios";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 
@@ -19,7 +19,7 @@ export function useGet<T>(
   return useQuery<T, AxiosError>({
     queryKey: key,
     queryFn: async () => {
-      const response = await api.get<T>(url);
+      const response = await client.get<T>(url);
       return response.data;
     },
     ...options,
@@ -37,7 +37,7 @@ export function usePost<T, TVariables = any>(
   return useMutation<T, AxiosError, TVariables>({
     ...restOptions,
     mutationFn: async (data: TVariables) => {
-      const response = await api[method](url, data);
+      const response = await client[method](url, data);
       return response.data;
     },
     onSuccess: (...args) => {
