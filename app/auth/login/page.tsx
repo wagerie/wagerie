@@ -113,15 +113,23 @@ export default function Login() {
           </form>
         </Form>
 
-        <p className="text-sm font-normal text-[#645D5D] dark:text-secondary">
-          Don&apos;t have an account?{" "}
+        <div className="flex items-center justify-between text-xs sm:text-sm font-normal pt-2">
           <Link
             href={APP_ROUTES.FORGOT_PASSWORD}
-            className="capitalize text-blue-600 font-semibold"
+            className="text-blue-500 hover:underline font-semibold"
           >
-            Recover
+            Forgot password?
           </Link>
-        </p>
+          <span className="text-slate-400">
+            Need an account?{" "}
+            <Link
+              href={APP_ROUTES.REGISTER}
+              className="text-blue-500 font-semibold hover:underline"
+            >
+              Sign up
+            </Link>
+          </span>
+        </div>
       </AuthComponent>
     </AuthLayout>
   );

@@ -14,17 +14,19 @@ import {
   History,
   ChevronsLeft,
   ChevronsRight,
+  Ticket,
+  Trophy,
 } from "lucide-react";
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { API_ROUTES } from "@/constants/routes";
-import api from "@/lib/axios";
 import { removeCookie } from "@/hooks/use-cookies";
 import ModalLayout from "@/components/layout/modal-layout";
+import { usePost } from "@/hooks/use-api";
 
-function Sidebar({ isAdmin }: { isAdmin: boolean }) {
+function Sidebar() {
   const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -37,14 +39,14 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
       icon: LayoutDashboard,
     },
     {
-      label: "Polls",
+      label: "Prize Draws",
       href: "/polls",
-      icon: TrendingUp,
+      icon: Trophy,
     },
     {
-      label: "My Stakes",
+      label: "My Entries",
       href: "/my-stakes",
-      icon: Target,
+      icon: Ticket,
     },
     {
       label: "Transactions",
@@ -58,35 +60,20 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
     },
   ];
 
-  const adminNavItems = [
-    {
-      label: "Admin",
-      href: "/admin/dashboard",
-      icon: Settings,
-    },
-    {
-      label: "Users",
-      href: "/admin/users",
-      icon: Users,
-    },
-  ];
+  const items = navItems;
 
-  const items = isAdmin ? [...navItems, ...adminNavItems] : navItems;
-
-  const handleLogout = async () => {
-    try {
-      await api.post(API_ROUTES.SIGNOUT);
-    } finally {
+  const { mutate: signOut } = usePost(API_ROUTES.SIGNOUT, {
+    onSettled: () => {
       removeCookie("wagerie_token");
       router.push("/auth/login");
-    }
-  };
+    },
+  });
 
   return (
     <>
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 hidden border border-slate-800 bg-[#17152a] text-slate-100 shadow-[18px_0_50px_rgba(30,27,75,0.16)] transition-[width,transform] duration-300 ease-in-out dark:border-slate-800 dark:bg-[#111329] lg:inset-y-auto lg:my-3 lg:ml-3 lg:block lg:h-[calc(100vh-1.5rem)] lg:rounded-2xl",
+          "fixed inset-y-0 left-0 z-50 hidden border border-border bg-card text-foreground shadow-[18px_0_50px_rgba(30,27,75,0.12)] transition-[width,transform] duration-300 ease-in-out lg:inset-y-auto lg:my-3 lg:ml-3 lg:block lg:h-[calc(100vh-1.5rem)] lg:rounded-2xl",
           sidebarCollapsed ? "w-20" : "w-72",
           "lg:relative",
         )}
@@ -99,7 +86,7 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
             }
             title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
-            className="absolute -right-3 top-16 z-10 hidden h-7 w-7 items-center justify-center rounded-full border border-slate-700 bg-[#25233e] text-slate-300 shadow-lg transition-colors hover:bg-blue-600 hover:text-white lg:flex"
+            className="absolute -right-3 top-16 z-10 hidden h-7 w-7 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground shadow-lg transition-colors hover:bg-primary hover:text-primary-foreground lg:flex"
           >
             {sidebarCollapsed ? (
               <ChevronsRight className="h-4 w-4" />
@@ -116,7 +103,7 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
             )}
           >
             {!sidebarCollapsed && (
-              <p className="px-3 pb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+              <p className="px-3 pb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                 Navigate
               </p>
             )}
@@ -134,7 +121,7 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
                     sidebarCollapsed ? "justify-center px-3" : "gap-3 px-3.5",
                     isActive
                       ? "bg-blue-600 text-white shadow-[0_10px_24px_rgba(37,99,235,0.28)]"
-                      : "text-slate-400 hover:bg-white/10 hover:text-white",
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
                   <Icon className="h-5 w-5 shrink-0" />
@@ -145,11 +132,11 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
           </nav>
 
           {/* Footer */}
-          <div className="border-t border-white/10 p-4">
+          <div className="border-t border-border p-4">
             <Button
               variant="ghost"
               className={cn(
-                "w-full text-slate-400 hover:bg-white/10 hover:text-white",
+                "w-full text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 sidebarCollapsed ? "justify-center px-2" : "justify-start",
               )}
               onClick={() => setLogoutOpen(true)}
@@ -163,7 +150,7 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
 
       <nav
         aria-label="Mobile navigation"
-        className="fixed bottom-3 left-3 right-3 z-50 flex overflow-x-auto rounded-2xl border border-slate-700 bg-[#17152a]/95 p-2 text-slate-300 shadow-[0_12px_35px_rgba(2,6,23,0.35)] backdrop-blur-xl lg:hidden"
+        className="fixed bottom-3 left-3 right-3 z-50 grid grid-cols-5 items-end overflow-visible rounded-2xl border border-border bg-card/95 p-2 text-muted-foreground shadow-[0_12px_35px_rgba(2,6,23,0.18)] backdrop-blur-xl lg:hidden"
       >
         {items.map((item) => {
           const Icon = item.icon;
@@ -173,14 +160,34 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
               key={`mobile-${item.href}`}
               href={item.href}
               className={cn(
-                "flex min-w-[68px] flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold transition-colors",
+                "flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold transition-colors",
+                item.href === "/dashboard" &&
+                  "relative z-10 order-3 h-16.75 justify-end gap-1.5",
+                item.href === "/polls" && "order-1",
+                item.href === "/my-stakes" && "order-2",
+                item.href === "/transactions" && "order-4",
+                item.href === "/profile" && "order-5",
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-400 hover:bg-white/10 hover:text-white",
+                  ? item.href === "/dashboard"
+                    ? "text-primary"
+                    : "bg-blue-600 text-white"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
             >
-              <Icon className="h-4 w-4" />
-              <span>{item.label}</span>
+              <span
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-xl",
+                  item.href === "/dashboard" &&
+                    "absolute -top-8 left-1/2 h-16 w-16 -translate-x-1/2 rounded-full border-4 border-background bg-blue-600 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35)]",
+                )}
+              >
+                <Icon
+                  className={cn(
+                    item.href === "/dashboard" ? "h-5 w-5" : "h-4 w-4",
+                  )}
+                />
+              </span>
+              <span className="text-center">{item.label}</span>
             </Link>
           );
         })}
@@ -201,11 +208,7 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
           >
             Cancel
           </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={handleLogout}
-          >
+          <Button type="button" variant="destructive" onClick={() => signOut(undefined)}>
             <LogOut className="mr-2 h-4 w-4" />
             Confirm Logout
           </Button>

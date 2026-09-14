@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState } from "react";
-import { Coins, LogOut, ArrowDownRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Coins, LogOut, ArrowDownRight, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,6 +16,10 @@ import { PrimaryLogo } from "@/components/atoms/logo";
 import { ModeToggle } from "@/components/atoms/toggle-theme";
 import Link from "next/link";
 import { DepositModal } from "./modals/deposit-modal";
+import ModalLayout from "@/components/layout/modal-layout";
+import { API_ROUTES } from "@/constants/routes";
+import { removeCookie } from "@/hooks/use-cookies";
+import { usePost } from "@/hooks/use-api";
 
 function Header({
   userEmail,
@@ -25,32 +32,51 @@ function Header({
   onDeposit?: () => void;
   isAdmin: boolean;
 }) {
+  const router = useRouter();
   const [depositOpen, setDepositOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+
+  const { mutate: signOut } = usePost(API_ROUTES.SIGNOUT, {
+    onSettled: () => {
+      removeCookie("wagerie_token");
+      router.push("/auth/login");
+    },
+  });
+
+  const openLogoutDialog = () => {
+    setLogoutOpen(true);
+  };
 
   return (
-    <header className="lg:mx-6 mx-3 mt-3 flex h-[76px] items-center justify-between rounded-2xl border border-blue-100 bg-white/80 px-4 shadow-[0_12px_30px_rgba(30,41,59,0.06)] backdrop-blur-xl transition-all dark:border-slate-800 dark:bg-slate-950/80 lg:px-8">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard" className="">
-          <PrimaryLogo className="text-2xl text-slate-900 dark:text-white" />
+    <header className="mx-3 mt-3 flex h-18 items-center justify-between rounded-2xl border border-border bg-card/95 px-4 shadow-[0_12px_35px_rgba(0,0,0,0.12)] backdrop-blur-xl transition-all lg:mx-6 lg:px-6">
+      <div className="flex items-center gap-3">
+        <Link href="/dashboard" className="flex items-center">
+          <PrimaryLogo className="text-xl font-bold sm:text-2xl" />
         </Link>
       </div>
 
       {/* Right side of navbar */}
-      <div className="flex items-center gap-3">
-        {/* Wallet Balance */}
-        <div className="hidden items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-200 sm:flex">
-          <Coins className="w-4 h-4 text-blue-500" />
-          <span className="text-sm font-semibold text-slate-900 dark:text-white">
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Wallet Balance Display (Always visible on mobile & desktop) */}
+        <Link
+          href="/transactions"
+          title="View wallet & transactions"
+          className="flex items-center gap-1.5 rounded-xl border border-blue-500/25 bg-blue-500/10 px-2.5 py-1.5 text-xs font-bold text-blue-700 shadow-sm transition hover:border-blue-500/50 dark:text-blue-300 sm:gap-2 sm:px-3.5 sm:py-2 sm:text-sm"
+        >
+          <Coins className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
+          <span className="font-bold text-foreground tabular-nums">
             ${userBalance.toFixed(2)}
           </span>
-        </div>
+        </Link>
+
+        {/* Global Deposit CTA Button */}
         <Button
           type="button"
           onClick={() => (onDeposit ? onDeposit() : setDepositOpen(true))}
-          className="hidden rounded-xl bg-blue-600 text-white shadow-[0_8px_18px_rgba(37,99,235,0.2)] hover:bg-blue-700 sm:inline-flex"
+          className="h-8 rounded-xl bg-blue-600 px-2.5 text-xs font-bold text-white shadow-[0_6px_16px_rgba(37,99,235,0.3)] hover:bg-blue-500 sm:h-9 sm:px-4 sm:text-sm hidden md:flex"
         >
-          <ArrowDownRight className="mr-2 h-4 w-4" />
-          Deposit
+          <ArrowDownRight className="mr-1 h-3.5 w-3.5 sm:mr-1.5 sm:h-4 sm:w-4" />
+          <span>Deposit</span>
         </Button>
 
         {/* Theme Toggle */}
@@ -61,40 +87,110 @@ function Header({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="h-10 w-10 rounded-full p-0 hover:bg-blue-50 dark:hover:bg-white/10"
+              className="h-9 w-9 rounded-full p-0 hover:bg-accent"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 font-semibold text-white shadow-md">
-                {userEmail.charAt(0).toUpperCase()}
+                {userEmail ? (
+                  userEmail.charAt(0).toUpperCase()
+                ) : (
+                  <User className="h-4 w-4" />
+                )}
               </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent
+            align="end"
+            className="w-56 border-border bg-popover text-popover-foreground"
+          >
             <DropdownMenuLabel className="flex flex-col">
-              <span className="text-sm">{userEmail}</span>
+              <span className="text-xs text-muted-foreground">
+                Signed in as
+              </span>
+              <span className="truncate text-sm font-semibold text-foreground">
+                {userEmail}
+              </span>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuItem
+              asChild
+              className="hover:bg-accent focus:bg-accent"
+            >
               <Link href="/dashboard">Dashboard</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/transactions">Transactions</Link>
+            <DropdownMenuItem
+              asChild
+              className="hover:bg-accent focus:bg-accent"
+            >
+              <Link href="/polls">Browse Draws</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="hover:bg-accent focus:bg-accent"
+            >
+              <Link href="/my-stakes">My Entries & Numbers</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="hover:bg-accent focus:bg-accent"
+            >
+              <Link href="/transactions">Wallet & Transactions</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="hover:bg-accent focus:bg-accent"
+            >
+              <Link href="/profile">Profile & Settings</Link>
             </DropdownMenuItem>
             {isAdmin && (
               <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/admin/dashboard">Admin Panel</Link>
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem
+                  asChild
+                  className="hover:bg-slate-800/80 focus:bg-slate-800/80"
+                >
+                  <Link
+                    href="/admin/dashboard"
+                    className="font-semibold text-warning"
+                  >
+                    Admin Workspace
+                  </Link>
                 </DropdownMenuItem>
               </>
             )}
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuItem
+              onClick={openLogoutDialog}
+              className="gap-2 text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
+              Log out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <DepositModal
-        open={depositOpen}
-        onOpenChange={setDepositOpen}
-      />
+
+      <DepositModal open={depositOpen} onOpenChange={setDepositOpen} />
+      <ModalLayout
+        open={logoutOpen}
+        onOpenChange={setLogoutOpen}
+        title="Log out of Wagerie?"
+        description="You will need to sign in again to access your wallet and dashboard."
+        size="sm"
+      >
+        <div className="flex justify-end gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setLogoutOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button type="button" variant="destructive" onClick={() => signOut(undefined)}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Confirm Logout
+          </Button>
+        </div>
+      </ModalLayout>
     </header>
   );
 }

@@ -8,7 +8,7 @@ export const API_ROUTES = {
   FORGOT_PASSWORD: "/auth/forgot-password",
   VERIFY_FORGOT_PASSWORD_OTP: "/auth/verify-forgot-password",
   RESET_PASSWORD: "/auth/reset-password",
-  ADMIN_SIGNIN: "/auth/admin/signin",
+  ADMIN_SIGNIN: "/auth/signin",
 
   WALLET: "/wallet",
   WALLET_DEPOSIT: "/wallet/deposit",
@@ -29,6 +29,10 @@ export const API_ROUTES = {
   ADMIN_USERS: "/admin/users",
   ADMIN_TRANSACTIONS: "/admin/transactions",
   ADMIN_ANALYTICS: "/admin/analytics",
+  ADMIN_CATEGORIES: "/admin/categories",
+  ADMIN_CATEGORY_BY_ID: "/admin/categories/:id",
+  ADMIN_PRODUCTS: "/admin/products",
+  ADMIN_PRODUCT_BY_ID: "/admin/products/:id",
   USER_CLAIM_PRIZE: "/user/claim-prize",
   USER_TESTIMONIAL: "/user/testimonial",
 } as const;

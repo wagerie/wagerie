@@ -6,286 +6,447 @@ import { ModeToggle } from "@/components/atoms/toggle-theme";
 import { APP_ROUTES } from "@/constants/routes";
 import {
   ArrowRight,
-  BarChart3,
+  CheckCircle2,
+  Coins,
+  DollarSign,
+  Gift,
+  Lock,
+  Package,
   ShieldCheck,
   Sparkles,
   Star,
+  Ticket,
   Trophy,
   Wallet,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
-const features = [
+const featuredDraws = [
   {
-    title: "Wallet-powered gaming",
-    description:
-      "Instant deposits, transparent balances, and payouts that feel trustworthy from the first click.",
-    icon: Wallet,
+    name: "iPhone 16 Pro Max 256GB",
+    image:
+      "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80",
+    value: "$1,299",
+    cash: "$1,150",
+    ticketPrice: "$5.00",
+    progress: 74,
+    ticketsLeft: 68,
+    category: "Luxury Tech",
   },
   {
-    title: "Live prediction markets",
-    description:
-      "Users discover active polls, follow stakes, and react to real-time momentum across every draw.",
-    icon: BarChart3,
+    name: "Rolex Submariner Date 41mm",
+    image:
+      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80",
+    value: "$14,500",
+    cash: "$13,000",
+    ticketPrice: "$10.00",
+    progress: 88,
+    ticketsLeft: 174,
+    category: "Horology",
   },
   {
-    title: "Trusted prize engine",
-    description:
-      "Every win is tracked from ticket to payout, so rewards feel confirmed, secure, and delightfully clear.",
-    icon: Trophy,
+    name: "$5,000 Cash Vault",
+    image:
+      "https://images.unsplash.com/photo-1580519542036-c47de6196ba5?auto=format&fit=crop&w=800&q=80",
+    value: "$5,000",
+    cash: "$5,000",
+    ticketPrice: "$2.00",
+    progress: 62,
+    ticketsLeft: 950,
+    category: "Instant Cash",
   },
 ];
 
 const stats = [
-  { label: "Active users", value: "24.8k" },
-  { label: "Monthly volume", value: "$4.2M" },
-  { label: "Average win speed", value: "4 min" },
-  { label: "Retention rate", value: "92%" },
+  { label: "Prizes Awarded", value: "$4.8M+" },
+  { label: "Registered Players", value: "28,400+" },
+  { label: "Average Draw Time", value: "< 24 Hrs" },
+  { label: "Draw Fairness Score", value: "100%" },
 ];
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#0b1020] text-white">
-      <div className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
-        <header className="rounded-2xl border border-slate-800 bg-slate-950/85 px-4 py-3 shadow-[0_16px_40px_rgba(2,6,23,0.28)] backdrop-blur-xl">
+    <main className="min-h-screen bg-background text-foreground selection:bg-blue-600 selection:text-white">
+      <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-8 space-y-24">
+        {/* Navigation Header */}
+        <header className="rounded-2xl border border-border bg-card/85 px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl">
           <div className="flex items-center justify-between gap-4">
-            <PrimaryLogo className="text-lg text-white sm:text-xl" />
+            <PrimaryLogo className="text-xl font-black sm:text-2xl" />
 
-            <nav className="hidden items-center gap-2 text-sm text-slate-400 md:flex">
+            <nav className="hidden items-center gap-1 text-sm text-muted-foreground md:flex">
               <Link
-                href="#features"
-                className="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white"
+                href="#how-it-works"
+                className="rounded-lg px-3 py-2 transition hover:bg-accent hover:text-accent-foreground"
               >
-                Features
+                How It Works
               </Link>
               <Link
-                href="#benefits"
-                className="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white"
+                href="#featured"
+                className="rounded-lg px-3 py-2 transition hover:bg-accent hover:text-accent-foreground"
               >
-                Benefits
+                Live Draws
               </Link>
               <Link
-                href="#insights"
-                className="rounded-lg px-3 py-2 transition hover:bg-white/10 hover:text-white"
+                href="#fairness"
+                className="rounded-lg px-3 py-2 transition hover:bg-accent hover:text-accent-foreground"
               >
-                Insights
+                Provably Fair
               </Link>
             </nav>
 
             <div className="flex items-center gap-3">
               <ModeToggle />
               <BtnComponent
-                className="border-slate-700 bg-transparent text-slate-200 hover:bg-white/10 hover:text-white"
+                className="border-border bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground rounded-xl"
                 asChild
               >
-                <Link href={APP_ROUTES.LOGIN}>Login</Link>
+                <Link href={APP_ROUTES.LOGIN}>Sign In</Link>
+              </BtnComponent>
+              <BtnComponent
+                className="rounded-xl bg-blue-600 font-bold text-white hover:bg-blue-500 shadow-md shadow-blue-600/30"
+                asChild
+              >
+                <Link href={APP_ROUTES.REGISTER}>Get Started</Link>
               </BtnComponent>
             </div>
           </div>
         </header>
 
-        <section className="relative overflow-hidden pt-16 sm:pt-20">
-          <div className="absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_40%),radial-gradient(circle_at_right,_rgba(14,165,233,0.18),_transparent_30%)]" />
+        {/* Hero Section */}
+        <section className="relative overflow-hidden pt-6 sm:pt-12">
+          <div className="absolute inset-x-0 top-0 -z-10 h-[500px] bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.22),_transparent_50%),radial-gradient(circle_at_right,_rgba(6,182,212,0.15),_transparent_40%)]" />
 
-          <div className="grid items-center gap-10 lg:grid-cols-[1.08fr_0.92fr]">
-            <div>
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
-                <Sparkles className="h-4 w-4" />
-                Built for modern prediction communities
+          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1.5 text-xs font-bold text-blue-300">
+                <Sparkles className="h-3.5 w-3.5 text-blue-400" />
+                Guaranteed Luxury Prize Draws
               </div>
 
-              <h1 className="max-w-xl text-5xl font-black tracking-[-0.06em] text-slate-950 dark:text-white sm:text-6xl">
-                Win bigger. Play smarter.
+              <h1 className="text-5xl font-black tracking-tight text-foreground sm:text-6xl lg:text-7xl leading-[1.08]">
+                Win luxury prizes. <br />
+                <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">
+                  From just $1.
+                </span>
               </h1>
 
-              <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">
-                Wagerie combines wallet management, live polls, and premium
-                prize mechanics in one polished platform built for loyal players
-                and sharp operators.
+              <p className="max-w-xl text-base sm:text-lg leading-relaxed text-muted-foreground">
+                Wagerie combines the thrill of luxury raffle prize draws with
+                transparent, provably fair blockchain-grade randomness. Secure
+                your tickets, receive your registered numbers, and choose
+                between physical delivery or instant cash payout.
               </p>
 
-              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-                <BtnComponent size="lg" asChild>
+              <div className="flex flex-col gap-3 sm:flex-row pt-2">
+                <BtnComponent
+                  size="lg"
+                  className="rounded-2xl bg-blue-600 text-base font-black hover:bg-blue-500 shadow-lg shadow-blue-600/30"
+                  asChild
+                >
                   <Link href={APP_ROUTES.REGISTER}>
-                    Start playing
+                    Enter Live Draws
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </BtnComponent>
-                <BtnComponent variant="outline" size="lg" asChild>
-                  <Link href={APP_ROUTES.LOGIN}>See dashboard</Link>
+                <BtnComponent
+                  variant="outline"
+                  size="lg"
+                  className="rounded-2xl border-border bg-secondary text-secondary-foreground hover:bg-accent"
+                  asChild
+                >
+                  <Link href={APP_ROUTES.LOGIN}>View Demo Dashboard</Link>
                 </BtnComponent>
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-500 dark:text-slate-400">
+              <div className="flex flex-wrap items-center gap-6 pt-2 text-xs font-semibold text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                  Secure payouts
+                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                  Provably Fair RNG
                 </div>
                 <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-amber-500" />
-                  Reward-first UX
+                  <DollarSign className="h-4 w-4 text-emerald-400" />
+                  Instant Cash Swap Option
+                </div>
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-blue-400" />
+                  Free Insured Global Shipping
                 </div>
               </div>
             </div>
 
+            {/* Hero Visual Card Preview */}
             <div className="relative">
-              <div className="rounded-[32px] border border-slate-200 bg-white p-4 shadow-[0_25px_80px_rgba(79,70,229,0.18)] dark:border-slate-800 dark:bg-slate-900">
-                <div className="rounded-[28px] bg-[linear-gradient(135deg,#111827_0%,#1d4ed8_48%,#06b6d4_100%)] p-3 text-white">
-                  <div className="rounded-[24px] bg-white/5 p-5 backdrop-blur-sm">
-                    <div className="mb-6 flex items-center justify-between">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.22em] text-blue-200">
-                          Portfolio
-                        </p>
-                        <h2 className="mt-2 text-3xl font-bold">$24,860</h2>
-                      </div>
-                      <div className="rounded-2xl bg-white/10 p-3">
-                        <Wallet className="h-6 w-6" />
-                      </div>
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-2xl space-y-5">
+                <div className="flex items-center justify-between border-b border-border pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 font-bold">
+                      <Trophy className="h-5 w-5" />
                     </div>
-
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p className="text-xs text-blue-200">Active stakes</p>
-                        <p className="mt-2 text-2xl font-bold">127</p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p className="text-xs text-blue-200">This month</p>
-                        <p className="mt-2 text-2xl font-bold">+18.4%</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-6 rounded-2xl border border-white/10 bg-slate-950/20 p-4">
-                      <div className="mb-3 flex items-center justify-between text-sm text-blue-100">
-                        <span>Poll momentum</span>
-                        <span>Live</span>
-                      </div>
-                      <div className="space-y-3">
-                        {[
-                          { label: "AI trend", value: "72%" },
-                          { label: "Crypto", value: "68%" },
-                          { label: "Sports", value: "83%" },
-                        ].map((item) => (
-                          <div key={item.label}>
-                            <div className="mb-1 flex items-center justify-between text-xs text-blue-100">
-                              <span>{item.label}</span>
-                              <span>{item.value}</span>
-                            </div>
-                            <div className="h-2 rounded-full bg-white/10">
-                              <div
-                                className="h-2 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400"
-                                style={{ width: item.value }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
+                        Spotlight Draw
+                      </span>
+                      <h3 className="text-base font-bold text-foreground">
+                        Rolex Submariner Date 41mm
+                      </h3>
                     </div>
                   </div>
+                  <Badge className="border-0 bg-emerald-500/20 text-emerald-300 font-bold text-xs">
+                    ● 88% Sold
+                  </Badge>
                 </div>
+
+                <div className="relative aspect-16/9 w-full overflow-hidden rounded-2xl bg-slate-950">
+                  <Image
+                    src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80"
+                    alt="Rolex Submariner"
+                    fill
+                    sizes="50vw"
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#11162b] via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center bg-slate-950/80 backdrop-blur-md p-2.5 rounded-xl border border-slate-800">
+                    <span className="text-xs text-slate-300 dark:text-slate-300">
+                      Prize Value:{" "}
+                      <strong className="text-white">$14,500</strong>
+                    </span>
+                    <span className="text-xs text-emerald-400 font-bold">
+                      Or $13,000 Cash
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">Tickets Claimed</span>
+                    <span className="text-amber-400 font-bold">
+                      Only 174 remaining
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                    <div className="h-full rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-400 w-[88%]" />
+                  </div>
+                </div>
+
+                <Button
+                  asChild
+                  className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold text-white shadow-lg shadow-blue-600/30"
+                >
+                  <Link href={APP_ROUTES.REGISTER}>
+                    Claim Tickets for $10.00
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
         </section>
 
-        <section
-          id="stats"
-          className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-        >
+        {/* Stats Strip */}
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80"
+              className="rounded-3xl border border-border bg-card p-6 text-center shadow-lg"
             >
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {stat.label}
-              </p>
-              <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950 dark:text-white">
+              <p className="text-3xl font-black text-foreground">
                 {stat.value}
+              </p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">
+                {stat.label}
               </p>
             </div>
           ))}
         </section>
 
-        <section id="features" className="mt-24">
-          <div className="mb-8 max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
-              Everything in one place
-            </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-4xl">
-              Designed to keep interest high and friction low.
+        {/* Featured Live Draws Showcase */}
+        <section id="featured" className="space-y-6">
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-blue-400">
+              High Anticipation
+            </span>
+            <h2 className="text-3xl font-black text-foreground">
+              Featured Live Draws
             </h2>
+            <p className="text-sm text-muted-foreground">
+              Each draw is guaranteed to take place as soon as target slots are
+              filled.
+            </p>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            {features.map(({ title, description, icon: Icon }) => (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {featuredDraws.map((draw) => (
               <div
-                key={title}
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(79,70,229,0.1)] dark:border-slate-800 dark:bg-slate-900"
+                key={draw.name}
+                className="flex flex-col rounded-3xl border border-border bg-card overflow-hidden shadow-xl hover:border-primary/50 transition-all"
               >
-                <div className="mb-5 inline-flex rounded-2xl bg-blue-100 p-3 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
-                  <Icon className="h-6 w-6" />
+                <div className="relative aspect-16/10 w-full overflow-hidden bg-slate-950">
+                  <Image
+                    src={draw.image}
+                    alt={draw.name}
+                    fill
+                    sizes="33vw"
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#11162b] via-transparent to-black/40" />
+                  <Badge className="absolute left-3 top-3 border-0 bg-slate-900/80 text-xs text-white">
+                    {draw.category}
+                  </Badge>
+                  <div className="absolute right-3 top-3 rounded-xl border border-amber-500/30 bg-slate-950/80 px-2 py-0.5 text-right">
+                    <span className="text-[9px] uppercase font-bold text-amber-300">
+                      Value
+                    </span>
+                    <p className="text-xs font-black text-white">
+                      {draw.value}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
-                  {title}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                  {description}
-                </p>
+
+                <div className="p-5 flex flex-1 flex-col justify-between space-y-4">
+                  <div>
+                    <h3 className="font-bold text-foreground text-base line-clamp-1">
+                      {draw.name}
+                    </h3>
+                    <p className="text-xs text-emerald-400 font-semibold mt-0.5">
+                      Or {draw.cash} Cash Payout
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-blue-400 font-bold">
+                        {draw.progress}% Filled
+                      </span>
+                      <span className="text-muted-foreground">
+                        {draw.ticketsLeft} left
+                      </span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-400"
+                        style={{ width: `${draw.progress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-border pt-3">
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase">
+                        From
+                      </span>
+                      <p className="text-base font-extrabold text-foreground">
+                        {draw.ticketPrice}
+                      </p>
+                    </div>
+                    <Button
+                      asChild
+                      size="sm"
+                      className="rounded-xl bg-blue-600 hover:bg-blue-500 font-bold"
+                    >
+                      <Link href={APP_ROUTES.REGISTER}>Enter Draw</Link>
+                    </Button>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         </section>
 
+        {/* How It Works Section */}
         <section
-          id="benefits"
-          className="mt-24 rounded-[32px] border border-slate-200 bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900 sm:p-10"
+          id="how-it-works"
+          className="rounded-3xl border border-border bg-card p-8 sm:p-12 space-y-8"
         >
-          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-300">
-                Why operators choose it
-              </p>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 dark:text-white">
-                A product experience that feels premium from day one.
-              </h2>
-            </div>
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-blue-400">
+              Simple & Transparent
+            </span>
+            <h2 className="text-3xl font-black text-foreground">
+              How Wagerie Works in 3 Steps
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              No complicated mechanics or hidden rules.
+            </p>
+          </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {[
-                "Frictionless onboarding",
-                "Live competition dashboards",
-                "Clear reward tracking",
-                "Strong admin visibility",
-              ].map((item) => (
+          <div className="grid gap-6 sm:grid-cols-3">
+            {[
+              {
+                step: "01",
+                icon: Wallet,
+                title: "Deposit & Pick a Prize",
+                desc: "Fund your wallet in seconds with card, bank, or PayPal. Browse verified luxury draws starting at just $1 per entry.",
+              },
+              {
+                step: "02",
+                icon: Ticket,
+                title: "Get Verifiable Numbers",
+                desc: "Select your desired tickets. Each ticket receives a cryptographic sequential number stored in your account ledger.",
+              },
+              {
+                step: "03",
+                icon: Trophy,
+                title: "Automated Draw & Win",
+                desc: "When the pool fills, the provably fair algorithm selects the winning ticket. Choose physical delivery or instant cash to your wallet.",
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
                 <div
-                  key={item}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  key={item.step}
+                  className="rounded-2xl border border-border bg-muted p-6 space-y-4"
                 >
-                  {item}
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600/10 text-blue-400">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <span className="text-2xl font-black text-muted-foreground/60">
+                      {item.step}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-foreground">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {item.desc}
+                  </p>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </section>
 
-        <section id="insights" className="mt-24 pb-6">
-          <div className="rounded-[32px] bg-[linear-gradient(135deg,#111827_0%,#1f2937_30%,#4338ca_100%)] p-8 text-white shadow-[0_25px_80px_rgba(79,70,229,0.2)] sm:p-10">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-blue-200">
-                  Player feedback
-                </p>
-                <h2 className="mt-3 text-3xl font-bold tracking-tight">
-                  “The dashboard feels clear, rewarding, and premium.”
-                </h2>
-              </div>
-              <div className="flex items-center gap-1 text-amber-300">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Star key={index} className="h-5 w-5 fill-current" />
-                ))}
-              </div>
+        {/* Fairness & Trust Guarantee Section */}
+        <section
+          id="fairness"
+          className="rounded-3xl border border-blue-500/20 bg-linear-to-b from-blue-500/10 to-card p-8 sm:p-12 space-y-6"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-2 max-w-xl">
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+                100% Provably Fair
+              </span>
+              <h2 className="text-3xl font-black text-foreground">
+                Trust, Transparency & Security
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Unlike traditional lotteries or sweepstakes, every Wagerie draw
+                is completely auditable. Every entrant's numbers are public on
+                the draw ledger, and random selection is generated via
+                verifiable seeds.
+              </p>
             </div>
+            <Button
+              asChild
+              size="lg"
+              className="rounded-2xl bg-blue-600 hover:bg-blue-500 font-bold text-white shadow-xl shadow-blue-600/30"
+            >
+              <Link href={APP_ROUTES.REGISTER}>Start Playing Today</Link>
+            </Button>
           </div>
         </section>
       </div>

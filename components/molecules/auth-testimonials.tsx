@@ -3,28 +3,30 @@ import React from "react";
 
 function AuthTestimonials() {
   return (
-    <div className="shadow-testimonial bg-cards rounded-3xl p-8 flex flex-col gap-8 items-center  mx-auto">
+    <div className="shadow-testimonial bg-[#11162b] text-[#edf3ff] rounded-3xl p-8 flex flex-col gap-8 items-center mx-auto">
       <span className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
         {icons.message_bold}
       </span>
       <div className="flex flex-col gap-6 items-center w-72.5">
-        <p className="text-white font-normal text-center">
+        <p className="text-[#edf3ff] font-normal text-center">
           Wagerie has completely transformed the way I win products and cash
           prizes. it is a game changer in the world of digitalized raffle draw
           system
         </p>
 
         <div className="flex flex-col gap-1 items-center">
-          <h1 className="text-sm font-semibold text-white">Ariana Grande</h1>
-          <p className="text-xs font-normal text-secondary ">
+          <h1 className="text-sm font-semibold text-[#edf3ff]">
+            Ariana Grande
+          </h1>
+          <p className="text-xs font-normal text-[#9aa8bf]">
             Visual Designer, Google
           </p>
         </div>
       </div>
       <div className="flex gap-2.5">
         <span className="rounded-full w-2 h-2 bg-blue-600"></span>
-        <span className="rounded-full w-2 h-2 bg-border-color"></span>
-        <span className="rounded-full w-2 h-2 bg-border-color"></span>
+        <span className="rounded-full w-2 h-2 bg-border"></span>
+        <span className="rounded-full w-2 h-2 bg-border"></span>
       </div>
     </div>
   );

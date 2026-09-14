@@ -64,3 +64,29 @@ export function usePost<T, TVariables = any>(
     },
   });
 }
+
+export function useDelete<T = unknown>(
+  url: string,
+  options?: UseMutationOptions<T, AxiosError, void>,
+) {
+  const { onSuccess, onError, onSettled, ...restOptions } = options || {};
+
+  return useMutation<T, AxiosError, void>({
+    ...restOptions,
+    mutationFn: async () => {
+      const response = await client.delete<T>(url);
+      return response.data;
+    },
+    onSuccess: (...args) => {
+      const data = args[0];
+      toast.success((data as any)?.message || "Deleted successfully");
+      onSuccess?.(...args);
+    },
+    onError: (...args) => {
+      const data = args[0];
+      toast.error((data as any)?.response?.data?.message || "Delete failed");
+      onError?.(...args);
+    },
+    onSettled: (...args) => onSettled?.(...args),
+  });
+}

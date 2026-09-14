@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-
-import api from "@/lib/axios";
-import { API_ROUTES } from "@/constants/routes";
-import { removeCookie } from "@/hooks/use-cookies";
+import { useGetBalance } from "@/hooks/use-wallet";
 import { DepositModal } from "@/components/molecules/modals/deposit-modal";
 import Sidebar from "../molecules/sidebar";
 import Header from "../molecules/header";
@@ -20,33 +16,52 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({
   children,
-  userEmail = "user@example.com",
-  userBalance = 0,
+  userEmail = "player@wagerie.com",
+  userBalance,
   onDeposit,
   isAdmin = false,
 }: DashboardLayoutProps) {
-  const router = useRouter();
+  const [depositOpen, setDepositOpen] = useState(false);
+  const { data: wallet } = useGetBalance();
+
+  // If userBalance is not provided or 0, fallback to real fetched balance
+  const activeBalance =
+    userBalance !== undefined && userBalance !== 0
+      ? userBalance
+      : (wallet?.balance ?? 0);
+
+  const handleDepositClick = () => {
+    if (onDeposit) {
+      onDeposit();
+    } else {
+      setDepositOpen(true);
+    }
+  };
 
   return (
-    <div className="flex h-screen bg-[#f5f3ff] text-slate-900 dark:bg-[#0b1020] dark:text-white">
+    <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
-      <Sidebar isAdmin={isAdmin} />
+      <Sidebar />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Navbar */}
         <Header
           userEmail={userEmail}
-          userBalance={userBalance}
-          onDeposit={onDeposit}
+          userBalance={activeBalance}
+          onDeposit={handleDepositClick}
           isAdmin={isAdmin}
         />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-[#f5f3ff] pb-24 dark:bg-[#0b1020] lg:pb-0">
+        <main className="flex-1 overflow-y-auto bg-background pb-32 lg:pb-0">
           {children}
         </main>
       </div>
+
+      <DepositModal open={depositOpen} onOpenChange={setDepositOpen} />
     </div>
   );
 }
+
+export default DashboardLayout;
