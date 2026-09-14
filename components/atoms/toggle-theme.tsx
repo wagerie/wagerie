@@ -10,7 +10,13 @@ import {
 import { Button } from "../ui/button";
 import { Check, Moon, Sun, Laptop } from "lucide-react";
 
-export function ModeToggle({ className }: { className?: string }) {
+export function ModeToggle({
+  className,
+  align = "end",
+}: {
+  className?: string;
+  align?: "start" | "end";
+}) {
   const { theme, setTheme } = useTheme();
   const modes = [
     { value: "light", label: "Light", icon: Sun },
@@ -27,7 +33,7 @@ export function ModeToggle({ className }: { className?: string }) {
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align={align}>
         {modes.map(({ value, label, icon: Icon }) => (
           <DropdownMenuItem
             className="gap-2"

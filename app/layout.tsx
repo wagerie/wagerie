@@ -3,6 +3,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import QueryProvider from "@/lib/query-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { RouteTransition } from "@/components/layout/route-transition";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,7 +27,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            {children}
+            <RouteTransition>{children}</RouteTransition>
             <Toaster richColors />
           </QueryProvider>
         </ThemeProvider>

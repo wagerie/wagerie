@@ -5,6 +5,7 @@ import { useGetBalance } from "@/hooks/use-wallet";
 import { DepositModal } from "@/components/molecules/modals/deposit-modal";
 import Sidebar from "../molecules/sidebar";
 import Header from "../molecules/header";
+import { ModeToggle } from "../atoms/toggle-theme";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -40,6 +41,9 @@ export function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-background text-foreground">
+      <div className="fixed right-6 bottom-28 lg:bottom-6 z-20">
+        <ModeToggle />
+      </div>
       {/* Sidebar */}
       <Sidebar />
 

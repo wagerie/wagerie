@@ -49,6 +49,8 @@ function Header({
 
   return (
     <header className="mx-3 mt-3 flex h-18 items-center justify-between rounded-2xl border border-border bg-card/95 px-4 shadow-[0_12px_35px_rgba(0,0,0,0.12)] backdrop-blur-xl transition-all lg:mx-6 lg:px-6">
+      {/* Theme Toggle */}
+
       <div className="flex items-center gap-3">
         <Link href="/dashboard" className="flex items-center">
           <PrimaryLogo className="text-xl font-bold sm:text-2xl" />
@@ -78,9 +80,6 @@ function Header({
           <ArrowDownRight className="mr-1 h-3.5 w-3.5 sm:mr-1.5 sm:h-4 sm:w-4" />
           <span>Deposit</span>
         </Button>
-
-        {/* Theme Toggle */}
-        <ModeToggle />
 
         {/* User Menu */}
         <DropdownMenu>
@@ -185,7 +184,11 @@ function Header({
           >
             Cancel
           </Button>
-          <Button type="button" variant="destructive" onClick={() => signOut(undefined)}>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => signOut(undefined)}
+          >
             <LogOut className="mr-2 h-4 w-4" />
             Confirm Logout
           </Button>
