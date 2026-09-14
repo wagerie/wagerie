@@ -8,14 +8,19 @@ import {
   ArrowUpRight,
   TrendingUp,
   TrendingDown,
+  Coins,
+  Receipt,
+  Filter,
+  Wallet,
+  Sparkles,
+  Trophy,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DataTable } from "@/components/molecules/data-table";
-import SelectComponent, {
-  SelectOption,
-} from "@/components/atoms/select-component";
+import SelectComponent from "@/components/atoms/select-component";
 import { useTransactionHistory, useGetBalance } from "@/hooks/use-wallet";
 import { Transaction, TransactionType, TransactionStatus } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const transactionTypeOptions: {
@@ -25,16 +30,16 @@ const transactionTypeOptions: {
   { value: "all", label: "All Types" },
   { value: "deposit", label: "Deposits" },
   { value: "withdrawal", label: "Withdrawals" },
-  { value: "stake", label: "Stakes" },
+  { value: "stake", label: "Draw Entries" },
   { value: "refund", label: "Refunds" },
-  { value: "winnings", label: "Winnings" },
+  { value: "winnings", label: "Prize Winnings" },
 ];
 
 const transactionStatusOptions: {
   value: TransactionStatus | "all";
   label: string;
 }[] = [
-  { value: "all", label: "All Status" },
+  { value: "all", label: "All Statuses" },
   { value: "pending", label: "Pending" },
   { value: "completed", label: "Completed" },
   { value: "failed", label: "Failed" },
@@ -43,65 +48,56 @@ const transactionStatusOptions: {
 function getTransactionIcon(type: TransactionType) {
   switch (type) {
     case "deposit":
-      return <ArrowDownRight className="w-4 h-4 text-green-500" />;
+      return <ArrowDownRight className="w-4 h-4 text-emerald-400" />;
     case "withdrawal":
-      return <ArrowUpRight className="w-4 h-4 text-red-500" />;
+      return <ArrowUpRight className="w-4 h-4 text-red-400" />;
     case "stake":
-      return <TrendingDown className="w-4 h-4 text-orange-500" />;
+      return <TrendingDown className="w-4 h-4 text-amber-400" />;
     case "winnings":
-      return <TrendingUp className="w-4 h-4 text-green-500" />;
+      return <Trophy className="w-4 h-4 text-emerald-400" />;
     case "refund":
-      return <ArrowDownRight className="w-4 h-4 text-blue-500" />;
+      return <ArrowDownRight className="w-4 h-4 text-blue-400" />;
     default:
-      return null;
+      return <Coins className="w-4 h-4 text-slate-400" />;
   }
 }
 
 function getTransactionLabel(type: TransactionType) {
   const labels: Record<TransactionType, string> = {
-    deposit: "Deposit",
-    withdrawal: "Withdrawal",
-    stake: "Stake",
-    winnings: "Winnings",
-    refund: "Refund",
+    deposit: "Wallet Deposit",
+    withdrawal: "Bank Withdrawal",
+    stake: "Draw Ticket Entry",
+    winnings: "Prize Win Claim",
+    refund: "Draw Refund",
   };
-  return labels[type];
+  return labels[type] || type;
 }
 
 function getStatusBadge(status: TransactionStatus) {
-  const styles: Record<
-    TransactionStatus,
-    { bg: string; text: string; label: string }
-  > = {
-    pending: {
-      bg: "bg-yellow-500/10",
-      text: "text-yellow-700 dark:text-yellow-400",
-      label: "Pending",
-    },
-    completed: {
-      bg: "bg-green-500/10",
-      text: "text-green-700 dark:text-green-400",
-      label: "Completed",
-    },
-    failed: {
-      bg: "bg-red-500/10",
-      text: "text-red-700 dark:text-red-400",
-      label: "Failed",
-    },
-  };
-
-  const style = styles[status];
-  return (
-    <span
-      className={cn(
-        "px-2 py-1 rounded text-xs font-medium",
-        style.bg,
-        style.text,
-      )}
-    >
-      {style.label}
-    </span>
-  );
+  switch (status) {
+    case "completed":
+      return (
+        <Badge className="border-0 bg-emerald-500/15 text-emerald-400 font-semibold">
+          Completed
+        </Badge>
+      );
+    case "pending":
+      return (
+        <Badge className="border-0 bg-amber-500/15 text-amber-400 font-semibold">
+          Processing
+        </Badge>
+      );
+    case "failed":
+      return (
+        <Badge className="border-0 bg-red-500/15 text-red-400 font-semibold">
+          Failed
+        </Badge>
+      );
+    default:
+      return (
+        <Badge className="border-0 bg-slate-800 text-slate-400">{status}</Badge>
+      );
+  }
 }
 
 export default function TransactionsPage() {
@@ -111,8 +107,7 @@ export default function TransactionsPage() {
   );
   const [page, setPage] = useState(1);
 
-  const { data: wallet, isLoading: walletLoading } =
-    useGetBalance();
+  const { data: wallet, isLoading: walletLoading } = useGetBalance();
   const { data: transactionsData, isLoading: txLoading } =
     useTransactionHistory({
       type: selectedType || undefined,
@@ -124,60 +119,61 @@ export default function TransactionsPage() {
   const isLoading = walletLoading || txLoading;
   const transactions = transactionsData?.data || [];
   const totalPages = transactionsData?.totalPages || 1;
+  const balance = wallet?.balance ?? 0;
 
   // Define columns for the data table
   const columns = useMemo<ColumnDef<Transaction>[]>(
     () => [
       {
         accessorKey: "type",
-        header: "Type",
+        header: "Movement Type",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            {getTransactionIcon(row.original.type)}
-            <span className="font-medium">
-              {getTransactionLabel(row.original.type)}
-            </span>
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 border border-slate-800">
+              {getTransactionIcon(row.original.type)}
+            </div>
+            <div>
+              <span className="font-bold text-white text-xs block">
+                {getTransactionLabel(row.original.type)}
+              </span>
+              <span className="text-[10px] text-slate-500">
+                {row.original.reference
+                  ? `#${row.original.reference.slice(-8)}`
+                  : "Direct Transfer"}
+              </span>
+            </div>
           </div>
         ),
       },
       {
         accessorKey: "description",
-        header: "Description",
+        header: "Description / Destination",
         cell: ({ row }) => (
-          <span className="text-sm">{row.original.description || "-"}</span>
+          <span className="text-xs text-slate-300">
+            {row.original.description || "Standard wallet transaction"}
+          </span>
         ),
       },
       {
         accessorKey: "amount",
         header: "Amount",
-        cell: ({ row }) => (
-          <span
-            className={cn(
-              "font-semibold",
-              row.original.type === "deposit" ||
-                row.original.type === "refund" ||
-                row.original.type === "winnings"
-                ? "text-green-500"
-                : "text-red-500",
-            )}
-          >
-            {row.original.type === "deposit" ||
+        cell: ({ row }) => {
+          const isPositive =
+            row.original.type === "deposit" ||
             row.original.type === "refund" ||
-            row.original.type === "winnings"
-              ? "+"
-              : "-"}
-            ${row.original.amount.toFixed(2)}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "reference",
-        header: "Reference",
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.reference || "-"}
-          </span>
-        ),
+            row.original.type === "winnings";
+
+          return (
+            <span
+              className={cn(
+                "text-sm font-black tabular-nums",
+                isPositive ? "text-emerald-400" : "text-slate-200",
+              )}
+            >
+              {isPositive ? "+" : "-"}${row.original.amount.toFixed(2)}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "status",
@@ -186,10 +182,10 @@ export default function TransactionsPage() {
       },
       {
         accessorKey: "createdAt",
-        header: "Date",
+        header: "Timestamp",
         cell: ({ row }) => (
-          <span className="text-sm">
-            {formatDate(row.original.createdAt, "MMM dd, yyyy")}
+          <span className="text-xs text-slate-400">
+            {formatDate(row.original.createdAt, "MMM dd, yyyy • HH:mm")}
           </span>
         ),
       },
@@ -198,84 +194,112 @@ export default function TransactionsPage() {
   );
 
   return (
-    <DashboardLayout
-      userEmail="user@example.com"
-      userBalance={wallet?.balance || 0}
-    >
-      <div className="min-h-full bg-[#f5f3ff] p-4 lg:p-8 dark:bg-[#0b1020]">
-        <div className="max-w-7xl mx-auto">
+    <DashboardLayout userEmail="player@wagerie.com" userBalance={balance}>
+      <div className="min-h-full bg-background text-foreground p-4 lg:p-8 space-y-8">
+        <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
-          <div className="mb-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
-              Money movement
-            </p>
-            <h1 className="mb-2 text-3xl font-black tracking-tight text-slate-950 dark:text-white">
-              Transactions
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <Badge className="border-0 bg-blue-500/10 text-xs font-semibold uppercase tracking-widest text-blue-400">
+                <Receipt className="mr-1 h-3 w-3" />
+                Ledger
+              </Badge>
+            </div>
+            <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+              Wallet Transactions
             </h1>
-            <p className="text-muted-foreground">
-              View and manage all your wallet transactions
+            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
+              Complete verifiable ledger of deposits, draw entries, prize
+              winnings, and bank withdrawals.
             </p>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="rounded-2xl border border-blue-100 bg-white/80 p-5 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80">
-              <p className="text-sm text-muted-foreground mb-2">
-                Current Balance
-              </p>
-              <p className="text-2xl font-bold">
-                ${(wallet?.balance || 0).toFixed(2)}
-              </p>
+          {/* Stats Ribbon */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+                  <Wallet className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Available Balance
+                  </p>
+                  <p className="text-2xl font-black text-white">
+                    ${balance.toFixed(2)}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="rounded-2xl border border-blue-100 bg-white/80 p-5 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80">
-              <p className="text-sm text-muted-foreground mb-2">
-                Total Transactions
-              </p>
-              <p className="text-2xl font-bold">
-                {transactionsData?.total || 0}
-              </p>
+
+            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
+                  <Receipt className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Total Records
+                  </p>
+                  <p className="text-2xl font-black text-white">
+                    {transactionsData?.total || 0}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="rounded-2xl border border-blue-100 bg-white/80 p-5 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80">
-              <p className="text-sm text-muted-foreground mb-2">Currency</p>
-              <p className="text-2xl font-bold">{wallet?.currency || "USD"}</p>
+
+            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Operating Currency
+                  </p>
+                  <p className="text-2xl font-black text-white">USD ($)</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="mb-6 rounded-2xl border border-blue-100 bg-white/80 p-5 shadow-[0_8px_24px_rgba(37,99,235,0.05)] dark:border-slate-800 dark:bg-slate-900/80">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Filters Bar */}
+          <div className="rounded-2xl border border-border bg-card p-4 lg:p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <SelectComponent
-                label="Transaction Type"
+                label="Filter by Type"
                 value={selectedType}
                 onValueChange={(value: any) =>
                   setSelectedType(value === "all" ? "" : value)
                 }
                 options={transactionTypeOptions}
-                placeholder="Select transaction type"
+                placeholder="All transaction types"
               />
               <SelectComponent
-                label="Status"
+                label="Filter by Status"
                 value={selectedStatus}
                 onValueChange={(value: any) =>
                   setSelectedStatus(value === "all" ? "" : value)
                 }
                 options={transactionStatusOptions}
-                placeholder="Select status"
+                placeholder="All statuses"
               />
             </div>
           </div>
 
-          {/* Transactions Table */}
-          <DataTable
-            columns={columns}
-            data={transactions}
-            pageCount={totalPages}
-            pageIndex={page - 1}
-            pageSize={10}
-            isLoading={isLoading}
-            emptyMessage="No transactions found"
-            onPaginationChange={(state) => setPage(state.pageIndex + 1)}
-          />
+          {/* Transactions Table Container */}
+          <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
+            <DataTable
+              columns={columns}
+              data={transactions}
+              pageCount={totalPages}
+              pageIndex={page - 1}
+              pageSize={10}
+              isLoading={isLoading}
+              emptyMessage="No transactions recorded yet"
+              onPaginationChange={(state) => setPage(state.pageIndex + 1)}
+            />
+          </div>
         </div>
       </div>
     </DashboardLayout>

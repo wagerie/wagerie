@@ -2,8 +2,8 @@ import Link from "next/link";
 import React from "react";
 import { Separator } from "../ui/separator";
 import { BtnComponent } from "../atoms/button-component";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 function AuthComponent({
   children,
@@ -26,7 +26,7 @@ function AuthComponent({
       <div className={cn("flex flex-col gap-2", otp && "items-center")}>
         <h1
           className={cn(
-            "text-[#1B1818] dark:text-white text-[36px] font-semibold",
+            "text-foreground text-[36px] font-semibold",
             otp ? "text-center" : "",
           )}
         >
@@ -34,7 +34,7 @@ function AuthComponent({
         </h1>
         <p
           className={cn(
-            "text-sm font-normal text-[#645D5D] dark:text-secondary",
+            "text-sm font-normal text-muted-foreground",
             otp ? "text-center" : "",
           )}
         >
@@ -55,16 +55,17 @@ function AuthComponent({
             size="lg"
           >
             <Image
-              src={"/assets/brand/google.png"}
+              src="/assets/brand/google.png"
               width={20}
               height={20}
+              draggable={false}
               alt="google-icon"
             />
             Continue with Google
           </BtnComponent>
           <div className="relative h-7 flex items-center">
             <Separator />
-            <span className="bg-white dark:bg-main-bg px-2 text-gray-500 dark:text-secondary text-sm font-normal absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
+            <span className="bg-background px-2 text-muted-foreground text-sm font-normal absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
               Or
             </span>
           </div>

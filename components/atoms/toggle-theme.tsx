@@ -8,11 +8,15 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { Moon, Sun } from "lucide-react";
+import { Check, Moon, Sun, Laptop } from "lucide-react";
 
 export function ModeToggle({ className }: { className?: string }) {
-  const { setTheme } = useTheme();
-  const modes = ["light", "dark", "system"];
+  const { theme, setTheme } = useTheme();
+  const modes = [
+    { value: "light", label: "Light", icon: Sun },
+    { value: "dark", label: "Dark", icon: Moon },
+    { value: "system", label: "System", icon: Laptop },
+  ];
 
   return (
     <DropdownMenu>
@@ -24,13 +28,15 @@ export function ModeToggle({ className }: { className?: string }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {modes.map((mode, index) => (
+        {modes.map(({ value, label, icon: Icon }) => (
           <DropdownMenuItem
-            className="capitalize"
-            key={index}
-            onClick={() => setTheme(mode)}
+            className="gap-2"
+            key={value}
+            onClick={() => setTheme(value)}
           >
-            {mode}
+            <Icon className="h-4 w-4" />
+            <span>{label}</span>
+            {theme === value && <Check className="ml-auto h-4 w-4" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
