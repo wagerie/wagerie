@@ -17,9 +17,9 @@ import { ModeToggle } from "@/components/atoms/toggle-theme";
 import Link from "next/link";
 import { DepositModal } from "./modals/deposit-modal";
 import ModalLayout from "@/components/layout/modal-layout";
-import api from "@/lib/axios";
 import { API_ROUTES } from "@/constants/routes";
 import { removeCookie } from "@/hooks/use-cookies";
+import { usePost } from "@/hooks/use-api";
 
 function Header({
   userEmail,
@@ -36,14 +36,12 @@ function Header({
   const [depositOpen, setDepositOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      await api.post(API_ROUTES.SIGNOUT);
-    } finally {
+  const { mutate: signOut } = usePost(API_ROUTES.SIGNOUT, {
+    onSettled: () => {
       removeCookie("wagerie_token");
       router.push("/auth/login");
-    }
-  };
+    },
+  });
 
   const openLogoutDialog = () => {
     setLogoutOpen(true);
@@ -187,7 +185,7 @@ function Header({
           >
             Cancel
           </Button>
-          <Button type="button" variant="destructive" onClick={handleLogout}>
+          <Button type="button" variant="destructive" onClick={() => signOut(undefined)}>
             <LogOut className="mr-2 h-4 w-4" />
             Confirm Logout
           </Button>

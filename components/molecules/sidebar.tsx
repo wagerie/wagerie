@@ -22,11 +22,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { API_ROUTES } from "@/constants/routes";
-import api from "@/lib/axios";
 import { removeCookie } from "@/hooks/use-cookies";
 import ModalLayout from "@/components/layout/modal-layout";
+import { usePost } from "@/hooks/use-api";
 
-function Sidebar({ isAdmin }: { isAdmin: boolean }) {
+function Sidebar() {
   const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -60,29 +60,14 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
     },
   ];
 
-  const adminNavItems = [
-    {
-      label: "Admin",
-      href: "/admin/dashboard",
-      icon: Settings,
-    },
-    {
-      label: "Users",
-      href: "/admin/users",
-      icon: Users,
-    },
-  ];
+  const items = navItems;
 
-  const items = isAdmin ? [...navItems, ...adminNavItems] : navItems;
-
-  const handleLogout = async () => {
-    try {
-      await api.post(API_ROUTES.SIGNOUT);
-    } finally {
+  const { mutate: signOut } = usePost(API_ROUTES.SIGNOUT, {
+    onSettled: () => {
       removeCookie("wagerie_token");
       router.push("/auth/login");
-    }
-  };
+    },
+  });
 
   return (
     <>
@@ -223,7 +208,7 @@ function Sidebar({ isAdmin }: { isAdmin: boolean }) {
           >
             Cancel
           </Button>
-          <Button type="button" variant="destructive" onClick={handleLogout}>
+          <Button type="button" variant="destructive" onClick={() => signOut(undefined)}>
             <LogOut className="mr-2 h-4 w-4" />
             Confirm Logout
           </Button>

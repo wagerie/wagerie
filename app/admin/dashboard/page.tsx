@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { AdminLayout } from "@/components/layout/admin-layout";
 import {
   Users,
   TrendingUp,
@@ -111,11 +111,7 @@ export default function AdminDashboardPage() {
   >("overview");
 
   return (
-    <DashboardLayout
-      userEmail="admin@wagerie.com"
-      userBalance={50000}
-      isAdmin={true}
-    >
+    <AdminLayout>
       <div className="min-h-full bg-background text-foreground p-4 lg:p-8 space-y-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
@@ -298,6 +294,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </AdminLayout>
   );
 }

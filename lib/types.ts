@@ -103,6 +103,15 @@ export interface ProductEnrollment {
   createdAt: string;
 }
 
+export interface ProductInput {
+  name: string;
+  slug: string;
+  categoryId: number;
+  description: string;
+  targetAmount: number;
+  ticketPrice: number;
+}
+
 export interface Prize {
   id: string;
   name: string;

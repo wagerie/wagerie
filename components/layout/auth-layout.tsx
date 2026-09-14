@@ -8,7 +8,7 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen bg-background p-4 text-foreground sm:p-6 container mx-auto items-center">
       {/* Visual Brand Column (Visible on Desktop) */}
-      <div className="hidden lg:flex p-12 bg-secondary-dark-bg dark:bg-[url('/assets/images/soft-light.png'),_url('/assets/images/overlay.png')] rounded-[30px] bg-[url('/assets/images/overlay.png'),_url('/assets/images/group.png')] bg-cover bg-center flex-col justify-between h-full min-h-[640px]">
+      <div className="hidden lg:flex p-12 bg-secondary-dark-bg bg-[url('/assets/images/soft-light.png'),url('/assets/images/overlay.png')] rounded-[30px]  bg-cover bg-center flex-col justify-between h-full min-h-160">
         <Link href={"/"}>
           <PrimaryLogo className="text-white" />
         </Link>

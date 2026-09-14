@@ -19,13 +19,14 @@ import { BtnComponent } from "@/components/atoms/button-component";
 import { PrimaryLogo } from "@/components/atoms/logo";
 import { loginSchema, LoginInput } from "@/lib/schemas";
 import { toast } from "sonner";
-import api from "@/lib/axios";
-import { API_ROUTES } from "@/constants/routes";
+import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
 import { Badge } from "@/components/ui/badge";
+import { setCookie } from "@/hooks/use-cookies";
+import { usePost } from "@/hooks/use-api";
 
 export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+
   const router = useRouter();
 
   const form = useForm<LoginInput>({
@@ -36,23 +37,24 @@ export default function AdminLoginPage() {
     },
   });
 
-  const onSubmit = async (data: LoginInput) => {
-    setIsLoading(true);
-    try {
-      await api.post(API_ROUTES.ADMIN_SIGNIN, {
-        email: data.email,
-        password: data.password,
-      });
+  const { mutate: login, isPending } = usePost(API_ROUTES.ADMIN_SIGNIN, {
+    onSuccess: (data) => {
+      const response = data as any;
+      const payload = response?.data ?? response;
+      const token = payload?.accessToken ?? payload?.refreshToken ?? payload?.token;
 
-      toast.success("Admin authorization granted");
-      router.push("/admin/dashboard");
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message || "Invalid operator credentials";
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
-    }
+      if (!token) {
+        toast.error("Admin login succeeded without a session token");
+        return;
+      }
+
+      setCookie("wagerie_token", token);
+      router.replace(APP_ROUTES.ADMIN_DASHBOARD);
+    },
+  });
+
+  const onSubmit = async (data: LoginInput) => {
+    login({ email: data.email, password: data.password });
   };
 
   return (
@@ -96,7 +98,7 @@ export default function AdminLoginPage() {
                         type="email"
                         placeholder="admin@wagerie.com"
                         hasRightIcon
-                        disabled={isLoading}
+                        disabled={isPending}
                       />
                     </FormControl>
                     <FormMessage />
@@ -128,7 +130,7 @@ export default function AdminLoginPage() {
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••••••"
                         hasRightIcon
-                        disabled={isLoading}
+                        disabled={isPending}
                       />
                     </FormControl>
                     <FormMessage />
@@ -139,7 +141,7 @@ export default function AdminLoginPage() {
               <BtnComponent
                 type="submit"
                 className="w-full rounded-xl bg-blue-600 py-3 font-bold text-white hover:bg-blue-500 shadow-lg shadow-blue-600/30"
-                loading={isLoading}
+                loading={isPending}
               >
                 Sign In as Operator
               </BtnComponent>
