@@ -1,206 +1,234 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { DataTable } from "@/components/molecules/data-table";
+import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
+import { Calendar, Package, Ticket, TrendingUp } from "lucide-react";
+import { DataTable } from "@/components/molecules/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useGet } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
-import type { Poll } from "@/lib/types";
-import { TrendingUp, Users, Calendar, Trophy } from "lucide-react";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import type { Category, Product } from "@/lib/types";
 
-export default function PollsPage() {
+interface ProductListResponse {
+  data?: {
+    items?: Product[];
+    pagination?: { totalPages?: number };
+  };
+}
+
+interface CategoryResponse {
+  data?: Category[];
+}
+
+export default function ProductsPage() {
   const [pageIndex, setPageIndex] = useState(0);
+  const [categoryId, setCategoryId] = useState("all");
   const pageSize = 5;
 
-  const { data, isLoading } = useGet<{
-    data?: Poll[];
-    total?: number;
-    totalPages?: number;
-    page?: number;
-  }>(
-    ["polls", String(pageIndex + 1)],
-    `${API_ROUTES.POLLS}?page=${pageIndex + 1}&pageSize=${pageSize}`,
+  const { data: categoryData } = useGet<CategoryResponse>(
+    ["product-categories"],
+    API_ROUTES.PRODUCT_CATEGORIES,
+  );
+  const productsPath =
+    categoryId === "all"
+      ? API_ROUTES.PRODUCTS
+      : API_ROUTES.PRODUCTS_BY_CATEGORY.replace(":id", categoryId);
+  const { data, isLoading } = useGet<ProductListResponse>(
+    ["products", categoryId, String(pageIndex + 1)],
+    `${productsPath}?page=${pageIndex + 1}&limit=${pageSize}`,
   );
 
-  const polls = useMemo(() => {
-    if (Array.isArray(data?.data)) return data.data;
-    if (Array.isArray(data)) return data;
-    return [] as Poll[];
-  }, [data]);
+  const products = useMemo(() => data?.data?.items || [], [data]);
+  const categories = categoryData?.data || [];
+  const totalPages = data?.data?.pagination?.totalPages || 1;
 
-  const totalPages = data?.totalPages ?? 1;
-
-  const columns: ColumnDef<Poll>[] = [
+  const columns: ColumnDef<Product>[] = [
     {
-      accessorKey: "title",
-      header: "Poll Title",
+      accessorKey: "name",
+      header: "Product",
       cell: ({ row }) => (
-        <div className="flex flex-col gap-1">
-          <p className="font-semibold text-foreground max-w-xs truncate">
-            {row.getValue("title") ??
-              row.original.description ??
-              "Untitled poll"}
-          </p>
-          <p className="text-xs text-muted-foreground max-w-xs truncate">
-            {row.original.description ?? "Live ballot"}
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
+            <Package className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <Link
+              href={`/polls/${row.original.id}`}
+              className="block max-w-xs truncate font-semibold text-foreground hover:text-blue-600"
+            >
+              {row.original.name}
+            </Link>
+            <p className="max-w-xs truncate text-xs text-muted-foreground">
+              {row.original.description || "Product pool"}
+            </p>
+          </div>
         </div>
       ),
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => {
-        const status = (row.getValue("status") as string) || "active";
-        return (
-          <Badge
-            className={`${
-              status === "active"
-                ? "bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-500/30"
-                : "bg-red-500/20 text-red-700 dark:text-red-400 hover:bg-red-500/30"
-            }`}
-          >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "participants",
-      header: "Participants",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium">
-            {Number(row.getValue("participants") || 0).toLocaleString()}
-          </span>
-        </div>
+        <Badge
+          className={
+            row.original.status === "active"
+              ? "bg-green-500/20 text-green-700 hover:bg-green-500/30 dark:text-green-400"
+              : "bg-red-500/20 text-red-700 hover:bg-red-500/30 dark:text-red-400"
+          }
+        >
+          {row.original.status}
+        </Badge>
       ),
     },
     {
-      accessorKey: "totalStaked",
-      header: "Total Staked",
+      accessorKey: "ticketPrice",
+      header: "Ticket price",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-blue-600 dark:text-blue-300" />
-          <span className="text-sm font-semibold">
-            ${Number(row.getValue("totalStaked") || 0).toLocaleString()}
-          </span>
-        </div>
+        <span className="inline-flex items-center gap-2 text-sm font-semibold">
+          <Ticket className="h-4 w-4 text-blue-600 dark:text-blue-300" />$
+          {Number(row.original.ticketPrice).toLocaleString()}
+        </span>
       ),
     },
     {
-      accessorKey: "endsAt",
-      header: "Ends",
+      accessorKey: "raisedAmount",
+      header: "Raised",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2 text-sm">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <span>{formatDate(row.getValue("endsAt"), "MMM dd")}</span>
-        </div>
+        <span className="text-sm font-semibold">
+          ${Number(row.original.raisedAmount).toLocaleString()} / $
+          {Number(row.original.targetAmount).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Added",
+      cell: ({ row }) => (
+        <span className="inline-flex items-center gap-2 text-sm">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          {formatDate(row.original.createdAt, "MMM dd")}
+        </span>
       ),
     },
     {
       id: "actions",
-      cell: ({ row }) => {
-        const status = row.original.status;
-        return (
-          <Button
-            size="sm"
-            className={`${
-              status === "active"
-                ? "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
-            } transition-all`}
-            disabled={status !== "active"}
-          >
-            {status === "active" ? "Stake" : "Closed"}
-          </Button>
-        );
-      },
+      cell: ({ row }) => (
+        <Button
+          asChild
+          size="sm"
+          className="bg-blue-600 text-white hover:bg-blue-700"
+        >
+          <Link href={`/polls/${row.original.id}`}>View product</Link>
+        </Button>
+      ),
     },
   ];
 
   const stats = [
     {
-      label: "Active Polls",
-      value: polls.filter((p) => p.status === "active").length,
+      label: "Active Products",
+      value: products.filter((product) => product.status === "active").length,
       icon: TrendingUp,
       color: "text-green-500",
     },
     {
-      label: "Total Staked",
-      value: `$${polls.reduce((sum, p) => sum + (Number(p.totalStaked) || 0), 0).toLocaleString()}`,
-      icon: Trophy,
+      label: "Total Raised",
+      value: `$${products.reduce((sum, product) => sum + Number(product.raisedAmount || 0), 0).toLocaleString()}`,
+      icon: Ticket,
       color: "text-blue-600 dark:text-blue-300",
     },
     {
-      label: "Total Participants",
-      value: polls.reduce((sum, p) => sum + (Number(p.participants) || 0), 0),
-      icon: Users,
+      label: "Products Listed",
+      value: products.length,
+      icon: Package,
       color: "text-blue-500",
     },
   ];
-
-  const handlePaginationChange = (state: any) => {
-    setPageIndex(state.pageIndex);
-  };
 
   return (
     <DashboardLayout>
       <div className="flex min-h-full flex-1 flex-col gap-8 bg-[#f5f3ff] p-6 lg:p-8 dark:bg-[#0b1020]">
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">
-            Live markets
+            Product listings
           </p>
           <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">
-            Prediction Polls
+            Products
           </h1>
           <p className="text-muted-foreground">
-            Browse and stake on active prediction markets.
+            Browse products and enroll in a pool with tickets.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.label}
-                className="flex items-center gap-4 rounded-2xl border border-blue-100 bg-white/80 p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] transition-colors hover:border-blue-200 dark:border-slate-800 dark:bg-slate-900/80"
-              >
-                <div
-                  className={`p-3 rounded-lg bg-primary/10 dark:bg-primary/20 ${
-                    stat.color
-                  }`}
-                >
-                  <Icon className="w-6 h-6" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm text-muted-foreground font-medium">
-                    {stat.label}
-                  </p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {stat.value}
-                  </p>
-                </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">
+              Filter by category
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Find products in a specific category.
+            </p>
+          </div>
+          <Select
+            value={categoryId}
+            onValueChange={(value) => {
+              setCategoryId(value);
+              setPageIndex(0);
+            }}
+          >
+            <SelectTrigger className="w-full bg-white sm:w-64 dark:bg-slate-900">
+              <SelectValue placeholder="All categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={String(category.id)}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {stats.map(({ label, value, icon: Icon, color }) => (
+            <div
+              key={label}
+              className="flex items-center gap-4 rounded-2xl border border-blue-100 bg-white/80 p-6 shadow-[0_8px_24px_rgba(37,99,235,0.06)] dark:border-slate-800 dark:bg-slate-900/80"
+            >
+              <Icon className={`h-6 w-6 ${color}`} />
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {label}
+                </p>
+                <p className="text-2xl font-bold text-foreground">{value}</p>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-blue-100 bg-white/80 dark:border-slate-800 dark:bg-slate-900/80">
           <DataTable
             columns={columns}
-            data={polls}
+            data={products}
             pageCount={totalPages}
             pageIndex={pageIndex}
             pageSize={pageSize}
-            onPaginationChange={handlePaginationChange}
-            emptyMessage={isLoading ? "Loading polls..." : "No polls found"}
+            onPaginationChange={(state) => setPageIndex(state.pageIndex)}
+            emptyMessage={
+              isLoading ? "Loading products..." : "No products found"
+            }
           />
         </div>
       </div>

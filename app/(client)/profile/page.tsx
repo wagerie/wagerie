@@ -7,13 +7,12 @@ import { WithdrawModal } from "@/components/molecules/modals/withdraw-modal";
 import { useGetBalance } from "@/hooks/use-wallet";
 
 const CURRENT_USER = {
-  id: "user-1",
   email: "you@wagerie.com",
 };
 
 export default function ProfilePage() {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const { data: wallet, isLoading } = useGetBalance(CURRENT_USER.id);
+  const { data: wallet, isLoading } = useGetBalance();
   const balance = wallet?.balance || 0;
 
   return (
@@ -82,7 +81,6 @@ export default function ProfilePage() {
       <WithdrawModal
         open={withdrawOpen}
         onOpenChange={setWithdrawOpen}
-        userId={CURRENT_USER.id}
       />
     </DashboardLayout>
   );

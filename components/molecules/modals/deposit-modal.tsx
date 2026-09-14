@@ -29,7 +29,6 @@ import { Separator } from "@/components/ui/separator";
 interface DepositModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userId: string;
 }
 
 const paymentMethods = [
@@ -38,11 +37,7 @@ const paymentMethods = [
   { id: "paypal", label: "PayPal" },
 ];
 
-export function DepositModal({
-  open,
-  onOpenChange,
-  userId,
-}: DepositModalProps) {
+export function DepositModal({ open, onOpenChange }: DepositModalProps) {
   const { mutate: deposit, isPending } = useDeposit();
 
   const form = useForm<DepositInput>({
@@ -54,15 +49,12 @@ export function DepositModal({
   });
 
   const onSubmit = async (data: DepositInput) => {
-    deposit(
-      { ...data, userId },
-      {
-        onSuccess: () => {
-          form.reset();
-          onOpenChange(false);
-        },
+    deposit(data, {
+      onSuccess: () => {
+        form.reset();
+        onOpenChange(false);
       },
-    );
+    });
   };
 
   const selectedMethod = form.watch("paymentMethod");

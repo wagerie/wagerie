@@ -18,8 +18,6 @@ import { useTransactionHistory, useGetBalance } from "@/hooks/use-wallet";
 import { Transaction, TransactionType, TransactionStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const CURRENT_USER_ID = "user-1";
-
 const transactionTypeOptions: {
   value: TransactionType | "all";
   label: string;
@@ -114,9 +112,9 @@ export default function TransactionsPage() {
   const [page, setPage] = useState(1);
 
   const { data: wallet, isLoading: walletLoading } =
-    useGetBalance(CURRENT_USER_ID);
+    useGetBalance();
   const { data: transactionsData, isLoading: txLoading } =
-    useTransactionHistory(CURRENT_USER_ID, {
+    useTransactionHistory({
       type: selectedType || undefined,
       status: selectedStatus || undefined,
       page,

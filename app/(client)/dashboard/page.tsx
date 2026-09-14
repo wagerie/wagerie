@@ -11,11 +11,6 @@ import formatDate from "@/lib/format-date";
 import { Transaction } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const CURRENT_USER = {
-  id: "user-1",
-  email: "you@wagerie.com",
-};
-
 function getTransactionColor(type: string) {
   switch (type) {
     case "deposit":
@@ -43,11 +38,9 @@ function getTransactionSign(type: string) {
 export default function DashboardPage() {
   const [depositOpen, setDepositOpen] = useState(false);
 
-  const { data: wallet, isLoading: walletLoading } = useGetBalance(
-    CURRENT_USER.id,
-  );
+  const { data: wallet, isLoading: walletLoading } = useGetBalance();
   const { data: transactionsData, isLoading: txLoading } =
-    useTransactionHistory(CURRENT_USER.id, { pageSize: 5 });
+    useTransactionHistory({ pageSize: 5 });
 
   const isLoading = walletLoading || txLoading;
   const recentTransactions = transactionsData?.data || [];
@@ -78,7 +71,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout
-      userEmail={CURRENT_USER.email}
+      userEmail="user@example.com"
       userBalance={wallet?.balance || 0}
       onDeposit={() => setDepositOpen(true)}
     >
@@ -231,11 +224,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-      <DepositModal
-        open={depositOpen}
-        onOpenChange={setDepositOpen}
-        userId={CURRENT_USER.id}
-      />
+      <DepositModal open={depositOpen} onOpenChange={setDepositOpen} />
     </DashboardLayout>
   );
 }

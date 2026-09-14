@@ -62,11 +62,46 @@ export interface Transaction {
 }
 
 // ============================================
-// POLL & STAKING TYPES
+// PRODUCT LISTINGS AND STAKING TYPES
 // ============================================
 
 export type PollStatus = "active" | "closed" | "completed" | "cancelled";
 export type PrizeType = "cash" | "product";
+
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  image?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Product {
+  id: number;
+  categoryId: number;
+  name: string;
+  slug: string;
+  description: string;
+  image?: string | null;
+  images?: string[];
+  targetAmount: number | string;
+  ticketPrice: number | string;
+  raisedAmount: number | string;
+  status: PollStatus;
+  winnerUserId?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductEnrollment {
+  id: number;
+  productId: number;
+  userId: number;
+  ticketsBought: number;
+  amountPaid: number | string;
+  createdAt: string;
+}
 
 export interface Prize {
   id: string;

@@ -23,16 +23,11 @@ import { AlertCircle } from "lucide-react";
 interface WithdrawModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userId: string;
 }
 
-export function WithdrawModal({
-  open,
-  onOpenChange,
-  userId,
-}: WithdrawModalProps) {
+export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
   const { mutate: withdraw, isPending } = useWithdraw();
-  const { data: wallet } = useGetBalance(userId);
+  const { data: wallet } = useGetBalance();
 
   const form = useForm<WithdrawInput>({
     resolver: zodResolver(withdrawSchema),
@@ -56,15 +51,12 @@ export function WithdrawModal({
       return;
     }
 
-    withdraw(
-      { ...data, userId },
-      {
-        onSuccess: () => {
-          form.reset();
-          onOpenChange(false);
-        },
+    withdraw(data, {
+      onSuccess: () => {
+        form.reset();
+        onOpenChange(false);
       },
-    );
+    });
   };
 
   const availableBalance = wallet?.balance || 0;

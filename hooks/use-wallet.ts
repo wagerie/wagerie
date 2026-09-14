@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import api from "@/lib/axios";
+import client from "@/lib/axios";
 import { Wallet, Transaction, TransactionFilter } from "@/lib/types";
 import { DepositInput, WithdrawInput } from "@/lib/schemas";
 import { PaginatedResponse } from "@/lib/types";
@@ -14,10 +14,8 @@ import { API_ROUTES } from "@/constants/routes";
 
 export const walletQueryKeys = {
   all: ["wallet"] as const,
-  balance: (userId: string) =>
-    [...walletQueryKeys.all, "balance", userId] as const,
-  transactions: (userId: string) =>
-    [...walletQueryKeys.all, "transactions", userId] as const,
+  balance: () => [...walletQueryKeys.all, "balance"] as const,
+  transactions: () => [...walletQueryKeys.all, "transactions"] as const,
 };
 
 // ============================================
@@ -27,16 +25,13 @@ export const walletQueryKeys = {
 /**
  * Fetch user wallet balance
  */
-export const useGetBalance = (userId: string) => {
+export const useGetBalance = () => {
   return useQuery({
-    queryKey: walletQueryKeys.balance(userId),
+    queryKey: walletQueryKeys.balance(),
     queryFn: async () => {
-      const { data } = await api.get<Wallet>(API_ROUTES.WALLET_BALANCE, {
-        params: { userId },
-      });
+      const { data } = await client.get<Wallet>(API_ROUTES.WALLET);
       return data;
     },
-    enabled: !!userId,
   });
 };
 
@@ -47,12 +42,11 @@ export const useDeposit = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: DepositInput & { userId: string }) => {
-      const { data } = await api.post<{
+    mutationFn: async (input: DepositInput) => {
+      const { data } = await client.post<{
         wallet: Wallet;
         transaction: Transaction;
       }>(API_ROUTES.WALLET_DEPOSIT, {
-        userId: input.userId,
         amount: input.amount,
         paymentMethod: input.paymentMethod,
         cardDetails: input.cardDetails,
@@ -62,10 +56,10 @@ export const useDeposit = () => {
     onSuccess: (data, variables) => {
       // Invalidate and refetch balance
       queryClient.invalidateQueries({
-        queryKey: walletQueryKeys.balance(variables.userId),
+        queryKey: walletQueryKeys.balance(),
       });
       queryClient.invalidateQueries({
-        queryKey: walletQueryKeys.transactions(variables.userId),
+        queryKey: walletQueryKeys.transactions(),
       });
 
       toast.success(`Successfully deposited $${variables.amount.toFixed(2)}`);
@@ -85,12 +79,11 @@ export const useWithdraw = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: WithdrawInput & { userId: string }) => {
-      const { data } = await api.post<{
+    mutationFn: async (input: WithdrawInput) => {
+      const { data } = await client.post<{
         wallet: Wallet;
         transaction: Transaction;
       }>(API_ROUTES.WALLET_WITHDRAW, {
-        userId: input.userId,
         amount: input.amount,
         bankDetails: input.bankDetails,
       });
@@ -99,10 +92,10 @@ export const useWithdraw = () => {
     onSuccess: (data, variables) => {
       // Invalidate and refetch balance
       queryClient.invalidateQueries({
-        queryKey: walletQueryKeys.balance(variables.userId),
+        queryKey: walletQueryKeys.balance(),
       });
       queryClient.invalidateQueries({
-        queryKey: walletQueryKeys.transactions(variables.userId),
+        queryKey: walletQueryKeys.transactions(),
       });
 
       toast.success(`Successfully withdrawn $${variables.amount.toFixed(2)}`);
@@ -118,40 +111,35 @@ export const useWithdraw = () => {
 /**
  * Fetch transaction history with filtering
  */
-export const useTransactionHistory = (
-  userId: string,
-  filter?: TransactionFilter,
-) => {
+export const useTransactionHistory = (filter?: TransactionFilter) => {
   return useQuery({
     queryKey: [
-      ...walletQueryKeys.transactions(userId),
+      ...walletQueryKeys.transactions(),
       filter?.type,
       filter?.status,
       filter?.page,
     ],
     queryFn: async () => {
       const params = new URLSearchParams();
-      params.append("userId", userId);
       if (filter?.type) params.append("type", filter.type);
       if (filter?.status) params.append("status", filter.status);
       if (filter?.page) params.append("page", filter.page.toString());
       if (filter?.pageSize)
         params.append("pageSize", filter.pageSize.toString());
 
-      const { data } = await api.get<PaginatedResponse<Transaction>>(
+      const { data } = await client.get<PaginatedResponse<Transaction>>(
         API_ROUTES.WALLET_TRANSACTIONS,
         { params: Object.fromEntries(params) },
       );
       return data;
     },
-    enabled: !!userId,
   });
 };
 
 /**
  * Get total transaction count for a user
  */
-export const useTransactionCount = (userId: string) => {
-  const { data } = useTransactionHistory(userId, { pageSize: 1 });
+export const useTransactionCount = () => {
+  const { data } = useTransactionHistory({ pageSize: 1 });
   return data?.total || 0;
 };

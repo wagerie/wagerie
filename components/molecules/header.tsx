@@ -94,7 +94,6 @@ function Header({
       <DepositModal
         open={depositOpen}
         onOpenChange={setDepositOpen}
-        userId="user-1"
       />
     </header>
   );
