@@ -18,11 +18,16 @@ import {
   Ticket,
   Trophy,
   Wallet,
-  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 
 const featuredDraws = [
@@ -61,13 +66,6 @@ const featuredDraws = [
   },
 ];
 
-const stats = [
-  { label: "Prizes Awarded", value: "$4.8M+" },
-  { label: "Registered Players", value: "28,400+" },
-  { label: "Average Draw Time", value: "< 24 Hrs" },
-  { label: "Draw Fairness Score", value: "100%" },
-];
-
 export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-blue-600 selection:text-white">
@@ -91,10 +89,22 @@ export default function Home() {
                 Live Draws
               </Link>
               <Link
+                href="#winners"
+                className="rounded-lg px-3 py-2 transition hover:bg-accent hover:text-accent-foreground"
+              >
+                Winners
+              </Link>
+              <Link
                 href="#fairness"
                 className="rounded-lg px-3 py-2 transition hover:bg-accent hover:text-accent-foreground"
               >
-                Provably Fair
+                Fairness
+              </Link>
+              <Link
+                href="#faq"
+                className="rounded-lg px-3 py-2 transition hover:bg-accent hover:text-accent-foreground"
+              >
+                FAQ
               </Link>
             </nav>
 
@@ -124,7 +134,7 @@ export default function Home() {
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1.5 text-xs font-bold text-blue-300">
                 <Sparkles className="h-3.5 w-3.5 text-blue-400" />
-                Guaranteed Luxury Prize Draws
+                Premium product pools
               </div>
 
               <h1 className="text-5xl font-black tracking-tight text-foreground sm:text-6xl lg:text-7xl leading-[1.08]">
@@ -135,10 +145,10 @@ export default function Home() {
               </h1>
 
               <p className="max-w-xl text-base sm:text-lg leading-relaxed text-muted-foreground">
-                Wagerie combines the thrill of luxury raffle prize draws with
-                transparent, provably fair blockchain-grade randomness. Secure
-                your tickets, receive your registered numbers, and choose
-                between physical delivery or instant cash payout.
+                Browse premium products, choose how many entries you want, and
+                receive a unique number linked to your account. When a pool is
+                ready, the winning entry is selected and the outcome is
+                recorded.
               </p>
 
               <div className="flex flex-col gap-3 sm:flex-row pt-2">
@@ -148,7 +158,7 @@ export default function Home() {
                   asChild
                 >
                   <Link href={APP_ROUTES.REGISTER}>
-                    Enter Live Draws
+                    Explore Live Draws
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </BtnComponent>
@@ -158,22 +168,22 @@ export default function Home() {
                   className="rounded-2xl border-border bg-secondary text-secondary-foreground hover:bg-accent"
                   asChild
                 >
-                  <Link href={APP_ROUTES.LOGIN}>View Demo Dashboard</Link>
+                  <Link href="#how-it-works">See How It Works</Link>
                 </BtnComponent>
               </div>
 
               <div className="flex flex-wrap items-center gap-6 pt-2 text-xs font-semibold text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                  Provably Fair RNG
+                  Unique account entries
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-emerald-400" />
-                  Instant Cash Swap Option
+                  Clear pool progress
                 </div>
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4 text-blue-400" />
-                  Free Insured Global Shipping
+                  Track entries in your account
                 </div>
               </div>
             </div>
@@ -215,7 +225,7 @@ export default function Home() {
                       <strong className="text-white">$14,500</strong>
                     </span>
                     <span className="text-xs text-emerald-400 font-bold">
-                      Or $13,000 Cash
+                      Cash equivalent where eligible
                     </span>
                   </div>
                 </div>
@@ -246,18 +256,40 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Stats Strip */}
+        {/* Trust Mechanisms */}
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
+          {[
+            [
+              CheckCircle2,
+              "Verified entries",
+              "Each entry is associated with the signed-in account.",
+            ],
+            [
+              Ticket,
+              "Visible progress",
+              "See price, target, filled percentage, and entries remaining.",
+            ],
+            [
+              Lock,
+              "Account history",
+              "Review your entries and outcomes from the workspace.",
+            ],
+            [
+              ShieldCheck,
+              "Clear outcomes",
+              "Winning selection and fulfillment details are communicated after a draw.",
+            ],
+          ].map(([Icon, title, description]) => (
             <div
-              key={stat.label}
-              className="rounded-3xl border border-border bg-card p-6 text-center shadow-lg"
+              key={title as string}
+              className="rounded-3xl border border-border bg-card p-5 shadow-lg"
             >
-              <p className="text-3xl font-black text-foreground">
-                {stat.value}
-              </p>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">
-                {stat.label}
+              <Icon className="h-5 w-5 text-blue-500" />
+              <h2 className="mt-4 text-sm font-bold text-foreground">
+                {title as string}
+              </h2>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                {description as string}
               </p>
             </div>
           ))}
@@ -273,8 +305,8 @@ export default function Home() {
               Featured Live Draws
             </h2>
             <p className="text-sm text-muted-foreground">
-              Each draw is guaranteed to take place as soon as target slots are
-              filled.
+              Explore the products currently available and see how close each
+              pool is to its target.
             </p>
           </div>
 
@@ -312,7 +344,7 @@ export default function Home() {
                       {draw.name}
                     </h3>
                     <p className="text-xs text-emerald-400 font-semibold mt-0.5">
-                      Or {draw.cash} Cash Payout
+                      Cash equivalent where eligible: {draw.cash}
                     </p>
                   </div>
 
@@ -391,7 +423,7 @@ export default function Home() {
                 step: "03",
                 icon: Trophy,
                 title: "Automated Draw & Win",
-                desc: "When the pool fills, the provably fair algorithm selects the winning ticket. Choose physical delivery or instant cash to your wallet.",
+                desc: "When the pool is ready, a winning entry is selected and the outcome is communicated. Claim options depend on the product terms.",
               },
             ].map((item) => {
               const Icon = item.icon;
@@ -420,7 +452,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Fairness & Trust Guarantee Section */}
+        {/* Fairness & Trust Section */}
         <section
           id="fairness"
           className="rounded-3xl border border-blue-500/20 bg-linear-to-b from-blue-500/10 to-card p-8 sm:p-12 space-y-6"
@@ -428,16 +460,16 @@ export default function Home() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2 max-w-xl">
               <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
-                100% Provably Fair
+                Understand the process
               </span>
               <h2 className="text-3xl font-black text-foreground">
                 Trust, Transparency & Security
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Unlike traditional lotteries or sweepstakes, every Wagerie draw
-                is completely auditable. Every entrant's numbers are public on
-                the draw ledger, and random selection is generated via
-                verifiable seeds.
+                Entries are connected to your account, pool progress is visible,
+                and your entry history remains available in the workspace. We
+                show the product, price, target, and current pool status before
+                you decide to participate.
               </p>
             </div>
             <Button
@@ -449,6 +481,193 @@ export default function Home() {
             </Button>
           </div>
         </section>
+
+        {/* Winners Placeholder */}
+        <section
+          id="winners"
+          className="rounded-3xl border border-border bg-card p-8 sm:p-12"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-blue-400">
+                Real people. Real outcomes.
+              </span>
+              <h2 className="mt-2 text-3xl font-black text-foreground">
+                Previous winners
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                Winner records and testimonials will appear here once completed
+                draws are available.
+              </p>
+            </div>
+            <Badge className="w-fit border-border bg-muted text-muted-foreground">
+              No completed draws yet
+            </Badge>
+          </div>
+          <div className="mt-6 flex min-h-32 items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 p-6 text-center text-sm text-muted-foreground">
+            Verified winner information will include the prize, date, winning
+            entry, and claim outcome.
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-widest text-blue-400">
+              Questions, answered
+            </span>
+            <h2 className="mt-2 text-3xl font-black text-foreground">
+              Frequently asked questions
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Start with the basics, then review the details in your account
+              before participating.
+            </p>
+          </div>
+          <Accordion type="single" collapsible className="space-y-2">
+            {[
+              [
+                "How does Wagerie work?",
+                "Choose an available product, select your number of entries, and submit the enrollment. Your entries are linked to your account for tracking.",
+              ],
+              [
+                "Can I see my entries?",
+                "Yes. Your entries and account activity are available in the signed-in workspace.",
+              ],
+              [
+                "How are products selected?",
+                "Each product listing shows its name, category, target amount, ticket price, raised amount, and status before enrollment.",
+              ],
+              [
+                "What happens if I win?",
+                "The completed draw outcome and next claim steps will be communicated through the product and account experience.",
+              ],
+              [
+                "Is there always a cash alternative?",
+                "Cash alternatives should only be expected where the specific product listing or winner terms make them available.",
+              ],
+            ].map(([question, answer]) => (
+              <AccordionItem
+                key={question}
+                value={question}
+                className="rounded-2xl border border-border bg-card/80 px-1 shadow-sm transition-colors hover:border-blue-500/40 data-[state=open]:border-blue-500/40 data-[state=open]:bg-card"
+              >
+                <AccordionTrigger className="px-5 py-4 text-left text-sm font-bold text-foreground hover:no-underline">
+                  {question}
+                </AccordionTrigger>
+                <AccordionContent className="px-5 pb-5 pt-0 text-sm leading-relaxed text-muted-foreground">
+                  {answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </section>
+
+        <footer className="rounded-3xl border border-border bg-card/80 p-6 shadow-[0_16px_40px_rgba(0,0,0,0.10)] sm:p-8">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
+            <div>
+              <PrimaryLogo className="text-xl" />
+              <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
+                Premium product pools with clear entry details, account-based
+                tracking, and straightforward draw mechanics.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <Badge className="border-0 bg-blue-500/10 text-blue-300">
+                  Live product pools
+                </Badge>
+                <Badge className="border-0 bg-emerald-500/10 text-emerald-300">
+                  Transparent entries
+                </Badge>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Product
+              </p>
+              <div className="mt-3 space-y-2 text-sm">
+                <Link
+                  href="#featured"
+                  className="block transition hover:text-foreground"
+                >
+                  Live Draws
+                </Link>
+                <Link
+                  href="#how-it-works"
+                  className="block transition hover:text-foreground"
+                >
+                  How It Works
+                </Link>
+                <Link
+                  href="#winners"
+                  className="block transition hover:text-foreground"
+                >
+                  Winners
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Support
+              </p>
+              <div className="mt-3 space-y-2 text-sm">
+                <Link
+                  href="#faq"
+                  className="block transition hover:text-foreground"
+                >
+                  FAQ
+                </Link>
+                <Link
+                  href="#fairness"
+                  className="block transition hover:text-foreground"
+                >
+                  Fairness
+                </Link>
+                <Link
+                  href={APP_ROUTES.LOGIN}
+                  className="block transition hover:text-foreground"
+                >
+                  Sign In
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Company
+              </p>
+              <div className="mt-3 space-y-2 text-sm">
+                <Link
+                  href="#"
+                  className="block transition hover:text-foreground"
+                >
+                  About
+                </Link>
+                <Link
+                  href="#"
+                  className="block transition hover:text-foreground"
+                >
+                  Privacy
+                </Link>
+                <Link
+                  href="#"
+                  className="block transition hover:text-foreground"
+                >
+                  Terms
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 border-t border-border pt-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <p>
+              © {new Date().getFullYear()} Wagerie. Product availability and
+              claim terms may vary.
+            </p>
+            <p>Made for premium product discovery.</p>
+          </div>
+        </footer>
       </div>
     </main>
   );
