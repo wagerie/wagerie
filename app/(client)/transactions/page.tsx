@@ -117,8 +117,9 @@ export default function TransactionsPage() {
     });
 
   const isLoading = walletLoading || txLoading;
-  const transactions = transactionsData?.data || [];
-  const totalPages = transactionsData?.totalPages || 1;
+  const transactions = (transactionsData as any)?.data?.items || [];
+  const totalPages =
+    (transactionsData as any)?.data?.pagination?.totalPages || 1;
   const balance = (wallet as any)?.data?.balance ?? 0;
 
   // Define columns for the data table

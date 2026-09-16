@@ -41,9 +41,7 @@ function RecentTransactions({
     pageSize: 5,
   });
 
-  console.log("transactionsData", transactionsData);
-
-  const recentTransactions = transactionsData?.data || [];
+  const recentTransactions = (transactionsData as any)?.data?.items || [];
 
   return (
     <div className="rounded-3xl border border-border bg-card p-6 shadow-xl space-y-4">
@@ -60,11 +58,11 @@ function RecentTransactions({
       </div>
 
       {isLoading ? (
-        <div className="flex min-h-[160px] items-center justify-center">
+        <div className="flex min-h-40 items-center justify-center">
           <Loader className="h-6 w-6 animate-spin text-blue-500" />
         </div>
       ) : recentTransactions.length === 0 ? (
-        <div className="flex min-h-[160px] flex-col items-center justify-center text-center">
+        <div className="flex min-h-40 flex-col items-center justify-center text-center">
           <p className="mb-3 text-xs text-slate-400">
             No transactions yet. Fund your wallet to begin playing!
           </p>
