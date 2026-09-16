@@ -74,7 +74,7 @@ export default function ProductDetailPage() {
   );
 
   const { data: wallet } = useGetBalance();
-  const userBalance = wallet?.balance || 0;
+  const userBalance = (wallet as any)?.data?.balance || 0;
 
   const { mutate: enroll, isPending } = usePost<
     EnrollmentResponse,
@@ -119,7 +119,7 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <DashboardLayout userBalance={userBalance}>
+    <DashboardLayout>
       <div className="min-h-full bg-background text-foreground p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           {/* Breadcrumb / Back Link */}
