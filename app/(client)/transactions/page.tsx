@@ -234,7 +234,7 @@ export default function TransactionsPage() {
                     Total Records
                   </p>
                   <p className="text-2xl font-black text-white">
-                    {transactionsData?.total || 0}
+                    {(transactionsData as any)?.data?.pagination?.total || 0}
                   </p>
                 </div>
               </div>
