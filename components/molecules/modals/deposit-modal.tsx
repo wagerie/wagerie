@@ -26,6 +26,7 @@ import { depositSchema, DepositInput } from "@/lib/schemas";
 import { useDeposit } from "@/hooks/use-wallet";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, CreditCard, Lock, ShieldCheck, Zap } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface DepositModalProps {
   open: boolean;
@@ -52,7 +53,7 @@ export function DepositModal({
     resolver: zodResolver(depositSchema),
     defaultValues: {
       amount: defaultAmount,
-      paymentMethod: "credit_card",
+      // paymentMethod: "credit_card",
     },
   });
 
@@ -65,7 +66,7 @@ export function DepositModal({
     });
   };
 
-  const selectedMethod = form.watch("paymentMethod");
+  // const selectedMethod = form.watch("paymentMethod");
   const currentAmount = form.watch("amount");
 
   return (
@@ -138,10 +139,10 @@ export function DepositModal({
             )}
           />
 
-          <Separator className="bg-slate-800" />
+          {/* <Separator className="bg-slate-800" /> */}
 
           {/* Payment Method */}
-          <FormField
+          {/* <FormField
             control={form.control}
             name="paymentMethod"
             render={({ field }) => (
@@ -170,10 +171,10 @@ export function DepositModal({
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
 
           {/* Card Details (show only for credit_card) */}
-          {selectedMethod === "credit_card" && (
+          {/* {selectedMethod === "credit_card" && (
             <div className="space-y-4 rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
@@ -227,7 +228,7 @@ export function DepositModal({
                 />
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Security Guarantee Strip */}
           <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-[11px] text-slate-400">
@@ -248,7 +249,7 @@ export function DepositModal({
               className="flex-1 rounded-xl bg-blue-600 font-bold text-white hover:bg-blue-500 shadow-lg shadow-blue-600/30"
               loading={isPending}
             >
-              Deposit ${currentAmount?.toLocaleString() || "0"} Now
+              Deposit {formatCurrency(currentAmount)} Now
             </BtnComponent>
             <button
               type="button"

@@ -21,7 +21,7 @@ import SelectComponent from "@/components/atoms/select-component";
 import { useTransactionHistory, useGetBalance } from "@/hooks/use-wallet";
 import { Transaction, TransactionType, TransactionStatus } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 const transactionTypeOptions: {
   value: TransactionType | "all";
@@ -119,14 +119,14 @@ export default function TransactionsPage() {
   const isLoading = walletLoading || txLoading;
   const transactions = transactionsData?.data || [];
   const totalPages = transactionsData?.totalPages || 1;
-  const balance = wallet?.balance ?? 0;
+  const balance = (wallet as any)?.data?.balance ?? 0;
 
   // Define columns for the data table
   const columns = useMemo<ColumnDef<Transaction>[]>(
     () => [
       {
         accessorKey: "type",
-        header: "Movement Type",
+        header: "Type/ Provider",
         cell: ({ row }) => (
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 border border-slate-800">
@@ -136,24 +136,14 @@ export default function TransactionsPage() {
               <span className="font-bold text-white text-xs block">
                 {getTransactionLabel(row.original.type)}
               </span>
-              <span className="text-[10px] text-slate-500">
-                {row.original.reference
-                  ? `#${row.original.reference.slice(-8)}`
-                  : "Direct Transfer"}
+              <span className="text-[10px] text-slate-500 capitalize">
+                {row.original.provider}
               </span>
             </div>
           </div>
         ),
       },
-      {
-        accessorKey: "description",
-        header: "Description / Destination",
-        cell: ({ row }) => (
-          <span className="text-xs text-slate-300">
-            {row.original.description || "Standard wallet transaction"}
-          </span>
-        ),
-      },
+
       {
         accessorKey: "amount",
         header: "Amount",
@@ -170,7 +160,8 @@ export default function TransactionsPage() {
                 isPositive ? "text-emerald-400" : "text-slate-200",
               )}
             >
-              {isPositive ? "+" : "-"}${row.original.amount.toFixed(2)}
+              {isPositive ? "+" : "-"}
+              {formatCurrency(parseFloat(row.original.amount))}
             </span>
           );
         },
@@ -194,7 +185,7 @@ export default function TransactionsPage() {
   );
 
   return (
-    <DashboardLayout userEmail="player@wagerie.com" userBalance={balance}>
+    <DashboardLayout userEmail="player@wagerie.com">
       <div className="min-h-full bg-background text-foreground p-4 lg:p-8 space-y-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
@@ -226,7 +217,7 @@ export default function TransactionsPage() {
                     Available Balance
                   </p>
                   <p className="text-2xl font-black text-white">
-                    ${balance.toFixed(2)}
+                    {formatCurrency(balance)}
                   </p>
                 </div>
               </div>
@@ -257,14 +248,14 @@ export default function TransactionsPage() {
                   <p className="text-xs text-slate-400 font-medium">
                     Operating Currency
                   </p>
-                  <p className="text-2xl font-black text-white">USD ($)</p>
+                  <p className="text-2xl font-black text-white">USDT ($)</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Filters Bar */}
-          <div className="rounded-2xl border border-border bg-card p-4 lg:p-5">
+          {/* <div className="rounded-2xl border border-border bg-card p-4 lg:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <SelectComponent
                 label="Filter by Type"
@@ -285,7 +276,7 @@ export default function TransactionsPage() {
                 placeholder="All statuses"
               />
             </div>
-          </div>
+          </div> */}
 
           {/* Transactions Table Container */}
           <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">

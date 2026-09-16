@@ -1,12 +1,13 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import client from "@/lib/axios";
 import { Wallet, Transaction, TransactionFilter } from "@/lib/types";
 import { DepositInput, WithdrawInput } from "@/lib/schemas";
 import { PaginatedResponse } from "@/lib/types";
 import { API_ROUTES } from "@/constants/routes";
+import { useGet, usePost } from "./use-api";
+import { formatCurrency } from "@/lib/utils";
 
 // ============================================
 // QUERY KEYS
@@ -26,50 +27,36 @@ export const walletQueryKeys = {
  * Fetch user wallet balance
  */
 export const useGetBalance = () => {
-  return useQuery({
-    queryKey: walletQueryKeys.balance(),
-    queryFn: async () => {
-      const { data } = await client.get<Wallet>(API_ROUTES.WALLET);
-      return data;
-    },
-  });
+  return useGet<Wallet>(walletQueryKeys.balance(), API_ROUTES.WALLET);
 };
-
 /**
  * Deposit funds to wallet
  */
 export const useDeposit = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (input: DepositInput) => {
-      const { data } = await client.post<{
-        wallet: Wallet;
-        transaction: Transaction;
-      }>(API_ROUTES.WALLET_DEPOSIT, {
-        amount: input.amount,
-        paymentMethod: input.paymentMethod,
-        cardDetails: input.cardDetails,
-      });
-      return data;
-    },
-    onSuccess: (data, variables) => {
-      // Invalidate and refetch balance
-      queryClient.invalidateQueries({
-        queryKey: walletQueryKeys.balance(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: walletQueryKeys.transactions(),
-      });
+  return usePost<{ wallet: Wallet; transaction: Transaction }, DepositInput>(
+    API_ROUTES.WALLET_DEPOSIT,
+    {
+      onSuccess: (_data, variables) => {
+        // Invalidate and refetch balance
+        queryClient.invalidateQueries({
+          queryKey: walletQueryKeys.balance(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: walletQueryKeys.transactions(),
+        });
 
-      toast.success(`Successfully deposited $${variables.amount.toFixed(2)}`);
+        toast.success(
+          `${formatCurrency(variables.amount)} ${(_data as any).message} `,
+        );
+      },
+      onError: (error) => {
+        const responseData = error.response?.data as { message?: string };
+        toast.error(responseData?.message || error.message || "Deposit failed");
+      },
     },
-    onError: (error: any) => {
-      const message =
-        error.response?.data?.message || error.message || "Deposit failed";
-      toast.error(message);
-    },
-  });
+  );
 };
 
 /**
@@ -78,62 +65,57 @@ export const useDeposit = () => {
 export const useWithdraw = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (input: WithdrawInput) => {
-      const { data } = await client.post<{
-        wallet: Wallet;
-        transaction: Transaction;
-      }>(API_ROUTES.WALLET_WITHDRAW, {
-        amount: input.amount,
-        bankDetails: input.bankDetails,
-      });
-      return data;
-    },
-    onSuccess: (data, variables) => {
-      // Invalidate and refetch balance
-      queryClient.invalidateQueries({
-        queryKey: walletQueryKeys.balance(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: walletQueryKeys.transactions(),
-      });
+  return usePost<{ wallet: Wallet; transaction: Transaction }, WithdrawInput>(
+    API_ROUTES.WALLET_WITHDRAW,
+    {
+      onSuccess: (_data, variables) => {
+        // Invalidate and refetch balance
+        queryClient.invalidateQueries({
+          queryKey: walletQueryKeys.balance(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: walletQueryKeys.transactions(),
+        });
 
-      toast.success(`Successfully withdrawn $${variables.amount.toFixed(2)}`);
+        toast.success(
+          `${formatCurrency(variables.amount)} ${(_data as any).message} `,
+        );
+      },
+      onError: (error) => {
+        const responseData = error.response?.data as { message?: string };
+        toast.error(
+          responseData?.message || error.message || "Withdrawal failed",
+        );
+      },
     },
-    onError: (error: any) => {
-      const message =
-        error.response?.data?.message || error.message || "Withdrawal failed";
-      toast.error(message);
-    },
-  });
+  );
 };
 
 /**
  * Fetch transaction history with filtering
  */
 export const useTransactionHistory = (filter?: TransactionFilter) => {
-  return useQuery({
-    queryKey: [
-      ...walletQueryKeys.transactions(),
-      filter?.type,
-      filter?.status,
-      filter?.page,
-    ],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filter?.type) params.append("type", filter.type);
-      if (filter?.status) params.append("status", filter.status);
-      if (filter?.page) params.append("page", filter.page.toString());
-      if (filter?.pageSize)
-        params.append("pageSize", filter.pageSize.toString());
+  const params = new URLSearchParams();
+  if (filter?.type) params.set("type", filter.type);
+  if (filter?.status) params.set("status", filter.status);
+  if (filter?.page) params.set("page", filter.page.toString());
+  if (filter?.pageSize) params.set("limit", filter.pageSize.toString());
 
-      const { data } = await client.get<PaginatedResponse<Transaction>>(
-        API_ROUTES.WALLET_TRANSACTIONS,
-        { params: Object.fromEntries(params) },
-      );
-      return data;
-    },
-  });
+  const queryString = params.toString();
+  const url = queryString
+    ? `${API_ROUTES.WALLET_TRANSACTIONS}?${queryString}`
+    : API_ROUTES.WALLET_TRANSACTIONS;
+
+  return useGet<PaginatedResponse<Transaction>>(
+    [
+      ...walletQueryKeys.transactions(),
+      filter?.type || "",
+      filter?.status || "",
+      filter?.page?.toString() || "",
+      filter?.pageSize?.toString() || "",
+    ],
+    url,
+  );
 };
 
 /**

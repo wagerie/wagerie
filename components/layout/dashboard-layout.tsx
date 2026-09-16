@@ -10,7 +10,6 @@ import { ModeToggle } from "../atoms/toggle-theme";
 interface DashboardLayoutProps {
   children: React.ReactNode;
   userEmail?: string;
-  userBalance?: number;
   onDeposit?: () => void;
   isAdmin?: boolean;
 }
@@ -18,26 +17,13 @@ interface DashboardLayoutProps {
 export function DashboardLayout({
   children,
   userEmail = "player@wagerie.com",
-  userBalance,
   onDeposit,
   isAdmin = false,
 }: DashboardLayoutProps) {
-  const [depositOpen, setDepositOpen] = useState(false);
   const { data: wallet } = useGetBalance();
 
   // If userBalance is not provided or 0, fallback to real fetched balance
-  const activeBalance =
-    userBalance !== undefined && userBalance !== 0
-      ? userBalance
-      : (wallet?.balance ?? 0);
-
-  const handleDepositClick = () => {
-    if (onDeposit) {
-      onDeposit();
-    } else {
-      setDepositOpen(true);
-    }
-  };
+  const activeBalance = Number((wallet as any)?.data?.balance) ?? 0;
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -53,7 +39,6 @@ export function DashboardLayout({
         <Header
           userEmail={userEmail}
           userBalance={activeBalance}
-          onDeposit={handleDepositClick}
           isAdmin={isAdmin}
         />
 
@@ -62,8 +47,6 @@ export function DashboardLayout({
           {children}
         </main>
       </div>
-
-      <DepositModal open={depositOpen} onOpenChange={setDepositOpen} />
     </div>
   );
 }

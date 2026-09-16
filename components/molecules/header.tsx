@@ -20,16 +20,15 @@ import ModalLayout from "@/components/layout/modal-layout";
 import { API_ROUTES } from "@/constants/routes";
 import { removeCookie } from "@/hooks/use-cookies";
 import { usePost } from "@/hooks/use-api";
+import { formatCurrency } from "@/lib/utils";
 
 function Header({
   userEmail,
   userBalance,
-  onDeposit,
   isAdmin,
 }: {
   userEmail: string;
   userBalance: number;
-  onDeposit?: () => void;
   isAdmin: boolean;
 }) {
   const router = useRouter();
@@ -67,14 +66,14 @@ function Header({
         >
           <Coins className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
           <span className="font-bold text-foreground tabular-nums">
-            ${userBalance.toFixed(2)}
+            {formatCurrency(userBalance)}
           </span>
         </Link>
 
         {/* Global Deposit CTA Button */}
         <Button
           type="button"
-          onClick={() => (onDeposit ? onDeposit() : setDepositOpen(true))}
+          onClick={() => setDepositOpen(true)}
           className="h-8 rounded-xl bg-blue-600 px-2.5 text-xs font-bold text-white shadow-[0_6px_16px_rgba(37,99,235,0.3)] hover:bg-blue-500 sm:h-9 sm:px-4 sm:text-sm hidden md:flex"
         >
           <ArrowDownRight className="mr-1 h-3.5 w-3.5 sm:mr-1.5 sm:h-4 sm:w-4" />

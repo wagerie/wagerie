@@ -8,6 +8,15 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerHeader,
+  DrawerDescription,
+} from "../ui/drawer";
 
 interface ModalLayoutProps {
   open: boolean;
@@ -37,33 +46,67 @@ export function ModalLayout({
   footer,
   className = "",
 }: ModalLayoutProps) {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className={cn(
+            ` bg-card/95 backdrop-blur-sm border-border/50 shadow-xl rounded-2xl animate-in fade-in-0 zoom-in-95 duration-200`,
+            className,
+            sizeClass[size],
+          )}
+        >
+          {(title || description) && (
+            <DialogHeader className="space-y-2">
+              {title && (
+                <DialogTitle className="text-xl font-bold text-foreground">
+                  {title}
+                </DialogTitle>
+              )}
+              {description && (
+                <DialogDescription className="text-muted-foreground text-sm">
+                  {description}
+                </DialogDescription>
+              )}
+            </DialogHeader>
+          )}
+
+          <div className="space-y-6">{children}</div>
+
+          {footer && (
+            <div className="mt-6 pt-4 border-t border-border/30">{footer}</div>
+          )}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={`${sizeClass[size]} ${className} bg-card/95 backdrop-blur-sm border-border/50 shadow-xl rounded-2xl animate-in fade-in-0 zoom-in-95 duration-200`}
+    <Drawer open={open} onOpenChange={onOpenChange} modal showSwipeHandle>
+      <DrawerContent
+        className={cn(
+          "bg-card/95 backdrop-blur-sm p-4 rounded-t-2xl",
+          className,
+        )}
       >
         {(title || description) && (
-          <DialogHeader className="space-y-2">
-            {title && (
-              <DialogTitle className="text-xl font-bold text-foreground">
-                {title}
-              </DialogTitle>
-            )}
-            {description && (
-              <DialogDescription className="text-muted-foreground text-sm">
-                {description}
-              </DialogDescription>
-            )}
-          </DialogHeader>
+          <DrawerHeader className="space-y-2">
+            <DrawerTitle className={"text-xl font-bold text-foreground"}>
+              {title}
+            </DrawerTitle>
+            <DrawerDescription className="text-muted-foreground text-sm">
+              {description}
+            </DrawerDescription>
+          </DrawerHeader>
         )}
-
         <div className="space-y-6">{children}</div>
-
         {footer && (
           <div className="mt-6 pt-4 border-t border-border/30">{footer}</div>
         )}
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

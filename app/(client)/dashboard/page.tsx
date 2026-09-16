@@ -17,39 +17,15 @@ import {
 import Link from "next/link";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DepositModal } from "@/components/molecules/modals/deposit-modal";
-import { useGetBalance, useTransactionHistory } from "@/hooks/use-wallet";
+import { useGetBalance } from "@/hooks/use-wallet";
 import { useGet } from "@/hooks/use-api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import formatDate from "@/lib/format-date";
 import { API_ROUTES } from "@/constants/routes";
 import type { Product, Transaction } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { PollCard } from "@/components/molecules/poll-card";
-
-function getTransactionColor(type: string) {
-  switch (type) {
-    case "deposit":
-      return "text-emerald-400";
-    case "withdrawal":
-      return "text-red-400";
-    case "stake":
-      return "text-amber-400";
-    case "winnings":
-      return "text-emerald-400 font-extrabold";
-    case "refund":
-      return "text-blue-400";
-    default:
-      return "text-slate-400";
-  }
-}
-
-function getTransactionSign(type: string) {
-  if (type === "deposit" || type === "refund" || type === "winnings") {
-    return "+";
-  }
-  return "-";
-}
+import RecentTransactions from "@/components/molecules/dashboard/recent-transactions";
 
 interface ProductListResponse {
   data?: {
@@ -61,17 +37,14 @@ export default function DashboardPage() {
   const [depositOpen, setDepositOpen] = useState(false);
 
   const { data: wallet, isLoading: walletLoading } = useGetBalance();
-  const { data: transactionsData, isLoading: txLoading } =
-    useTransactionHistory({ pageSize: 5 });
+
   const { data: featuredData } = useGet<ProductListResponse>(
     ["featured-products"],
     `${API_ROUTES.PRODUCTS}?limit=3`,
   );
 
-  const isLoading = walletLoading || txLoading;
-  const recentTransactions = transactionsData?.data || [];
   const featuredDraws = featuredData?.data?.items || [];
-  const balance = wallet?.balance ?? 0;
+  const balance = Number((wallet as any)?.data?.balance) ?? 0;
 
   const statCards = [
     {
@@ -84,7 +57,7 @@ export default function DashboardPage() {
     },
     {
       label: "Available Balance",
-      value: `$${balance.toFixed(2)}`,
+      value: formatCurrency(balance),
       hint: "Instant draw liquidity",
       icon: Wallet,
       href: "/transactions",
@@ -103,7 +76,6 @@ export default function DashboardPage() {
   return (
     <DashboardLayout
       userEmail="player@wagerie.com"
-      userBalance={balance}
       onDeposit={() => setDepositOpen(true)}
     >
       <div className="min-h-full bg-background text-foreground p-4 lg:p-8 space-y-8">
@@ -202,70 +174,8 @@ export default function DashboardPage() {
 
           {/* Bottom Grid: Recent Activity & How It Works */}
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <RecentTransactions openDepositModal={() => setDepositOpen(true)} />
             {/* Recent Transactions */}
-            <div className="rounded-3xl border border-border bg-card p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-border pb-4">
-                <h2 className="text-lg font-bold text-foreground">
-                  Recent Transactions
-                </h2>
-                <Link
-                  href="/transactions"
-                  className="text-xs font-semibold text-blue-400 hover:text-blue-300"
-                >
-                  View All
-                </Link>
-              </div>
-
-              {isLoading ? (
-                <div className="flex min-h-[160px] items-center justify-center">
-                  <Loader className="h-6 w-6 animate-spin text-blue-500" />
-                </div>
-              ) : recentTransactions.length === 0 ? (
-                <div className="flex min-h-[160px] flex-col items-center justify-center text-center">
-                  <p className="mb-3 text-xs text-slate-400">
-                    No transactions yet. Fund your wallet to begin playing!
-                  </p>
-                  <Button
-                    size="sm"
-                    onClick={() => setDepositOpen(true)}
-                    className="rounded-xl bg-blue-600 hover:bg-blue-500"
-                  >
-                    Make First Deposit
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {recentTransactions.map((tx: Transaction) => (
-                    <div
-                      key={tx.id}
-                      className="flex items-center justify-between rounded-2xl border border-border bg-muted p-3.5 text-xs"
-                    >
-                      <div>
-                        <p className="font-bold text-foreground capitalize">
-                          {tx.description || tx.type}
-                        </p>
-                        <p className="mt-0.5 text-[11px] text-slate-500">
-                          {formatDate(tx.createdAt, "MMM dd, yyyy • HH:mm")}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className={cn(
-                            "font-black text-sm",
-                            getTransactionColor(tx.type),
-                          )}
-                        >
-                          {getTransactionSign(tx.type)}${tx.amount.toFixed(2)}
-                        </p>
-                        <Badge className="border-0 bg-slate-800/80 text-[10px] text-slate-400 capitalize mt-0.5">
-                          {tx.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
 
             {/* How Wagerie Works Guide */}
             <div className="rounded-3xl border border-border bg-card p-6 shadow-xl space-y-4">

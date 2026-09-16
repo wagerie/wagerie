@@ -21,6 +21,7 @@ import { useGetBalance } from "@/hooks/use-wallet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
 
 const CURRENT_USER = {
   email: "player@wagerie.com",
@@ -31,7 +32,7 @@ export default function ProfilePage() {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
   const { data: wallet, isLoading } = useGetBalance();
-  const balance = wallet?.balance ?? 0;
+  const balance = (wallet as any)?.data?.balance ?? 0;
 
   const copyReferral = () => {
     navigator.clipboard.writeText(
@@ -41,7 +42,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <DashboardLayout userEmail={CURRENT_USER.email} userBalance={balance}>
+    <DashboardLayout userEmail={CURRENT_USER.email}>
       <div className="min-h-full bg-background text-foreground p-4 lg:p-8 space-y-8">
         <div className="mx-auto max-w-6xl space-y-8">
           {/* Header */}
@@ -131,7 +132,7 @@ export default function ProfilePage() {
                   Available Liquidity
                 </span>
                 <p className="mt-2 text-4xl font-black tracking-tight text-foreground">
-                  {isLoading ? "..." : `$${balance.toFixed(2)}`}
+                  {isLoading ? "..." : formatCurrency(balance)}
                   <span className="ml-2 text-sm font-bold text-muted-foreground">
                     USD
                   </span>

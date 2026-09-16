@@ -11,16 +11,16 @@ export const depositSchema = z.object({
     .max(100000, "Maximum deposit is $100,000")
     .refine((val) => val >= 1, "Minimum deposit is $1")
     .refine((val) => Number.isFinite(val), "Invalid amount"),
-  paymentMethod: z.enum(["credit_card", "bank_transfer", "paypal"]),
-  cardDetails: z
-    .object({
-      cardNumber: z.string().regex(/^\d{16}$/, "Invalid card number"),
-      expiryDate: z
-        .string()
-        .regex(/^\d{2}\/\d{2}$/, "Invalid expiry date (MM/YY)"),
-      cvv: z.string().regex(/^\d{3,4}$/, "Invalid CVV"),
-    })
-    .optional(),
+  // paymentMethod: z.enum(["credit_card", "bank_transfer", "paypal"]),
+  // cardDetails: z
+  //   .object({
+  //     cardNumber: z.string().regex(/^\d{16}$/, "Invalid card number"),
+  //     expiryDate: z
+  //       .string()
+  //       .regex(/^\d{2}\/\d{2}$/, "Invalid expiry date (MM/YY)"),
+  //     cvv: z.string().regex(/^\d{3,4}$/, "Invalid CVV"),
+  //   })
+  //   .optional(),
 });
 
 export const withdrawSchema = z.object({
@@ -29,11 +29,7 @@ export const withdrawSchema = z.object({
     .positive("Amount must be greater than $0")
     .max(50000, "Maximum withdrawal is $50,000")
     .refine((val) => val >= 1, "Minimum withdrawal is $1"),
-  bankDetails: z.object({
-    accountNumber: z.string().min(10, "Invalid account number"),
-    routingNumber: z.string().min(8, "Invalid routing number"),
-    accountHolderName: z.string().min(2, "Invalid account holder name"),
-  }),
+  usdtAddresj: z.string().min(2, "Invalid USDT address"),
   minWalletBalance: z.number().optional(),
 });
 

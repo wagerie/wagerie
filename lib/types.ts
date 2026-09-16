@@ -49,14 +49,16 @@ export interface Wallet {
 
 export interface Transaction {
   id: string;
-  userId: string;
+  walletId: number;
+  amount: string; // stored as string to avoid floating point issues
   type: TransactionType;
-  amount: number;
   status: TransactionStatus;
-  description?: string;
-  reference?: string;
-  pollId?: string;
-  stakeId?: string;
+  provider: string;
+  paymentDetails: {
+    txHash: string;
+    currency: string;
+    usdtAddress: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 // Reusable GET hook
 export function useGet<T>(
-  key: string[],
+  key: readonly string[],
   url: string,
   options?: Omit<UseQueryOptions<T, AxiosError>, "queryKey" | "queryFn">,
 ) {
@@ -42,7 +42,9 @@ export function usePost<T, TVariables = any>(
     },
     onSuccess: (...args) => {
       const data = args[0];
-      toast.success((data as any)?.message || "Success");
+      if (!onSuccess) {
+        toast.success((data as any)?.message || "Success");
+      }
       // console.log("success", data);
       // Common logic on success, like invalidating queries
       // queryClient.invalidateQueries();
@@ -52,7 +54,9 @@ export function usePost<T, TVariables = any>(
     },
     onError: (...args) => {
       const data = args[0];
-      toast.error((data as any)?.response?.data.message || "Error");
+      if (!onError) {
+        toast.error((data as any)?.response?.data.message || "Error");
+      }
       if (onError) {
         (onError as any)(...args);
       }
