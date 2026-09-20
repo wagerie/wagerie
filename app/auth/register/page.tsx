@@ -8,7 +8,7 @@ import { Form, FormField } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { usePost } from "@/hooks/use-api";
+import { useGet, usePost } from "@/hooks/use-api";
 import { useRouter } from "next/navigation";
 import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
 
@@ -18,7 +18,14 @@ const formSchema = z
       .string()
       .email("Please enter a valid email")
       .nonempty("Email is required"),
-    // username: z.string().nonempty("Username is required"),
+    username: z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(30, "Username must be 30 characters or fewer")
+      .regex(
+        /^[a-zA-Z0-9._]+$/,
+        "Use letters, numbers, underscores, or periods only",
+      ),
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters" }),
@@ -41,24 +48,109 @@ export default function Register() {
     resolver: zodResolver(formSchema),
     mode: "onChange",
     defaultValues: {
-      // username: "",
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
     },
   });
 
-  const { watch, handleSubmit, control, formState, trigger } = form;
+  const {
+    watch,
+    handleSubmit,
+    control,
+    formState,
+    trigger,
+    setError,
+    clearErrors,
+  } = form;
 
   // Re-validate confirmPassword when password changes
   const password = watch("password");
   const confirmPassword = watch("confirmPassword");
+  const username = watch("username");
+  const [usernameState, setUsernameState] = React.useState<
+    "idle" | "checking" | "available" | "taken"
+  >("idle");
+  const [suggestions, setSuggestions] = React.useState<string[]>([]);
+  const [debouncedUsername, setDebouncedUsername] = React.useState("");
 
   React.useEffect(() => {
     if (confirmPassword) {
       trigger("confirmPassword");
     }
   }, [password, confirmPassword, trigger]);
+
+  React.useEffect(() => {
+    const normalized = username.trim().toLowerCase();
+    if (!/^[a-z0-9._]{3,30}$/.test(normalized)) {
+      setUsernameState("idle");
+      setSuggestions([]);
+    } else {
+      setUsernameState("checking");
+    }
+
+    const timeout = window.setTimeout(() => {
+      setDebouncedUsername(normalized);
+    }, 350);
+
+    return () => window.clearTimeout(timeout);
+  }, [username]);
+
+  const normalizedUsername = debouncedUsername;
+  const isUsernameValid = /^[a-z0-9._]{3,30}$/.test(normalizedUsername);
+  const {
+    data: usernameCheck,
+    isError: isUsernameCheckError,
+    isFetching: isCheckingUsername,
+  } = useGet<{
+    available: boolean;
+    suggestions: string[];
+  }>(
+    ["check-username", normalizedUsername],
+    `${API_ROUTES.CHECK_USERNAME}?username=${encodeURIComponent(normalizedUsername)}`,
+    { enabled: isUsernameValid },
+  );
+
+  React.useEffect(() => {
+    if (!isUsernameValid) {
+      setUsernameState("idle");
+      setSuggestions([]);
+      return;
+    }
+
+    if (isUsernameCheckError) {
+      setUsernameState("idle");
+      return;
+    }
+
+    if (isCheckingUsername || !usernameCheck) {
+      setUsernameState("checking");
+      return;
+    }
+
+    if (usernameCheck.available) {
+      setUsernameState("available");
+      setSuggestions([]);
+      clearErrors("username");
+      return;
+    }
+
+    setUsernameState("taken");
+    setSuggestions(usernameCheck.suggestions);
+    setError("username", {
+      type: "validate",
+      message: "That username is already taken",
+    });
+  }, [
+    clearErrors,
+    isCheckingUsername,
+    isUsernameCheckError,
+    isUsernameValid,
+    setError,
+    usernameCheck,
+    username,
+  ]);
 
   const { mutate: register, isPending } = usePost(API_ROUTES.SIGNUP, {
     onSuccess: (response: any, variables: any) => {
@@ -71,6 +163,13 @@ export default function Register() {
     e?: React.BaseSyntheticEvent,
   ) => {
     e?.preventDefault();
+    if (usernameState !== "available") {
+      setError("username", {
+        type: "validate",
+        message: "Please choose an available username",
+      });
+      return;
+    }
     const { confirmPassword, ...payload } = values;
     register(payload);
   };
@@ -87,20 +186,56 @@ export default function Register() {
       <AuthComponent pageInfo={pageInfo} auths>
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* <FormField
+            <FormField
               control={control}
               name="username"
               render={({ field }) => (
-                <InputComponent
-                  label="Username"
-                  type="text"
-                  placeholder="Enter your username"
-                  rhk
-                  state={formState.errors.username?.message ? "error" : null}
-                  {...field}
-                />
+                <div className="space-y-2">
+                  <InputComponent
+                    label="Username"
+                    type="text"
+                    placeholder="Enter your username"
+                    rhk
+                    state={formState.errors.username?.message ? "error" : null}
+                    {...field}
+                  />
+                  {usernameState === "checking" && (
+                    <p className="text-xs text-muted-foreground">
+                      Checking availability…
+                    </p>
+                  )}
+                  {usernameState === "available" && (
+                    <p className="text-xs text-emerald-600">
+                      Username is available.
+                    </p>
+                  )}
+                  {usernameState === "taken" && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-destructive">
+                        That username is taken.
+                      </p>
+                      {suggestions.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {suggestions.map((suggestion) => (
+                            <button
+                              className="rounded-full border border-border px-2 py-1 text-xs hover:bg-muted"
+                              key={suggestion}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                field.onChange(suggestion);
+                              }}
+                              type="button"
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
-            /> */}
+            />
 
             <FormField
               control={control}
