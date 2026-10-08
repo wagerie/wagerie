@@ -5,7 +5,7 @@ import { Loader, Ticket, TrendingUp, Trophy, Wallet, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Transaction } from "@/lib/types";
 import formatDate from "@/lib/format-date";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 function getTransactionColor(type: string) {
@@ -96,7 +96,8 @@ function RecentTransactions({
                     getTransactionColor(tx.type),
                   )}
                 >
-                  {getTransactionSign(tx.type)}${tx.amount}
+                  {getTransactionSign(tx.type)}
+                  {formatCurrency(tx.amount)}
                 </p>
                 <Badge className="border-0 bg-slate-800/80 text-[10px] text-slate-400 capitalize mt-0.5">
                   {tx.status}

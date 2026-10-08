@@ -8,7 +8,6 @@ export interface PrizeCalculation {
   pricePerTicket: number;
   targetAmount: number;
   raisedAmount: number;
-  cashAlternative: number;
 }
 
 /**
@@ -32,8 +31,6 @@ export function calculatePollMetrics(
     targetAmount > 0
       ? Math.min(100, Math.round((raisedAmount / targetAmount) * 100))
       : 0;
-  const cashAlternative = Math.round(targetAmount * 0.9); // 90% instant cash alternative
-
   return {
     totalSlots,
     filledSlots,
@@ -42,7 +39,6 @@ export function calculatePollMetrics(
     pricePerTicket: ticketPrice,
     targetAmount,
     raisedAmount,
-    cashAlternative,
   };
 }
 

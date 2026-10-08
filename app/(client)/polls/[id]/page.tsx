@@ -2,20 +2,14 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
-  CheckCircle2,
   Clock,
   Coins,
-  DollarSign,
-  Gift,
-  HelpCircle,
   Package,
   ShieldCheck,
-  Sparkles,
   Ticket,
   Trophy,
   Users,
@@ -32,6 +26,7 @@ import { calculatePollMetrics, getPrizeImage } from "@/lib/prize-helpers";
 import { TicketStepper } from "@/components/molecules/ticket-stepper";
 import { TicketConfirmationModal } from "@/components/molecules/ticket-confirmation-modal";
 import { DepositModal } from "@/components/molecules/modals/deposit-modal";
+import { formatCurrency } from "@/lib/utils";
 
 interface ProductDetailResponse {
   data?: {
@@ -50,7 +45,6 @@ interface EnrollmentResponse {
 
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
-  const productId = Number(params.id);
   const queryClient = useQueryClient();
 
   const [tickets, setTickets] = useState(1);
@@ -70,7 +64,7 @@ export default function ProductDetailPage() {
   const { data, isLoading, isError } = useGet<ProductDetailResponse>(
     ["product", params.id],
     detailPath,
-    { enabled: Number.isInteger(productId) && productId > 0 },
+    { enabled: Boolean(params.id) },
   );
 
   const { data: wallet } = useGetBalance();
@@ -78,7 +72,7 @@ export default function ProductDetailPage() {
 
   const { mutate: enroll, isPending } = usePost<
     EnrollmentResponse,
-    { productId: number; tickets: number }
+    { productId: string; tickets: number }
   >(API_ROUTES.ENROLL_PRODUCT, {
     onSuccess: async (response) => {
       await queryClient.invalidateQueries({ queryKey: ["product", params.id] });
@@ -133,9 +127,6 @@ export default function ProductDetailPage() {
             </Link>
 
             <div className="flex items-center gap-2">
-              <Badge className="border-slate-800 bg-slate-900/80 text-slate-300">
-                Draw #{params.id}
-              </Badge>
               {product?.status === "active" ? (
                 <Badge className="border-0 bg-emerald-500/20 text-emerald-400">
                   ● Live Draw
@@ -174,20 +165,19 @@ export default function ProductDetailPage() {
                 <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
                   {/* Hero Image Showcase */}
                   <div className="relative aspect-16/10 w-full overflow-hidden bg-slate-950">
-                    <Image
+                    <img
                       src={prizeImage}
                       alt={product.name}
-                      fill
-                      priority
-                      sizes="(max-width: 1024px) 100vw, 60vw"
-                      className="object-cover"
+                      loading="eager"
+                      decoding="async"
+                      className="h-full w-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#11162b] via-transparent to-black/40" />
 
                     {/* Top Floating Badges */}
                     <div className="absolute left-4 top-4 flex items-center gap-2">
                       <span className="rounded-xl border border-blue-500/30 bg-slate-950/80 px-3 py-1 text-xs font-bold text-blue-300 backdrop-blur-md">
-                        100% Guaranteed Draw
+                        Active Prize Draw
                       </span>
                     </div>
 
@@ -197,32 +187,11 @@ export default function ProductDetailPage() {
                           Retail Value
                         </span>
                         <p className="text-xl font-black text-white">
-                          ${metrics.targetAmount.toLocaleString()}
+                          {formatCurrency(product.productValueAmount || 0)}
                         </p>
                       </div>
                     </div>
 
-                    {/* Cash Option Banner */}
-                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-xl border border-emerald-500/30 bg-slate-950/85 p-3 backdrop-blur-md">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
-                          <DollarSign className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-white">
-                            Winner's Choice: Physical Prize or Cash Payout
-                          </p>
-                          <p className="text-[11px] text-emerald-300">
-                            Claim this item delivered, or swap for $
-                            {metrics.cashAlternative.toLocaleString()} instant
-                            wallet credit
-                          </p>
-                        </div>
-                      </div>
-                      <Badge className="hidden border-0 bg-emerald-500/20 text-emerald-300 sm:inline-flex">
-                        Zero Fees
-                      </Badge>
-                    </div>
                   </div>
 
                   {/* Product Title & Basic Stats */}
@@ -233,7 +202,7 @@ export default function ProductDetailPage() {
                       </h1>
                       <p className="text-sm text-muted-foreground leading-relaxed">
                         {product.description ||
-                          "Join this prize pool for a guaranteed chance to win. All ticket purchases receive cryptographically verified draw numbers."}
+                          "No additional product description is available."}
                       </p>
                     </div>
 
@@ -244,7 +213,7 @@ export default function ProductDetailPage() {
                           Ticket Price
                         </span>
                         <p className="mt-1 text-lg font-extrabold text-white">
-                          ${metrics.pricePerTicket.toLocaleString()}
+                          {formatCurrency(metrics.pricePerTicket)}
                         </p>
                       </div>
 
@@ -290,12 +259,12 @@ export default function ProductDetailPage() {
                       },
                       {
                         id: "draw",
-                        label: "Provably Fair Draw",
+                        label: "Draw Details",
                         icon: ShieldCheck,
                       },
                       {
                         id: "guarantee",
-                        label: "Winner Guarantee",
+                        label: "Claim Options",
                         icon: Trophy,
                       },
                       {
@@ -329,100 +298,71 @@ export default function ProductDetailPage() {
                     {activeTab === "details" && (
                       <div className="space-y-4 text-sm text-slate-300">
                         <h3 className="text-base font-bold text-white">
-                          Item Authenticity & Condition
+                          Product Details
                         </h3>
                         <p className="leading-relaxed">
-                          All prizes are sourced directly from verified
-                          manufacturer distributors and authorized luxury
-                          retailers. Every item comes brand-new in original
-                          sealed factory packaging with full manufacturer
-                          warranty.
+                          {product.description ||
+                            "No additional product description is available."}
                         </p>
-                        <div className="grid gap-3 sm:grid-cols-2 pt-2">
-                          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
-                            <span className="text-xs text-slate-400">
-                              Condition
-                            </span>
-                            <p className="font-semibold text-white">
-                              Brand New / Factory Sealed
-                            </p>
-                          </div>
-                          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
-                            <span className="text-xs text-slate-400">
-                              Shipping
-                            </span>
-                            <p className="font-semibold text-white">
-                              100% Free Insured Global Express
-                            </p>
-                          </div>
-                          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
-                            <span className="text-xs text-slate-400">
-                              Tracking
-                            </span>
-                            <p className="font-semibold text-white">
-                              Full DHL / FedEx Live Tracking
-                            </p>
-                          </div>
-                          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
-                            <span className="text-xs text-slate-400">
-                              Cash Equivalent
-                            </span>
-                            <p className="font-semibold text-emerald-400">
-                              ${metrics.cashAlternative.toLocaleString()}{" "}
-                              Instant
-                            </p>
-                          </div>
+                        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:max-w-xs">
+                          <span className="text-xs text-slate-400">Product value</span>
+                          <p className="font-semibold text-white">
+                            {formatCurrency(product.productValueAmount || 0)}
+                          </p>
                         </div>
+                        <p className="text-xs text-slate-400">
+                          Confirm product condition, delivery, and any cash
+                          alternative in the published product terms before
+                          entering.
+                        </p>
                       </div>
                     )}
 
                     {activeTab === "draw" && (
                       <div className="space-y-4 text-sm text-slate-300">
                         <h3 className="text-base font-bold text-white">
-                          How the Draw Works
+                          Draw Details
                         </h3>
                         <p className="leading-relaxed">
-                          Wagerie uses an automated, provably fair draw
-                          protocol. Every ticket purchased is assigned a unique
-                          sequential number. When the target slots are filled or
-                          the poll reaches its closing schedule, the smart
-                          contract generates a verifiable random seed.
+                          The listing shows current entry progress and status.
+                          Draw method, closing time, and verification details
+                          should be confirmed in the published terms for this
+                          product.
                         </p>
                         <div className="space-y-3 pt-2">
                           <div className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-3.5">
-                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                            <Ticket className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                             <div>
                               <p className="font-semibold text-white">
-                                Transparent Entry Allocation
+                                Entry Records
                               </p>
                               <p className="text-xs text-slate-400">
-                                You receive your exact ticket numbers
-                                immediately upon entry confirmation.
+                                Confirmed entries are available in your account
+                                history.
                               </p>
                             </div>
                           </div>
                           <div className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-3.5">
-                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                            <Clock className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                             <div>
                               <p className="font-semibold text-white">
-                                Immutable Random Seed
+                                Draw Schedule
                               </p>
                               <p className="text-xs text-slate-400">
-                                Winning numbers are chosen via cryptographic
-                                seed; neither users nor operators can alter
-                                outcomes.
+                                Check the product terms for its closing time
+                                and winner-selection method.
                               </p>
                             </div>
                           </div>
                           <div className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-3.5">
-                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                            <Trophy className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                             <div>
                               <p className="font-semibold text-white">
-                                Instant Outcome Notification
+                                Published Results
                               </p>
                               <p className="text-xs text-slate-400">
-                                Winners receive immediate notification with
-                                direct 1-click prize claiming.
+                                Treat a result as confirmed when it appears in
+                                the product and account records.
                               </p>
                             </div>
                           </div>
@@ -432,43 +372,14 @@ export default function ProductDetailPage() {
 
                     {activeTab === "guarantee" && (
                       <div className="space-y-4 text-sm text-slate-300">
-                        <h3 className="text-base font-bold text-white">
-                          Wagerie Winner Protection
-                        </h3>
+                        <h3 className="text-base font-bold text-white">Claim Options</h3>
                         <p className="leading-relaxed">
-                          We eliminate the hassle of physical prize logistics.
-                          As a winner, you possess complete flexibility over how
-                          you receive your reward.
+                          Choose the cash equivalent or claim the prize itself.
                         </p>
-                        <div className="grid gap-3 sm:grid-cols-2 pt-2">
-                          <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4">
-                            <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400">
-                              <Gift className="h-4 w-4" />
-                            </div>
-                            <h4 className="font-bold text-white">
-                              Option A: Physical Delivery
-                            </h4>
-                            <p className="mt-1 text-xs text-slate-300 leading-relaxed">
-                              Enter your delivery address in your winner portal.
-                              We dispatch your prize with tracking number and
-                              insurance.
-                            </p>
-                          </div>
-
-                          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-                            <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
-                              <DollarSign className="h-4 w-4" />
-                            </div>
-                            <h4 className="font-bold text-white">
-                              Option B: Instant Cash Swap
-                            </h4>
-                            <p className="mt-1 text-xs text-slate-300 leading-relaxed">
-                              Prefer liquid funds? Swap the prize for $
-                              {metrics.cashAlternative.toLocaleString()}{" "}
-                              deposited directly to your Wagerie wallet.
-                            </p>
-                          </div>
-                        </div>
+                        <p className="text-xs text-slate-400">
+                          The cash amount and prize fulfillment details are
+                          confirmed during claim processing.
+                        </p>
                       </div>
                     )}
 
@@ -520,7 +431,7 @@ export default function ProductDetailPage() {
                                     {entry.ticketsBought > 1 ? "s" : ""}
                                   </Badge>
                                   <p className="mt-0.5 text-[10px] text-slate-400">
-                                    ${Number(entry.amountPaid).toLocaleString()}
+                                    {formatCurrency(entry.amountPaid)}
                                   </p>
                                 </div>
                               </div>
@@ -603,7 +514,8 @@ export default function ProductDetailPage() {
                         className="h-14 w-full rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-base font-black text-slate-950 shadow-[0_10px_25px_rgba(245,158,11,0.25)] hover:from-amber-400 hover:to-amber-500 transition-all"
                       >
                         <Coins className="mr-2 h-5 w-5" />
-                        Deposit ${(totalCost - userBalance).toFixed(0)} & Enter
+                        Deposit {formatCurrency(totalCost - userBalance)} &
+                        Enter
                       </Button>
                     ) : (
                       <Button
@@ -620,8 +532,8 @@ export default function ProductDetailPage() {
                           <>
                             <Ticket className="mr-2 h-5 w-5" />
                             Confirm & Buy {tickets} Ticket
-                            {tickets > 1 ? "s" : ""} ($
-                            {totalCost.toLocaleString()})
+                            {tickets > 1 ? "s" : ""} (
+                            {formatCurrency(totalCost)})
                           </>
                         )}
                       </Button>
@@ -632,11 +544,11 @@ export default function ProductDetailPage() {
                   <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80 text-[11px] text-slate-400">
                     <div className="flex items-center gap-1.5">
                       <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
-                      <span>Provably Fair RNG</span>
+                      <span>Entry history available</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <DollarSign className="h-4 w-4 text-emerald-400 shrink-0" />
-                      <span>Instant Cash Swap</span>
+                      <Package className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <span>Review product terms</span>
                     </div>
                   </div>
                 </div>

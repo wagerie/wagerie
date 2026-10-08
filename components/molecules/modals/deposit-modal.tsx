@@ -99,7 +99,7 @@ export function DepositModal({
                       : "border-slate-800 bg-slate-900/80 text-slate-300 hover:border-slate-700 hover:text-white"
                   }`}
                 >
-                  ${amt}
+                  {formatCurrency(amt)}
                 </button>
               ))}
             </div>

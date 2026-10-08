@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useGet } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
+import { formatCurrency } from "@/lib/utils";
 import type { Stake } from "@/lib/types";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
@@ -146,7 +147,7 @@ export default function MyStakesPage() {
         <div className="flex items-center gap-2">
           <Ticket className="w-4 h-4 text-blue-400" />
           <span className="text-sm font-bold text-white">
-            ${(Number(row.getValue("amount")) || 0).toLocaleString()}
+            {formatCurrency(Number(row.getValue("amount")) || 0)}
           </span>
         </div>
       ),
@@ -169,14 +170,14 @@ export default function MyStakesPage() {
           return (
             <div className="flex items-center gap-2 text-amber-300 font-extrabold">
               <Trophy className="w-4 h-4" />
-              <span>${winnings.toLocaleString()} Prize</span>
+              <span>{formatCurrency(winnings)} Prize</span>
             </div>
           );
         }
 
         return (
           <span className="text-sm text-slate-300 font-medium">
-            ${winnings.toLocaleString()} Value
+            {formatCurrency(winnings)} Value
           </span>
         );
       },
@@ -277,7 +278,7 @@ export default function MyStakesPage() {
                   <p className="text-xs text-slate-300">
                     Total Winning Value:{" "}
                     <strong className="text-white">
-                      ${totalWonValue.toLocaleString()}
+                      {formatCurrency(totalWonValue)}
                     </strong>
                   </p>
                 </div>
@@ -305,7 +306,7 @@ export default function MyStakesPage() {
                   Total Staked
                 </p>
                 <p className="text-xl font-black text-white">
-                  ${totalStaked.toLocaleString()}
+                  {formatCurrency(totalStaked)}
                 </p>
               </div>
             </div>
@@ -491,7 +492,7 @@ export default function MyStakesPage() {
                     <div>
                       <span className="text-slate-400">Staked:</span>
                       <span className="ml-1 font-bold text-white">
-                        ${stake.amount.toLocaleString()}
+                        {formatCurrency(stake.amount)}
                       </span>
                     </div>
                     {isWon ? (

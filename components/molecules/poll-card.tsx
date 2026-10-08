@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowRight,
   Clock,
@@ -13,7 +12,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import { calculatePollMetrics, getPrizeImage } from "@/lib/prize-helpers";
 
@@ -47,12 +46,12 @@ export function PollCard({
     >
       {/* Top Banner / Badges */}
       <div className="relative aspect-16/10 w-full overflow-hidden bg-slate-950">
-        <Image
+        <img
           src={imageUrl}
           alt={product.name}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-black/40" />
 
@@ -82,18 +81,12 @@ export function PollCard({
         <div className="absolute right-3 top-3">
           <div className="rounded-xl border border-amber-500/30 bg-slate-950/80 px-2.5 py-1 text-right backdrop-blur-md">
             <span className="text-[10px] uppercase tracking-wider text-amber-300 font-semibold">
-              Value
+              Product Value
             </span>
             <p className="text-xs font-black text-white sm:text-sm">
-              ${metrics.targetAmount.toLocaleString()}
+              {formatCurrency(Number(product.productValueAmount || 0))}
             </p>
           </div>
-        </div>
-
-        {/* Cash Swap Tag at bottom left of image */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-lg bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 backdrop-blur-md border border-emerald-500/30">
-          <DollarSign className="h-3 w-3" />
-          <span>Or ${metrics.cashAlternative.toLocaleString()} cash</span>
         </div>
       </div>
 
@@ -108,7 +101,7 @@ export function PollCard({
           </Link>
           <p className="line-clamp-2 mt-1 text-xs text-slate-400 leading-relaxed min-h-[32px]">
             {product.description ||
-              "Join this guaranteed prize draw with provably fair winner selection."}
+              "Review the product details, ticket price, and current entry availability."}
           </p>
         </div>
 
@@ -151,8 +144,8 @@ export function PollCard({
               Ticket Price
             </span>
             <p className="text-lg font-extrabold text-white flex items-center gap-1">
-              <Ticket className="h-4 w-4 text-blue-400" />$
-              {metrics.pricePerTicket.toLocaleString()}
+              <Ticket className="h-4 w-4 text-blue-400" />
+              {formatCurrency(metrics.pricePerTicket)}
             </p>
           </div>
 

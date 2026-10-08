@@ -3,7 +3,7 @@
 import React from "react";
 import { Minus, Plus, Sparkles, Ticket, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { calculateWinOdds } from "@/lib/prize-helpers";
 
 interface TicketStepperProps {
@@ -96,7 +96,7 @@ export function TicketStepper({
             className="h-12 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 text-center text-xl font-black text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500">
-            x ${ticketPrice}
+            x {formatCurrency(ticketPrice)}
           </span>
         </div>
 
@@ -154,7 +154,7 @@ export function TicketStepper({
         <div className="flex items-center justify-between border-t border-slate-800/80 pt-2 text-sm">
           <span className="text-slate-400">Total Entry Cost</span>
           <span className="text-xl font-black text-white">
-            ${totalCost.toLocaleString()}
+            {formatCurrency(totalCost)}
           </span>
         </div>
       </div>
@@ -171,21 +171,21 @@ export function TicketStepper({
             isInsufficient ? "text-amber-400" : "text-slate-200",
           )}
         >
-          ${userBalance.toFixed(2)}
+          {formatCurrency(userBalance)}
         </span>
       </div>
 
       {isInsufficient && onQuickDeposit && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs flex items-center justify-between gap-2">
           <span className="text-amber-200 font-medium">
-            Short by ${neededAmount.toFixed(2)}
+            Short by {formatCurrency(neededAmount)}
           </span>
           <button
             type="button"
             onClick={() => onQuickDeposit(neededAmount)}
             className="rounded-lg bg-amber-500 px-2.5 py-1 text-xs font-bold text-slate-950 transition hover:bg-amber-400"
           >
-            Deposit ${neededAmount.toFixed(0)}
+            Deposit {formatCurrency(neededAmount)}
           </button>
         </div>
       )}

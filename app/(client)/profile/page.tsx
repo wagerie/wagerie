@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -226,26 +227,30 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-foreground">
-                    Responsible Gaming & Fairness
+                    Account & Entry History
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Transparent draws and account protection limits.
+                    Review your entries and transaction activity.
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-xl border border-border bg-muted p-3">
-                  <p className="text-muted-foreground">Deposit Limits</p>
-                  <p className="font-semibold text-foreground mt-0.5">
-                    Customizable
-                  </p>
+                  <Link
+                    href="/my-stakes"
+                    className="font-semibold text-foreground hover:text-primary"
+                  >
+                    View My Stakes
+                  </Link>
                 </div>
                 <div className="rounded-xl border border-border bg-muted p-3">
-                  <p className="text-muted-foreground">Provably Fair Seed</p>
-                  <p className="font-semibold text-emerald-400 mt-0.5">
-                    Verified SHA-256
-                  </p>
+                  <Link
+                    href="/transactions"
+                    className="font-semibold text-foreground hover:text-primary"
+                  >
+                    View Transactions
+                  </Link>
                 </div>
               </div>
             </div>

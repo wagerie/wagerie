@@ -4,16 +4,12 @@ import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import {
-  Calendar,
-  DollarSign,
-  Filter,
   Grid,
   List,
   Package,
   Search,
   Sparkles,
   Ticket,
-  TrendingUp,
   Trophy,
 } from "lucide-react";
 import { DataTable } from "@/components/molecules/data-table";
@@ -33,11 +29,12 @@ import { formatDate } from "@/lib/format-date";
 import type { Category, Product } from "@/lib/types";
 import { PollCard } from "@/components/molecules/poll-card";
 import { calculatePollMetrics } from "@/lib/prize-helpers";
+import { formatCurrency } from "@/lib/utils";
 
 interface ProductListResponse {
   data?: {
     items?: Product[];
-    pagination?: { totalPages?: number };
+    pagination?: { total?: number; totalPages?: number };
   };
 }
 
@@ -72,6 +69,7 @@ export default function PollsPage() {
 
   const rawProducts = useMemo(() => data?.data?.items || [], [data]);
   const categories = categoryData?.data || [];
+  const totalDraws = data?.data?.pagination?.total ?? rawProducts.length;
   const totalPages = data?.data?.pagination?.totalPages || 1;
 
   // Client-side search and sort filtering
@@ -101,7 +99,9 @@ export default function PollsPage() {
         return metricsB.pricePerTicket - metricsA.pricePerTicket;
       }
       if (sortBy === "value_desc") {
-        return metricsB.targetAmount - metricsA.targetAmount;
+        return (
+          Number(b.productValueAmount || 0) - Number(a.productValueAmount || 0)
+        );
       }
       return 0;
     });
@@ -129,8 +129,8 @@ export default function PollsPage() {
                 {row.original.name}
               </Link>
               <p className="text-xs text-slate-400">
-                ${metrics.targetAmount.toLocaleString()} Value •{" "}
-                {metrics.remainingSlots} left
+                {formatCurrency(Number(row.original.productValueAmount || 0))}{" "}
+                Value • {metrics.remainingSlots} left
               </p>
             </div>
           </div>
@@ -157,8 +157,8 @@ export default function PollsPage() {
       header: "Ticket Price",
       cell: ({ row }) => (
         <span className="inline-flex items-center gap-1 text-sm font-bold text-white">
-          <Ticket className="h-4 w-4 text-blue-400" />$
-          {Number(row.original.ticketPrice).toLocaleString()}
+          <Ticket className="h-4 w-4 text-blue-400" />
+          {formatCurrency(row.original.ticketPrice)}
         </span>
       ),
     },
@@ -201,82 +201,35 @@ export default function PollsPage() {
     },
   ];
 
-  // Stats calculation
-  const totalPrizePool = useMemo(
-    () => rawProducts.reduce((sum, p) => sum + Number(p.targetAmount || 0), 0),
-    [rawProducts],
-  );
-  const activeDrawsCount = useMemo(
-    () => rawProducts.filter((p) => p.status === "active").length,
-    [rawProducts],
-  );
-
   return (
     <DashboardLayout>
       <div className="flex min-h-full flex-1 flex-col gap-8 bg-background text-foreground p-4 lg:p-8">
         {/* Page Header */}
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <Badge className="border-0 bg-blue-500/10 text-xs font-semibold uppercase tracking-widest text-blue-400">
-              <Sparkles className="mr-1 h-3 w-3" />
-              Live Prize Arena
-            </Badge>
-          </div>
-          <h1 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
-            Explore Prize Polls
-          </h1>
-          <p className="text-muted-foreground text-sm max-w-2xl">
-            Stake entries into guaranteed luxury draws. Every ticket is assigned
-            a verifiable unique number with instant automated draws and physical
-            delivery or cash payout.
-          </p>
-        </div>
-
-        {/* Global Stats Ribbon */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/10 text-blue-400">
-                <Trophy className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-400">
-                  Active Prize Draws
-                </p>
-                <p className="text-2xl font-black text-white">
-                  {activeDrawsCount}
-                </p>
-              </div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <Badge className="border-0 bg-blue-500/10 text-xs font-semibold uppercase tracking-widest text-blue-400">
+                <Sparkles className="mr-1 h-3 w-3" />
+                Live Prize Arena
+              </Badge>
             </div>
+            <h1 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+              Explore Prize Polls
+            </h1>
+            <p className="text-muted-foreground text-sm max-w-2xl">
+              Browse available products, compare entry prices, and track current
+              availability before joining a draw.
+            </p>
           </div>
-
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
-                <DollarSign className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-400">
-                  Guaranteed Prize Value
-                </p>
-                <p className="text-2xl font-black text-white">
-                  ${totalPrizePool.toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                <Ticket className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-400">
-                  Starting From
-                </p>
-                <p className="text-2xl font-black text-white">$1.00 / Ticket</p>
-              </div>
+          <div className="flex items-center gap-3 border-t border-border pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+            <Trophy className="h-5 w-5 text-blue-400" />
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">
+                Active Prize Draws
+              </p>
+              <p className="text-2xl font-black text-foreground">
+                {totalDraws.toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
@@ -362,7 +315,8 @@ export default function PollsPage() {
                   : "bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800"
               }`}
             >
-              All Draws ({rawProducts.length})
+              All Draws
+              {categoryId === "all" && ` (${totalDraws.toLocaleString()})`}
             </button>
             {categories.map((cat) => (
               <button

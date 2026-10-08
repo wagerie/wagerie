@@ -127,7 +127,7 @@ export default function AdminDashboardPage() {
                 Platform Overview
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Monitor prize pools, provably fair draw executions, and player
+                Monitor product listings, platform activity, and player
                 liquidity.
               </p>
             </div>

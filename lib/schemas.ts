@@ -71,6 +71,28 @@ export const createPollSchema = z.object({
   prizeType: z.enum(["cash", "product"]),
 });
 
+export const productSchema = z.object({
+  name: z.string().trim().min(1, "Product name is required"),
+  slug: z.string().trim().min(1, "Slug is required"),
+  categoryId: z.string().min(1, "Select a category"),
+  image: z
+    .string()
+    .trim()
+    .min(1, "Image URL is required")
+    .url("Enter a valid image URL"),
+  description: z.string().trim().min(1, "Description is required"),
+  targetAmount: z.number().finite().min(0, "Target amount must be at least 0"),
+  ticketPrice: z.number().finite().min(0, "Ticket price must be at least 0"),
+  productValueAmount: z
+    .number()
+    .finite()
+    .positive("Product value amount must be greater than 0"),
+  slots: z
+    .number()
+    .int("Slots must be a whole number")
+    .min(1, "At least one slot is required"),
+});
+
 export const claimPrizeSchema = z.object({
   stakeId: z.string().uuid("Invalid stake ID"),
   method: z.enum(["cash", "physical"]),
@@ -140,6 +162,7 @@ export const resetPasswordSchema = z
 export type DepositInput = z.infer<typeof depositSchema>;
 export type WithdrawInput = z.infer<typeof withdrawSchema>;
 export type CreateStakeInput = z.infer<typeof createStakeSchema>;
+export type ProductFormValues = z.infer<typeof productSchema>;
 export type CreatePollInput = z.infer<typeof createPollSchema>;
 export type ClaimPrizeInput = z.infer<typeof claimPrizeSchema>;
 export type TestimonialInput = z.infer<typeof testimonialSchema>;

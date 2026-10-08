@@ -17,6 +17,7 @@ import { API_ROUTES } from "@/constants/routes";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Stake } from "@/lib/types";
+import { formatCurrency } from "@/lib/utils";
 
 interface PrizeClaimModalProps {
   open: boolean;
@@ -39,9 +40,7 @@ export function PrizeClaimModal({
     country: "United States",
   });
 
-  const prizeValue =
-    stake?.potentialWinnings || stake?.amount ? stake.amount * 10 : 1000;
-  const cashAmount = Math.round(prizeValue * 0.9);
+  const prizeValue = stake?.potentialWinnings;
 
   const { mutate: claimPrize, isPending } = usePost(
     API_ROUTES.USER_CLAIM_PRIZE,
@@ -49,8 +48,8 @@ export function PrizeClaimModal({
       onSuccess: () => {
         toast.success(
           claimMethod === "cash"
-            ? `Successfully claimed $${cashAmount.toLocaleString()} cash to your wallet!`
-            : "Delivery details submitted! Tracking info will be sent to your email.",
+            ? "Cash claim submitted. Check your account for claim updates."
+            : "Delivery claim submitted. Check your account for claim updates.",
         );
         queryClient.invalidateQueries({ queryKey: ["user-stakes"] });
         queryClient.invalidateQueries({ queryKey: ["wallet"] });
@@ -95,16 +94,14 @@ export function PrizeClaimModal({
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-amber-300">
-              Verified Winning Ticket
+              Winning Entry
             </p>
             <h4 className="text-lg font-black text-white">
               {stake?.pollTitle || "Prize Draw Winner"}
             </h4>
             <p className="text-xs text-slate-300">
-              Prize Market Value:{" "}
-              <strong className="text-white">
-                ${prizeValue.toLocaleString()}
-              </strong>
+              Prize value:{" "}
+              {prizeValue != null ? formatCurrency(prizeValue) : "Not provided"}
             </p>
           </div>
         </div>
@@ -112,8 +109,12 @@ export function PrizeClaimModal({
         {/* Claim Choice Selection */}
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Select Payout Method
+            Select how you want to claim your prize
           </label>
+          <p className="text-xs text-slate-400">
+            Available claim methods, amounts, and timing depend on the product
+            terms and claim approval.
+          </p>
           <div className="grid grid-cols-2 gap-3">
             {/* Option 1: Cash */}
             <button
@@ -129,13 +130,10 @@ export function PrizeClaimModal({
                 <DollarSign className="h-5 w-5" />
               </div>
               <span className="text-sm font-bold text-white">
-                Instant Cash Payout
-              </span>
-              <span className="text-xs text-emerald-400 font-extrabold mt-0.5">
-                ${cashAmount.toLocaleString()} USD
+                Cash Equivalent
               </span>
               <span className="text-[10px] text-slate-400 mt-1">
-                Credited instantly to your Wagerie wallet.
+                Amount and payment timing are confirmed during claim processing.
               </span>
             </button>
 
@@ -153,13 +151,13 @@ export function PrizeClaimModal({
                 <Gift className="h-5 w-5" />
               </div>
               <span className="text-sm font-bold text-white">
-                Physical Prize
+                Claim the Prize
               </span>
               <span className="text-xs text-blue-300 font-semibold mt-0.5">
-                100% Free Insured Express
+                Delivery details depend on the product terms.
               </span>
               <span className="text-[10px] text-slate-400 mt-1">
-                Brand-new sealed item shipped directly to you.
+                Fulfillment details are confirmed after claim submission.
               </span>
             </button>
           </div>
@@ -251,7 +249,7 @@ export function PrizeClaimModal({
           >
             {isPending
               ? "Submitting Claim..."
-              : `Confirm & Claim ${claimMethod === "cash" ? `$${cashAmount.toLocaleString()} Cash` : "Physical Prize"}`}
+              : `Submit ${claimMethod === "cash" ? "Cash" : "Physical Prize"} Claim`}
           </Button>
 
           <Button

@@ -74,7 +74,7 @@ function Sidebar() {
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 hidden border border-border bg-card text-foreground shadow-[18px_0_50px_rgba(30,27,75,0.12)] transition-[width,transform] duration-300 ease-in-out lg:inset-y-auto lg:my-3 lg:ml-3 lg:block lg:h-[calc(100vh-1.5rem)] lg:rounded-2xl",
-          sidebarCollapsed ? "w-20" : "w-72",
+          sidebarCollapsed ? "w-20" : "w-64 2xl:w-72",
           "lg:relative",
         )}
       >
@@ -208,7 +208,11 @@ function Sidebar() {
           >
             Cancel
           </Button>
-          <Button type="button" variant="destructive" onClick={() => signOut(undefined)}>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => signOut(undefined)}
+          >
             <LogOut className="mr-2 h-4 w-4" />
             Confirm Logout
           </Button>

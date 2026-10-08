@@ -71,7 +71,7 @@ export type PollStatus = "active" | "closed" | "completed" | "cancelled";
 export type PrizeType = "cash" | "product";
 
 export interface Category {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   image?: string | null;
@@ -80,15 +80,19 @@ export interface Category {
 }
 
 export interface Product {
-  id: number;
-  categoryId: number;
+  id: string;
+  categoryId: string;
   name: string;
   slug: string;
   description: string;
   image?: string | null;
   images?: string[];
+  productValueAmount?: number | string;
   targetAmount: number | string;
   ticketPrice: number | string;
+  totalSlots?: number;
+  slotsLeft?: number;
+  percentage?: number | string;
   raisedAmount: number | string;
   status: PollStatus;
   winnerUserId?: number | null;
@@ -98,7 +102,7 @@ export interface Product {
 
 export interface ProductEnrollment {
   id: number;
-  productId: number;
+  productId: string;
   userId: number;
   ticketsBought: number;
   amountPaid: number | string;
@@ -108,10 +112,12 @@ export interface ProductEnrollment {
 export interface ProductInput {
   name: string;
   slug: string;
-  categoryId: number;
+  categoryId: string;
+  image: string;
   description: string;
   targetAmount: number;
   ticketPrice: number;
+  productValueAmount: number;
 }
 
 export interface Prize {

@@ -38,16 +38,22 @@ export function SelectComponent({
   error,
   className = "",
 }: SelectComponentProps) {
+  const selectId = React.useId();
+
   return (
     <div className={`space-y-2 ${className}`}>
       {label && (
-        <label className="text-sm font-semibold block text-foreground">
+        <label
+          htmlFor={selectId}
+          className="text-sm font-semibold block text-foreground"
+        >
           {label}
         </label>
       )}
 
       <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger
+          id={selectId}
           className={error ? "border-red-500 focus:border-red-500" : ""}
         >
           <SelectValue placeholder={placeholder} />

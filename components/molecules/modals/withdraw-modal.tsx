@@ -44,7 +44,7 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
     if (amount > availableBalance) {
       form.setError("amount", {
         type: "manual",
-        message: `Insufficient funds. Available balance: $${availableBalance.toFixed(2)}`,
+        message: `Insufficient funds. Available balance: ${formatCurrency(availableBalance)}`,
       });
       return;
     }
@@ -184,7 +184,7 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
               loading={isPending}
               disabled={isPending || availableBalance <= 0}
             >
-              Withdraw {currentAmount ? formatCurrency(currentAmount) : "0.00"}
+              Withdraw {formatCurrency(currentAmount)}
             </BtnComponent>
             <button
               type="button"

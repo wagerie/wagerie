@@ -9,7 +9,7 @@ import {
   Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 interface WalletCardProps {
   balance: number;
@@ -41,10 +41,7 @@ export function WalletCard({
               Available Balance
             </span>
             <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight tabular-nums">
-              ${balance.toFixed(2)}
-              <span className="text-base sm:text-xl ml-2 font-bold text-blue-300/80">
-                {currency}
-              </span>
+              {formatCurrency(balance, currency)}
             </h2>
           </div>
           <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner">

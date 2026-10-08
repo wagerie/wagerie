@@ -193,22 +193,22 @@ export default function DashboardPage() {
                   {
                     step: "1",
                     title: "Fund Wallet",
-                    desc: "Deposit funds instantly via Card, Bank, or PayPal.",
+                    desc: "Add funds using a payment method available to your account.",
                   },
                   {
                     step: "2",
-                    title: "Choose a Luxury Draw",
-                    desc: "Browse phones, watches, tech, cash pools, and cars.",
+                    title: "Choose a Product",
+                    desc: "Compare available products, ticket prices, and entry status.",
                   },
                   {
                     step: "3",
-                    title: "Receive Unique Numbers",
-                    desc: "Get assigned cryptographically registered ticket IDs.",
+                    title: "Track Your Entries",
+                    desc: "Review confirmed entries and their status in My Stakes.",
                   },
                   {
                     step: "4",
-                    title: "Claim Cash or Item",
-                    desc: "Winners choose free worldwide delivery or instant cash credit.",
+                    title: "Review Draw Results",
+                    desc: "Follow published outcomes and the claim options available for each product.",
                   },
                 ].map((item) => (
                   <div

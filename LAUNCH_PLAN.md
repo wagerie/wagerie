@@ -2,7 +2,7 @@
 
 This is the working launch reference for Wagerie. Add new findings, decisions, and acceptance criteria here as the product develops.
 
-Last reviewed: 2026-09-03
+Last reviewed: 2026-10-08
 
 ## Product Definition
 
@@ -10,9 +10,9 @@ Wagerie is a wallet-powered polling and raffle platform. Users fund a wallet, di
 
 ## Current Status
 
-The application builds successfully and has a Peucox-inspired product shell: dark navy workspace, blue primary actions, detached sidebar and navbar, collapsible desktop navigation, and responsive mobile navigation.
+The codebase includes the user/admin shells, wallet screens, catalog listing/detail flows, enrollment UI, and admin catalog management. The landing hero and featured draws now use live catalog data. Product detail routes remain behind authentication, and landing CTAs route guests to registration.
 
-The application is not launch-ready until the blockers below are closed and verified against the live API.
+The code-level UI does not establish that the production API, draw process, payment flows, or claims are launch-ready. The blockers below remain open until verified against the live API and operational terms.
 
 ## P0 Launch Blockers
 
@@ -38,14 +38,16 @@ Relevant files: `app/(client)/dashboard/page.tsx`, `hooks/use-wallet.ts`.
 
 ### 3. Complete the staking workflow
 
-- [ ] Add a poll detail route using the documented poll ID endpoint.
-- [ ] Make each active poll action navigate to its poll detail or staking flow.
+- [x] Add product listing/detail routes and link catalog actions to product details.
+- [ ] Verify the product detail endpoint, enrollment payload, and returned ticket numbers against the documented API contract.
 - [ ] Implement the documented stake request and validate available balance/slots.
 - [ ] Display purchased numbers or selected options from the real response.
 - [ ] Confirm successful stakes appear in My Stakes and Transactions.
 - [ ] Handle closed, full, cancelled, and already-staked poll states.
+- [ ] Decide whether guests can preview product details; if not, preserve signup gating and return users to the selected product after authentication.
+- [ ] Confirm catalog `pagination.total` represents active draws before using it as an active-draw count.
 
-Relevant files: `app/(client)/polls/page.tsx`, `constants/routes.ts`, `lib/types.ts`.
+Relevant files: `app/(client)/polls/page.tsx`, `app/(client)/polls/[id]/page.tsx`, `components/landing/landing-page-featured-draws.tsx`, `constants/routes.ts`, `lib/types.ts`.
 
 ### 4. Admin data and authorization
 
@@ -92,7 +94,12 @@ Relevant files: `components/molecules/modals/deposit-modal.tsx`, `components/mol
 - [ ] Keep the blue primary color consistent with the landing page and product shell.
 - [ ] Remove accidental white borders and generic light-theme surfaces from dark workspace pages.
 - [ ] Check typography, spacing, contrast, overflow, and table responsiveness.
-- [ ] Replace fabricated landing and admin metrics before launch, or label them explicitly as marketing content.
+- [x] Replace hard-coded landing featured products with live catalog products.
+- [ ] Replace admin dashboard placeholder metrics and transaction rows with API data.
+- [ ] Verify customer-facing value uses `productValueAmount`, while target/funding progress uses the correct separate fields.
+- [x] Keep `targetAmount` internal to funding/progress calculations; do not show it to customers.
+- [x] Keep both cash-equivalent and physical-prize claim choices in the UI without fabricating a cash amount.
+- [ ] Confirm all public prize, draw, cash alternative, delivery, and fairness claims are backed by product terms and API behavior.
 - [ ] Review empty states so they provide a useful next action.
 
 ### Security and reliability
@@ -132,6 +139,10 @@ Wagerie is ready for launch when:
 - 2026-09-03: Desktop sidebar collapse/expand behavior visually checked.
 - 2026-09-03: Detached sidebar and navbar spacing visually checked.
 - 2026-09-03: Current browser session observed live API `401` responses; authentication/session handling remains a P0 blocker.
+- 2026-10-08: Product listing/detail and admin catalog workflows exist in code; live API acceptance remains open.
+- 2026-10-08: Landing hero and featured draws now use the catalog API with loading, error, and empty states.
+- 2026-10-08: Customer product value uses `productValueAmount`; unsupported draw-security, delivery, and fixed cash-estimate claims were removed from customer-facing copy.
+- 2026-10-08: Editor diagnostics were checked for touched UI files; no code/type errors were reported. A full release build and end-to-end live API test were not run in this review.
 
 ## Decision Log
 
@@ -140,6 +151,9 @@ Use this section for decisions that affect implementation. Record the date, deci
 - 2026-09-03: Auth pages remain unchanged during visual redesign work.
 - 2026-09-03: Deposit is a global navbar action; Withdraw is intentionally restricted to Profile.
 - 2026-09-03: The authenticated workspace uses a dark navy background with blue primary actions and a collapsible detached sidebar.
+- 2026-10-08: Do not display winner stories, countdowns, independent verification, or guaranteed claim options until supported by authoritative API fields and product terms.
+- 2026-10-08: The customer claim choices are cash equivalent or the prize itself; any cash amount and fulfillment terms must come from the product/claim contract. `targetAmount` is an internal pool target and is not customer-facing.
+- 2026-10-08: Until product images use a controlled CDN, render API-provided external image URLs with native browser images rather than requiring arbitrary host allowlists in Next image config.
 
 ## New Findings
 

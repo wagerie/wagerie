@@ -6,6 +6,7 @@ import { CheckCircle2, Copy, Sparkles, Ticket, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ModalLayout from "@/components/layout/modal-layout";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
 
 interface TicketConfirmationModalProps {
   open: boolean;
@@ -61,9 +62,7 @@ export function TicketConfirmationModal({
           <h3 className="text-xl font-black text-white">Entry Confirmed</h3>
           <p className="mt-1 text-xs text-slate-300">
             Total Paid:{" "}
-            <strong className="text-white">
-              ${totalPaid.toLocaleString()}
-            </strong>
+            <strong className="text-white">{formatCurrency(totalPaid)}</strong>
           </p>
         </div>
 

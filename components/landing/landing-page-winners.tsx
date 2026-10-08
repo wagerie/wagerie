@@ -17,17 +17,15 @@ export function WinnersSection() {
             Previous winners
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Winner records and testimonials will appear here once completed
-            draws are available.
+            Published winner stories and draw results will be collected here.
           </p>
         </div>
         <Badge className="w-fit border-border bg-muted text-muted-foreground">
-          No completed draws yet
+          Stories coming soon
         </Badge>
       </div>
       <div className="mt-6 flex min-h-32 items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 p-6 text-center text-sm text-muted-foreground">
-        Verified winner information will include the prize, date, winning entry,
-        and claim outcome.
+        Published results are not available here yet.
       </div>
     </section>
   );
