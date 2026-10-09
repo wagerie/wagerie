@@ -10,22 +10,26 @@ import { useGet } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
 import { formatCurrency } from "@/lib/utils";
-import type { Stake } from "@/lib/types";
+import type { JoinedDraw, JoinedDrawsResponse } from "@/lib/types";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
+  canClaimDraw,
+  DrawStatusBadge,
+  getDrawStatus,
+  MyStakesGrid,
+  type DrawRow,
+} from "@/components/molecules/my-stakes-grid";
+import { PrizeClaimModal } from "@/components/molecules/prize-claim-modal";
+import { SummaryStatCard } from "@/components/molecules/summary-stat-card";
+import {
   Clock,
-  CheckCircle,
-  XCircle,
   DollarSign,
-  Gift,
   Grid,
   List,
   Sparkles,
   Ticket,
   Trophy,
-  Zap,
 } from "lucide-react";
-import { PrizeClaimModal } from "@/components/molecules/prize-claim-modal";
 
 export default function MyStakesPage() {
   const [pageIndex, setPageIndex] = useState(0);
@@ -33,169 +37,95 @@ export default function MyStakesPage() {
     "all" | "active" | "won" | "lost"
   >("all");
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
-  const [claimingStake, setClaimingStake] = useState<Stake | null>(null);
+  const [claimingDraw, setClaimingDraw] = useState<JoinedDraw | null>(null);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const pageSize = 10;
 
-  const { data, isLoading } = useGet<{
-    data?: Stake[];
-    total?: number;
-    totalPages?: number;
-  }>(
-    ["user-stakes", String(pageIndex + 1)],
-    `${API_ROUTES.USER_STAKES}?page=${pageIndex + 1}&pageSize=${pageSize}`,
+  const { data, isLoading, isError } = useGet<JoinedDrawsResponse>(
+    ["my-draws", String(pageIndex + 1)],
+    `${API_ROUTES.MY_DRAWS}?page=${pageIndex + 1}&limit=${pageSize}`,
   );
 
-  const rawStakes = useMemo(() => {
-    if (Array.isArray(data?.data)) return data.data;
-    if (Array.isArray(data)) return data;
-    return [] as Stake[];
-  }, [data]);
-
-  const totalPages = data?.totalPages ?? 1;
+  const rawDraws = useMemo(() => data?.data?.items || [], [data]);
+  const summary = data?.data?.summary;
+  const totalPages = data?.data?.pagination?.totalPages ?? 1;
+  const drawRows = useMemo<DrawRow[]>(
+    () =>
+      rawDraws.map((draw) => ({ ...draw, drawStatus: getDrawStatus(draw) })),
+    [rawDraws],
+  );
 
   // Filter stakes based on selected tab
-  const filteredStakes = useMemo(() => {
-    if (statusFilter === "all") return rawStakes;
-    if (statusFilter === "active") {
-      return rawStakes.filter(
-        (s) => s.status === "active" || s.status === "pending",
-      );
+  const filteredDraws = useMemo(() => {
+    if (statusFilter === "all") return drawRows;
+    if (statusFilter === "won") {
+      return drawRows.filter((draw) => draw.userParticipation.isWinner);
     }
-    return rawStakes.filter((s) => s.status === statusFilter);
-  }, [rawStakes, statusFilter]);
+    return drawRows.filter((draw) => draw.drawStatus === statusFilter);
+  }, [drawRows, statusFilter]);
 
-  const handleOpenClaim = (stake: Stake) => {
-    setClaimingStake(stake);
+  const handleOpenClaim = (draw: JoinedDraw) => {
+    setClaimingDraw(draw);
     setClaimModalOpen(true);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "won":
-        return (
-          <Badge className="border-0 bg-amber-500/20 text-amber-300 font-bold">
-            <Trophy className="mr-1 h-3 w-3" />
-            Won!
-          </Badge>
-        );
-      case "lost":
-        return (
-          <Badge className="border-0 bg-red-500/15 text-red-400">
-            <XCircle className="mr-1 h-3 w-3" />
-            Draw Ended
-          </Badge>
-        );
-      case "claimed":
-        return (
-          <Badge className="border-0 bg-emerald-500/20 text-emerald-300">
-            <CheckCircle className="mr-1 h-3 w-3" />
-            Prize Claimed
-          </Badge>
-        );
-      default:
-        return (
-          <Badge className="border-0 bg-blue-500/15 text-blue-300">
-            <Clock className="mr-1 h-3 w-3" />
-            Live Entry
-          </Badge>
-        );
-    }
-  };
-
-  const columns: ColumnDef<Stake>[] = [
+  const columns: ColumnDef<DrawRow>[] = [
     {
-      accessorKey: "pollTitle",
+      accessorKey: "product.name",
       header: "Prize Draw",
       cell: ({ row }) => (
         <div className="flex flex-col gap-1">
           <p className="font-bold text-white max-w-xs truncate">
-            {row.getValue("pollTitle") ?? "Prize Draw"}
+            {row.original.product.name}
           </p>
-          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-            <span className="text-xs text-slate-400">Numbers:</span>
-            {row.original.numbers && row.original.numbers.length > 0 ? (
-              row.original.numbers.slice(0, 3).map((num) => (
-                <span
-                  key={num}
-                  className="rounded border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-300"
-                >
-                  #{String(num).padStart(3, "0")}
-                </span>
-              ))
-            ) : (
-              <span className="rounded border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-300">
-                #
-                {Math.abs((row.original.id.charCodeAt(0) * 7) % 999)
-                  .toString()
-                  .padStart(3, "0")}
-              </span>
-            )}
-            {row.original.numbers && row.original.numbers.length > 3 && (
-              <span className="text-[10px] text-slate-400">
-                +{row.original.numbers.length - 3} more
-              </span>
-            )}
-          </div>
+          <span className="text-xs text-slate-400">
+            {row.original.userParticipation.userTicketsBought} tickets
+          </span>
         </div>
       ),
     },
     {
-      accessorKey: "amount",
+      accessorKey: "userParticipation.userAmountPaid",
       header: "Tickets & Amount",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Ticket className="w-4 h-4 text-blue-400" />
           <span className="text-sm font-bold text-white">
-            {formatCurrency(Number(row.getValue("amount")) || 0)}
+            {formatCurrency(row.original.userParticipation.userAmountPaid)}
           </span>
         </div>
       ),
     },
     {
-      accessorKey: "status",
+      accessorKey: "drawStatus",
       header: "Status",
-      cell: ({ row }) => getStatusBadge(row.original.status),
+      cell: ({ row }) => <DrawStatusBadge status={row.original.drawStatus} />,
     },
     {
-      accessorKey: "potentialWinnings",
+      accessorKey: "product.productValueAmount",
       header: "Prize Value",
-      cell: ({ row }) => {
-        const winnings = Number(
-          row.getValue("potentialWinnings") || row.original.amount * 10 || 0,
-        );
-        const status = row.original.status;
-
-        if (status === "won") {
-          return (
-            <div className="flex items-center gap-2 text-amber-300 font-extrabold">
-              <Trophy className="w-4 h-4" />
-              <span>{formatCurrency(winnings)} Prize</span>
-            </div>
-          );
-        }
-
-        return (
-          <span className="text-sm text-slate-300 font-medium">
-            {formatCurrency(winnings)} Value
-          </span>
-        );
-      },
+      cell: ({ row }) => (
+        <span className="text-sm text-slate-300 font-medium">
+          {formatCurrency(row.original.product.productValueAmount || 0)}
+        </span>
+      ),
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: "userParticipation.firstJoinedAt",
       header: "Entry Date",
       cell: ({ row }) => (
         <span className="text-xs text-slate-400">
-          {formatDate(row.getValue("createdAt"), "MMM dd, yyyy")}
+          {formatDate(
+            row.original.userParticipation.firstJoinedAt,
+            "MMM dd, yyyy",
+          )}
         </span>
       ),
     },
     {
       id: "actions",
       cell: ({ row }) => {
-        const isWon = row.original.status === "won";
-        if (isWon) {
+        if (canClaimDraw(row.original)) {
           return (
             <Button
               size="sm"
@@ -206,6 +136,9 @@ export default function MyStakesPage() {
             </Button>
           );
         }
+        if (row.original.userParticipation.isWinner) {
+          return <DrawStatusBadge status={row.original.drawStatus} />;
+        }
         return (
           <Button
             asChild
@@ -213,26 +146,63 @@ export default function MyStakesPage() {
             variant="outline"
             className="rounded-xl border-slate-700 bg-slate-900 text-xs text-slate-300 hover:bg-slate-800 hover:text-white"
           >
-            <Link href={`/polls/${row.original.pollId}`}>View Draw</Link>
+            <Link href={`/polls/${row.original.product.id}`}>View Draw</Link>
           </Button>
         );
       },
     },
   ];
 
-  // Stats calculation
-  const totalStaked = rawStakes.reduce(
-    (sum, s) => sum + Number(s.amount || 0),
-    0,
+  const totalStaked = Number(
+    summary?.totalAmountSpent ??
+      rawDraws.reduce(
+        (sum, draw) => sum + Number(draw.userParticipation.userAmountPaid || 0),
+        0,
+      ),
   );
-  const activeEntries = rawStakes.filter(
-    (s) => s.status === "active" || s.status === "pending",
-  ).length;
-  const wonEntries = rawStakes.filter((s) => s.status === "won");
-  const totalWonValue = wonEntries.reduce(
-    (sum, s) => sum + Number(s.potentialWinnings || s.amount * 10 || 0),
-    0,
-  );
+  const activeEntries =
+    summary?.activeDrawsCount ??
+    drawRows.filter((draw) => draw.drawStatus === "active").length;
+  const wonCount =
+    summary?.wonDrawsCount ??
+    drawRows.filter((draw) => draw.userParticipation.isWinner).length;
+  const ticketsBought =
+    summary?.totalTicketsBought ??
+    rawDraws.reduce(
+      (sum, draw) => sum + draw.userParticipation.userTicketsBought,
+      0,
+    );
+  const claimableDraw = drawRows.find(canClaimDraw);
+  const summaryCards = [
+    {
+      id: "spent",
+      label: "Total Staked",
+      value: formatCurrency(totalStaked),
+      icon: DollarSign,
+      iconClassName: "bg-blue-600/10 text-blue-400",
+    },
+    {
+      id: "active",
+      label: "Active Draws",
+      value: activeEntries.toLocaleString(),
+      icon: Clock,
+      iconClassName: "bg-blue-500/10 text-blue-400",
+    },
+    {
+      id: "won",
+      label: "Prizes Won",
+      value: wonCount.toLocaleString(),
+      icon: Trophy,
+      iconClassName: "bg-amber-500/10 text-amber-400",
+    },
+    {
+      id: "tickets",
+      label: "Tickets Bought",
+      value: ticketsBought.toLocaleString(),
+      icon: Sparkles,
+      iconClassName: "bg-emerald-500/10 text-emerald-400",
+    },
+  ];
 
   return (
     <DashboardLayout>
@@ -254,8 +224,8 @@ export default function MyStakesPage() {
           </p>
         </div>
 
-        {/* Won Prizes Banner (if user has won draws) */}
-        {wonEntries.length > 0 && (
+        {/* Won Prizes Banner */}
+        {wonCount > 0 && (
           <div className="rounded-3xl border border-amber-500/40 bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent p-6 shadow-[0_10px_30px_rgba(245,158,11,0.15)]">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
@@ -265,30 +235,31 @@ export default function MyStakesPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-amber-300">
-                      Unclaimed Reward
+                      Winning Draws
                     </span>
                     <Badge className="border-0 bg-amber-500 text-slate-950 text-[10px] font-bold">
-                      Action Required
+                      {wonCount}
                     </Badge>
                   </div>
                   <h3 className="text-xl font-black text-white mt-0.5">
-                    You have won {wonEntries.length} prize
-                    {wonEntries.length > 1 ? "s" : ""}!
+                    You have {wonCount} winning draw
+                    {wonCount === 1 ? "" : "s"}
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Total Winning Value:{" "}
-                    <strong className="text-white">
-                      {formatCurrency(totalWonValue)}
-                    </strong>
+                    Claim eligibility and status are shown with each draw.
                   </p>
                 </div>
               </div>
 
               <Button
-                onClick={() => handleOpenClaim(wonEntries[0])}
+                onClick={() =>
+                  claimableDraw
+                    ? handleOpenClaim(claimableDraw)
+                    : setStatusFilter("won")
+                }
                 className="h-11 rounded-2xl bg-amber-500 px-6 font-black text-slate-950 hover:bg-amber-400 shadow-lg shadow-amber-500/30"
               >
-                Claim Prize Now
+                {claimableDraw ? "Claim Prize" : "Review Winning Draws"}
               </Button>
             </div>
           </div>
@@ -296,75 +267,22 @@ export default function MyStakesPage() {
 
         {/* Stats Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/10 text-blue-400">
-                <DollarSign className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 font-medium">
-                  Total Staked
-                </p>
-                <p className="text-xl font-black text-white">
-                  {formatCurrency(totalStaked)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                <Clock className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 font-medium">
-                  Active Draws
-                </p>
-                <p className="text-xl font-black text-white">{activeEntries}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
-                <Trophy className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 font-medium">Prizes Won</p>
-                <p className="text-xl font-black text-white">
-                  {wonEntries.length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 font-medium">Win Rate</p>
-                <p className="text-xl font-black text-white">
-                  {rawStakes.length
-                    ? `${((wonEntries.length / rawStakes.length) * 100).toFixed(0)}%`
-                    : "0%"}
-                </p>
-              </div>
-            </div>
-          </div>
+          {summaryCards.map(({ id, ...card }) => (
+            <SummaryStatCard key={id} {...card} />
+          ))}
         </div>
 
         {/* Filter Tabs & Controls */}
         <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
             {[
-              { id: "all", label: `All Entries (${rawStakes.length})` },
+              {
+                id: "all",
+                label: `All Draws (${summary?.totalJoinedDraws ?? rawDraws.length})`,
+              },
               { id: "active", label: `Active Draws (${activeEntries})` },
-              { id: "won", label: `Won (${wonEntries.length})` },
-              { id: "lost", label: "Completed" },
+              { id: "won", label: `Won (${wonCount})` },
+              { id: "lost", label: "Completed without win" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -420,7 +338,11 @@ export default function MyStakesPage() {
               />
             ))}
           </div>
-        ) : filteredStakes.length === 0 ? (
+        ) : isError ? (
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+            Draw history could not be loaded. Please try again.
+          </div>
+        ) : filteredDraws.length === 0 ? (
           <div className="flex min-h-[320px] flex-col items-center justify-center rounded-3xl border border-border bg-card p-8 text-center">
             <Ticket className="h-12 w-12 text-slate-600 mb-3" />
             <h3 className="text-lg font-bold text-white">No Entries Found</h3>
@@ -436,93 +358,12 @@ export default function MyStakesPage() {
             </Button>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredStakes.map((stake) => {
-              const numbers =
-                stake.numbers && stake.numbers.length > 0
-                  ? stake.numbers
-                  : [100 + Math.floor(Math.random() * 800)];
-              const isWon = stake.status === "won";
-
-              return (
-                <div
-                  key={stake.id}
-                  className={`flex flex-col rounded-3xl border p-5 transition-all ${
-                    isWon
-                      ? "border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-[#11162b] ring-1 ring-amber-500/30"
-                      : "border-border bg-card hover:border-primary/50"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div>
-                      <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                        {formatDate(stake.createdAt, "MMM dd, yyyy")}
-                      </span>
-                      <h4 className="text-base font-bold text-white line-clamp-1 mt-0.5">
-                        {stake.pollTitle || "Prize Draw"}
-                      </h4>
-                    </div>
-                    {getStatusBadge(stake.status)}
-                  </div>
-
-                  {/* Numbers Strip */}
-                  <div className="my-3 space-y-1.5 rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
-                    <span className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
-                      <Ticket className="h-3 w-3 text-blue-400" />
-                      Assigned Numbers ({numbers.length}):
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {numbers.slice(0, 5).map((num: number) => (
-                        <span
-                          key={num}
-                          className="rounded-lg border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-xs font-bold text-blue-300"
-                        >
-                          #{String(num).padStart(3, "0")}
-                        </span>
-                      ))}
-                      {numbers.length > 5 && (
-                        <span className="rounded-lg bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
-                          +{numbers.length - 5}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-auto pt-3 flex items-center justify-between border-t border-slate-800/80 text-xs">
-                    <div>
-                      <span className="text-slate-400">Staked:</span>
-                      <span className="ml-1 font-bold text-white">
-                        {formatCurrency(stake.amount)}
-                      </span>
-                    </div>
-                    {isWon ? (
-                      <Button
-                        size="sm"
-                        onClick={() => handleOpenClaim(stake)}
-                        className="rounded-xl bg-amber-500 font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/20"
-                      >
-                        Claim Prize
-                      </Button>
-                    ) : (
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="ghost"
-                        className="rounded-xl text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                      >
-                        <Link href={`/polls/${stake.pollId}`}>View Draw</Link>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <MyStakesGrid draws={filteredDraws} onClaim={handleOpenClaim} />
         ) : (
           <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
             <DataTable
               columns={columns}
-              data={filteredStakes}
+              data={filteredDraws}
               pageCount={totalPages}
               pageIndex={pageIndex}
               pageSize={pageSize}
@@ -537,7 +378,7 @@ export default function MyStakesPage() {
       <PrizeClaimModal
         open={claimModalOpen}
         onOpenChange={setClaimModalOpen}
-        stake={claimingStake}
+        draw={claimingDraw}
       />
     </DashboardLayout>
   );

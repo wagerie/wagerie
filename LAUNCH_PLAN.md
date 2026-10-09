@@ -39,6 +39,8 @@ Relevant files: `app/(client)/dashboard/page.tsx`, `hooks/use-wallet.ts`.
 ### 3. Complete the staking workflow
 
 - [x] Add product listing/detail routes and link catalog actions to product details.
+- [x] Load My Stakes from `GET /catalog/draws/joined` and render the documented product, participation, summary, and claim-status fields.
+- [x] Submit cash/physical claims to `POST /catalog/draws/:id/claim` with the documented request body.
 - [ ] Verify the product detail endpoint, enrollment payload, and returned ticket numbers against the documented API contract.
 - [ ] Implement the documented stake request and validate available balance/slots.
 - [ ] Display purchased numbers or selected options from the real response.
@@ -46,6 +48,8 @@ Relevant files: `app/(client)/dashboard/page.tsx`, `hooks/use-wallet.ts`.
 - [ ] Handle closed, full, cancelled, and already-staked poll states.
 - [ ] Decide whether guests can preview product details; if not, preserve signup gating and return users to the selected product after authentication.
 - [ ] Confirm catalog `pagination.total` represents active draws before using it as an active-draw count.
+- [ ] Confirm joined-draw pagination query parameters; Postman shows response pagination but no request parameters.
+- [ ] Obtain a response schema for `GET /catalog/draws/won`; current UI uses joined-draw winner flags and summary.
 
 Relevant files: `app/(client)/polls/page.tsx`, `app/(client)/polls/[id]/page.tsx`, `components/landing/landing-page-featured-draws.tsx`, `constants/routes.ts`, `lib/types.ts`.
 
@@ -95,6 +99,7 @@ Relevant files: `components/molecules/modals/deposit-modal.tsx`, `components/mol
 - [ ] Remove accidental white borders and generic light-theme surfaces from dark workspace pages.
 - [ ] Check typography, spacing, contrast, overflow, and table responsiveness.
 - [x] Replace hard-coded landing featured products with live catalog products.
+- [x] Integrate catalog draw stats and category stats in the polls page header.
 - [ ] Replace admin dashboard placeholder metrics and transaction rows with API data.
 - [ ] Verify customer-facing value uses `productValueAmount`, while target/funding progress uses the correct separate fields.
 - [x] Keep `targetAmount` internal to funding/progress calculations; do not show it to customers.
@@ -143,6 +148,8 @@ Wagerie is ready for launch when:
 - 2026-10-08: Landing hero and featured draws now use the catalog API with loading, error, and empty states.
 - 2026-10-08: Customer product value uses `productValueAmount`; unsupported draw-security, delivery, and fixed cash-estimate claims were removed from customer-facing copy.
 - 2026-10-08: Editor diagnostics were checked for touched UI files; no code/type errors were reported. A full release build and end-to-end live API test were not run in this review.
+- 2026-10-09: Integrated `GET /catalog/draws/joined` into My Stakes and `POST /catalog/draws/:id/claim` with the documented physical shipping payload. TypeScript was checked with `pnpm`; live authenticated endpoint acceptance remains unverified.
+- 2026-10-09: Integrated `GET /catalog/draws/stats` and `GET /catalog/categories/:categoryId/stats` for the polls-page counts. `pnpm` TypeScript check passed; live API values remain to verify.
 
 ## Decision Log
 

@@ -19,10 +19,12 @@ export const API_ROUTES = {
   PRODUCTS: "/catalog/products",
   PRODUCT_DETAIL: "/catalog/products/:id",
   PRODUCTS_BY_CATEGORY: "/catalog/categories/:id/products",
+  CATEGORY_STATS: "/catalog/categories/:categoryId/stats",
+  DRAW_STATS: "/catalog/draws/stats",
   ENROLL_PRODUCT: "/catalog/products/enroll",
-  USER_STAKES: "/user/stakes",
-  USER_WINNINGS: "/user/winnings",
-  DRAW_WINNER: "/polls/:id/draw",
+  MY_DRAWS: "/catalog/draws/joined",
+  WON_DRAWS: "/catalog/draws/won",
+  CLAIM_DRAW: "/catalog/draws/:id/claim",
 
   ADMIN_POLLS: "/admin/polls",
   ADMIN_POLL_BY_ID: "/admin/polls/:id",
@@ -33,8 +35,6 @@ export const API_ROUTES = {
   ADMIN_CATEGORY_BY_ID: "/admin/categories/:id",
   ADMIN_PRODUCTS: "/admin/products",
   ADMIN_PRODUCT_BY_ID: "/admin/products/:id",
-  USER_CLAIM_PRIZE: "/user/claim-prize",
-  USER_TESTIMONIAL: "/user/testimonial",
 } as const;
 
 export const APP_ROUTES = {

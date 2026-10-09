@@ -53,7 +53,7 @@ export function ModalLayout({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
           className={cn(
-            ` bg-card/95 backdrop-blur-sm border-border/50 shadow-xl rounded-2xl animate-in fade-in-0 zoom-in-95 duration-200`,
+            ` bg-card/95 backdrop-blur-sm border-border/50 shadow-xl rounded-2xl animate-in fade-in-0 zoom-in-95 duration-200 max-h-[95vh] overflow-y-auto`,
             className,
             sizeClass[size],
           )}

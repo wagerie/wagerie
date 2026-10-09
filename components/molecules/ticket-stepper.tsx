@@ -141,8 +141,8 @@ export function TicketStepper({
 
       {/* Calculation & Win Odds Bar */}
       <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3.5 space-y-2">
-        <div className="flex items-center justify-between text-xs text-slate-300">
-          <span className="flex items-center gap-1">
+        <div className="flex items-center justify-between text-xs text-slate-300 flex-wrap">
+          <span className="flex items-center gap-1 shrink-0">
             <Sparkles className="h-3.5 w-3.5 text-amber-400" />
             Winning Probability:
           </span>

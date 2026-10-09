@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  CheckCircle2,
-  DollarSign,
-  Gift,
-  MapPin,
-  ShieldCheck,
-  Trophy,
-} from "lucide-react";
+import { DollarSign, Gift, MapPin, ShieldCheck, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ModalLayout from "@/components/layout/modal-layout";
@@ -16,42 +9,39 @@ import { usePost } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Stake } from "@/lib/types";
+import type { DrawClaimInput, JoinedDraw } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 
 interface PrizeClaimModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  stake: Stake | null;
+  draw: JoinedDraw | null;
 }
 
 export function PrizeClaimModal({
   open,
   onOpenChange,
-  stake,
+  draw,
 }: PrizeClaimModalProps) {
   const queryClient = useQueryClient();
   const [claimMethod, setClaimMethod] = useState<"cash" | "physical">("cash");
   const [address, setAddress] = useState({
-    street: "",
+    recipientName: "",
+    phoneNumber: "",
+    addressLine1: "",
     city: "",
     state: "",
-    zipCode: "",
-    country: "United States",
+    country: "",
+    postalCode: "",
   });
 
-  const prizeValue = stake?.potentialWinnings;
-
-  const { mutate: claimPrize, isPending } = usePost(
-    API_ROUTES.USER_CLAIM_PRIZE,
+  const { mutate: claimDraw, isPending } = usePost<unknown, DrawClaimInput>(
+    API_ROUTES.CLAIM_DRAW.replace(":id", draw?.product.id || ""),
     {
       onSuccess: () => {
-        toast.success(
-          claimMethod === "cash"
-            ? "Cash claim submitted. Check your account for claim updates."
-            : "Delivery claim submitted. Check your account for claim updates.",
-        );
-        queryClient.invalidateQueries({ queryKey: ["user-stakes"] });
+        toast.success("Claim submitted. Check your draw status for updates.");
+        queryClient.invalidateQueries({ queryKey: ["my-draws"] });
+        queryClient.invalidateQueries({ queryKey: ["won-draws"] });
         queryClient.invalidateQueries({ queryKey: ["wallet"] });
         onOpenChange(false);
       },
@@ -60,20 +50,25 @@ export function PrizeClaimModal({
 
   const handleClaim = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stake) return;
+    if (!draw) return;
 
     if (
       claimMethod === "physical" &&
-      (!address.street || !address.city || !address.zipCode)
+      (!address.recipientName ||
+        !address.phoneNumber ||
+        !address.addressLine1 ||
+        !address.city ||
+        !address.state ||
+        !address.country ||
+        !address.postalCode)
     ) {
-      toast.error("Please fill in all required shipping address fields.");
+      toast.error("Please complete all required shipping details.");
       return;
     }
 
-    claimPrize({
-      stakeId: stake.id,
-      method: claimMethod,
-      shippingAddress: claimMethod === "physical" ? address : undefined,
+    claimDraw({
+      claimType: claimMethod,
+      shippingDetails: claimMethod === "physical" ? address : undefined,
     });
   };
 
@@ -82,7 +77,7 @@ export function PrizeClaimModal({
       open={open}
       onOpenChange={onOpenChange}
       title="Claim Your Prize!"
-      description={`Congratulations on winning the ${stake?.pollTitle || "Prize Draw"}!`}
+      description={`Choose how to claim ${draw?.product.name || "your prize"}.`}
       size="md"
       className="border-slate-800 bg-[#0f1426] text-white sm:max-w-lg"
     >
@@ -97,11 +92,13 @@ export function PrizeClaimModal({
               Winning Entry
             </p>
             <h4 className="text-lg font-black text-white">
-              {stake?.pollTitle || "Prize Draw Winner"}
+              {draw?.product.name || "Prize Draw Winner"}
             </h4>
             <p className="text-xs text-slate-300">
-              Prize value:{" "}
-              {prizeValue != null ? formatCurrency(prizeValue) : "Not provided"}
+              Product value:{" "}
+              {draw?.product.productValueAmount != null
+                ? formatCurrency(draw.product.productValueAmount)
+                : "Not provided"}
             </p>
           </div>
         </div>
@@ -173,16 +170,38 @@ export function PrizeClaimModal({
             <div>
               <input
                 type="text"
-                placeholder="Street Address *"
-                value={address.street}
+                placeholder="Recipient Name *"
+                value={address.recipientName}
                 onChange={(e) =>
-                  setAddress({ ...address, street: e.target.value })
+                  setAddress({ ...address, recipientName: e.target.value })
+                }
+                className="h-10 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                required
+              />
+            </div>
+            <div>
+              <input
+                type="tel"
+                placeholder="Phone Number *"
+                value={address.phoneNumber}
+                onChange={(e) =>
+                  setAddress({ ...address, phoneNumber: e.target.value })
                 }
                 className="h-10 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
                 required
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                placeholder="Address *"
+                value={address.addressLine1}
+                onChange={(e) =>
+                  setAddress({ ...address, addressLine1: e.target.value })
+                }
+                className="h-10 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                required
+              />
               <input
                 type="text"
                 placeholder="City *"
@@ -193,23 +212,14 @@ export function PrizeClaimModal({
                 className="h-10 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
                 required
               />
-              <input
-                type="text"
-                placeholder="State / Province"
-                value={address.state}
-                onChange={(e) =>
-                  setAddress({ ...address, state: e.target.value })
-                }
-                className="h-10 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
-              />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
-                placeholder="Postal / ZIP Code *"
-                value={address.zipCode}
+                placeholder="State *"
+                value={address.state}
                 onChange={(e) =>
-                  setAddress({ ...address, zipCode: e.target.value })
+                  setAddress({ ...address, state: e.target.value })
                 }
                 className="h-10 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
                 required
@@ -225,13 +235,23 @@ export function PrizeClaimModal({
                 required
               />
             </div>
+            <input
+              type="text"
+              placeholder="Postal Code *"
+              value={address.postalCode}
+              onChange={(e) =>
+                setAddress({ ...address, postalCode: e.target.value })
+              }
+              className="h-10 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+              required
+            />
           </div>
         ) : (
           <div className="flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs text-slate-300">
             <ShieldCheck className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
             <p>
-              Your cash claim will be processed immediately upon submission and
-              added to your available wallet balance with no withdrawal locking.
+              Cash-claim amount and payment timing are confirmed by the claim
+              result.
             </p>
           </div>
         )}
@@ -249,7 +269,7 @@ export function PrizeClaimModal({
           >
             {isPending
               ? "Submitting Claim..."
-              : `Submit ${claimMethod === "cash" ? "Cash" : "Physical Prize"} Claim`}
+              : `Submit ${claimMethod === "cash" ? "Cash Equivalent" : "Prize"} Claim`}
           </Button>
 
           <Button

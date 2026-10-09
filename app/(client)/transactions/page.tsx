@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DataTable } from "@/components/molecules/data-table";
+import { SummaryStatCard } from "@/components/molecules/summary-stat-card";
 import SelectComponent from "@/components/atoms/select-component";
 import { useTransactionHistory, useGetBalance } from "@/hooks/use-wallet";
 import { Transaction, TransactionType, TransactionStatus } from "@/lib/types";
@@ -121,6 +122,35 @@ export default function TransactionsPage() {
   const totalPages =
     (transactionsData as any)?.data?.pagination?.totalPages || 1;
   const balance = (wallet as any)?.data?.balance ?? 0;
+  const summaryCards = [
+    {
+      id: "balance",
+      label: "Available Balance",
+      value: formatCurrency(balance),
+      icon: Wallet,
+      iconClassName: "bg-emerald-500/10 text-emerald-400",
+      className: "rounded-3xl p-5",
+      valueClassName: "text-2xl",
+    },
+    {
+      id: "records",
+      label: "Total Records",
+      value: (transactionsData as any)?.data?.pagination?.total || 0,
+      icon: Receipt,
+      iconClassName: "bg-blue-500/10 text-blue-400",
+      className: "rounded-3xl p-5",
+      valueClassName: "text-2xl",
+    },
+    {
+      id: "currency",
+      label: "Operating Currency",
+      value: "USDT ($)",
+      icon: Sparkles,
+      iconClassName: "bg-amber-500/10 text-amber-400",
+      className: "rounded-3xl p-5",
+      valueClassName: "text-2xl",
+    },
+  ];
 
   // Define columns for the data table
   const columns = useMemo<ColumnDef<Transaction>[]>(
@@ -130,11 +160,11 @@ export default function TransactionsPage() {
         header: "Type/ Provider",
         cell: ({ row }) => (
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 border border-slate-800">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 border border-slate-800 shrink-0">
               {getTransactionIcon(row.original.type)}
             </div>
             <div>
-              <span className="font-bold text-white text-xs block">
+              <span className="font-bold text-white text-xs block capitalize">
                 {getTransactionLabel(row.original.type)}
               </span>
               <span className="text-[10px] text-slate-500 capitalize">
@@ -208,51 +238,9 @@ export default function TransactionsPage() {
 
           {/* Stats Ribbon */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                  <Wallet className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 font-medium">
-                    Available Balance
-                  </p>
-                  <p className="text-2xl font-black text-white">
-                    {formatCurrency(balance)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                  <Receipt className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 font-medium">
-                    Total Records
-                  </p>
-                  <p className="text-2xl font-black text-white">
-                    {(transactionsData as any)?.data?.pagination?.total || 0}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 font-medium">
-                    Operating Currency
-                  </p>
-                  <p className="text-2xl font-black text-white">USDT ($)</p>
-                </div>
-              </div>
-            </div>
+            {summaryCards.map(({ id, ...card }) => (
+              <SummaryStatCard key={id} {...card} />
+            ))}
           </div>
 
           {/* Filters Bar */}

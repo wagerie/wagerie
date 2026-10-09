@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import {
+  CheckCircle2,
   Grid,
   List,
   Package,
@@ -11,8 +12,10 @@ import {
   Sparkles,
   Ticket,
   Trophy,
+  Zap,
 } from "lucide-react";
 import { DataTable } from "@/components/molecules/data-table";
+import { SummaryStatCard } from "@/components/molecules/summary-stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +29,7 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useGet } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
-import type { Category, Product } from "@/lib/types";
+import type { CatalogStatsResponse, Category, Product } from "@/lib/types";
 import { PollCard } from "@/components/molecules/poll-card";
 import { calculatePollMetrics } from "@/lib/prize-helpers";
 import { formatCurrency } from "@/lib/utils";
@@ -67,10 +70,49 @@ export default function PollsPage() {
     `${productsPath}?page=${pageIndex + 1}&limit=${pageSize}`,
   );
 
+  const statsPath =
+    categoryId === "all"
+      ? API_ROUTES.DRAW_STATS
+      : API_ROUTES.CATEGORY_STATS.replace(":categoryId", categoryId);
+  const { data: statsResponse, isLoading: statsLoading } =
+    useGet<CatalogStatsResponse>(["catalog-stats", categoryId], statsPath);
+
   const rawProducts = useMemo(() => data?.data?.items || [], [data]);
   const categories = categoryData?.data || [];
-  const totalDraws = data?.data?.pagination?.total ?? rawProducts.length;
+  const stats = statsResponse?.data;
+  const totalDraws =
+    stats?.activeDraws ?? data?.data?.pagination?.total ?? rawProducts.length;
   const totalPages = data?.data?.pagination?.totalPages || 1;
+  const statsSummary = [
+    {
+      id: "active",
+      label: "Active Draws",
+      value: totalDraws,
+      icon: Ticket,
+      iconClassName: "bg-blue-600/10 text-blue-400",
+    },
+    {
+      id: "soon-to-fill",
+      label: "Soon to Fill",
+      value: stats?.soonToFullDraws,
+      icon: Zap,
+      iconClassName: "bg-amber-500/10 text-amber-400",
+    },
+    {
+      id: "completed",
+      label: "Completed",
+      value: stats?.completedDraws,
+      icon: CheckCircle2,
+      iconClassName: "bg-emerald-500/10 text-emerald-400",
+    },
+    {
+      id: "winners",
+      label: "Winners",
+      value: stats?.totalWinnersCount,
+      icon: Trophy,
+      iconClassName: "bg-amber-500/10 text-amber-400",
+    },
+  ];
 
   // Client-side search and sort filtering
   const filteredProducts = useMemo(() => {
@@ -205,7 +247,7 @@ export default function PollsPage() {
     <DashboardLayout>
       <div className="flex min-h-full flex-1 flex-col gap-8 bg-background text-foreground p-4 lg:p-8">
         {/* Page Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <Badge className="border-0 bg-blue-500/10 text-xs font-semibold uppercase tracking-widest text-blue-400">
@@ -221,17 +263,16 @@ export default function PollsPage() {
               availability before joining a draw.
             </p>
           </div>
-          <div className="flex items-center gap-3 border-t border-border pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-            <Trophy className="h-5 w-5 text-blue-400" />
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">
-                Active Prize Draws
-              </p>
-              <p className="text-2xl font-black text-foreground">
-                {totalDraws.toLocaleString()}
-              </p>
-            </div>
-          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {statsSummary.map(({ id, value, ...card }) => (
+            <SummaryStatCard
+              key={id}
+              {...card}
+              value={statsLoading ? "..." : (value?.toLocaleString() ?? "—")}
+            />
+          ))}
         </div>
 
         {/* Filters & Control Bar */}

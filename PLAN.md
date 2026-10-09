@@ -34,12 +34,17 @@ These items exist in the code; production behavior and live API contracts still 
 #### Catalog and entry workflow
 
 - [ ] Confirm product/category response shapes, pagination semantics, UUID handling, and request payloads with current API documentation.
-- [ ] Confirm whether public catalog `pagination.total` counts active products only; label active counts accordingly or request an active-only count.
+- [x] Use documented global draw stats and category-specific stats for active, soon-to-full, completed, and winner counts.
+- [ ] Verify category-specific stats and counts against the live API.
 - [ ] Verify product value, internal funding-target math, slots, ticket price, progress, and remaining-slot calculations against backend rules.
 - [x] Keep the funding target internal; do not display `targetAmount` to customers.
 - [ ] Test enrollment success, insufficient balance, sold-out/closed products, duplicate requests, and returned ticket numbers against the live API.
 - [ ] Ensure stakes and wallet transactions refresh after enrollment and remain correct after reload.
 - [ ] Confirm direct product links and post-registration return behavior; product detail routes currently require authentication.
+- [x] Load My Stakes from `GET /catalog/draws/joined`, display its account summary, and use joined product/participation records.
+- [x] Submit claims through `POST /catalog/draws/:id/claim` using `claimType` and the documented `shippingDetails` physical-claim shape.
+- [ ] Confirm whether joined-draw pagination accepts `page` and `limit`; the collection response includes pagination but the Postman request documents no query parameters.
+- [ ] Document the response contract for `GET /catalog/draws/won`; until then, use the joined-draw `isWinner` and summary fields.
 
 #### Draw integrity and winner records
 

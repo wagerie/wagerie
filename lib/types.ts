@@ -109,6 +109,58 @@ export interface ProductEnrollment {
   createdAt: string;
 }
 
+export interface JoinedDrawProduct extends Product {
+  claimStatus?: string | null;
+  claimType?: "cash" | "physical" | null;
+  claimedAt?: string | null;
+  claimDetails?: Record<string, unknown> | null;
+}
+
+export interface JoinedDraw {
+  product: JoinedDrawProduct;
+  userParticipation: {
+    userTicketsBought: number;
+    userAmountPaid: number | string;
+    isWinner: boolean;
+    firstJoinedAt: string;
+    lastJoinedAt: string;
+  };
+}
+
+export interface JoinedDrawsResponse {
+  message?: string;
+  data?: {
+    summary?: {
+      activeDrawsCount: number;
+      completedDrawsCount: number;
+      wonDrawsCount: number;
+      totalJoinedDraws: number;
+      totalTicketsBought: number;
+      totalAmountSpent: number | string;
+    };
+    items?: JoinedDraw[];
+    pagination?: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  };
+}
+
+export interface DrawClaimInput {
+  claimType: "cash" | "physical";
+  shippingDetails?: {
+    recipientName: string;
+    phoneNumber: string;
+    addressLine1: string;
+    city: string;
+    state: string;
+    country: string;
+    postalCode: string;
+  };
+}
+
 export interface ProductInput {
   name: string;
   slug: string;
@@ -118,6 +170,20 @@ export interface ProductInput {
   targetAmount: number;
   ticketPrice: number;
   productValueAmount: number;
+}
+
+export interface CatalogStats {
+  activeDraws: number;
+  soonToFullDraws: number;
+  completedDraws: number;
+  totalDraws: number;
+  totalActivePrizeValue: number | string;
+  totalWinnersCount: number;
+}
+
+export interface CatalogStatsResponse {
+  message?: string;
+  data?: CatalogStats;
 }
 
 export interface Prize {
