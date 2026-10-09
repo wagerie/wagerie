@@ -41,7 +41,7 @@ function RecentTransactions({
     pageSize: 5,
   });
 
-  const recentTransactions = (transactionsData as any)?.data?.items || [];
+  const recentTransactions = transactionsData?.items || [];
 
   return (
     <div className="rounded-3xl border border-border bg-card p-6 shadow-xl space-y-4">

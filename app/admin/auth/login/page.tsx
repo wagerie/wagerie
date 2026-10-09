@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
 import { Badge } from "@/components/ui/badge";
 import { setCookie } from "@/hooks/use-cookies";
-import { usePost } from "@/hooks/use-api";
+import { getApiPayload, usePost } from "@/hooks/use-api";
 
 export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -37,21 +37,28 @@ export default function AdminLoginPage() {
     },
   });
 
-  const { mutate: login, isPending } = usePost(API_ROUTES.ADMIN_SIGNIN, {
-    onSuccess: (data) => {
-      const response = data as any;
-      const payload = response?.data ?? response;
-      const token = payload?.accessToken ?? payload?.refreshToken ?? payload?.token;
+  const { mutate: login, isPending } = usePost<unknown>(
+    API_ROUTES.ADMIN_SIGNIN,
+    {
+      onSuccess: (response) => {
+        const payload = getApiPayload<{
+          accessToken?: string;
+          refreshToken?: string;
+          token?: string;
+        }>(response);
+        const token =
+          payload.accessToken ?? payload.refreshToken ?? payload.token;
 
-      if (!token) {
-        toast.error("Admin login succeeded without a session token");
-        return;
-      }
+        if (!token) {
+          toast.error("Admin login succeeded without a session token");
+          return;
+        }
 
-      setCookie("wagerie_token", token);
-      router.replace(APP_ROUTES.ADMIN_DASHBOARD);
+        setCookie("wagerie_token", token);
+        router.replace(APP_ROUTES.ADMIN_DASHBOARD);
+      },
     },
-  });
+  );
 
   const onSubmit = async (data: LoginInput) => {
     login({ email: data.email, password: data.password });

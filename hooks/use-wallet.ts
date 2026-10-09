@@ -4,9 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Wallet, Transaction, TransactionFilter } from "@/lib/types";
 import { DepositInput, WithdrawInput } from "@/lib/schemas";
-import { PaginatedResponse } from "@/lib/types";
 import { API_ROUTES } from "@/constants/routes";
-import { useGet, usePost } from "./use-api";
+import { getApiMessage, useGet, useGetPage, usePost } from "./use-api";
 import { formatCurrency } from "@/lib/utils";
 
 // ============================================
@@ -35,28 +34,25 @@ export const useGetBalance = () => {
 export const useDeposit = () => {
   const queryClient = useQueryClient();
 
-  return usePost<{ wallet: Wallet; transaction: Transaction }, DepositInput>(
-    API_ROUTES.WALLET_DEPOSIT,
-    {
-      onSuccess: (_data, variables) => {
-        // Invalidate and refetch balance
-        queryClient.invalidateQueries({
-          queryKey: walletQueryKeys.balance(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: walletQueryKeys.transactions(),
-        });
+  return usePost<unknown, DepositInput>(API_ROUTES.WALLET_DEPOSIT, {
+    onSuccess: (response, variables) => {
+      // Invalidate and refetch balance
+      queryClient.invalidateQueries({
+        queryKey: walletQueryKeys.balance(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: walletQueryKeys.transactions(),
+      });
 
-        toast.success(
-          `${formatCurrency(variables.amount)} ${(_data as any).message} `,
-        );
-      },
-      onError: (error) => {
-        const responseData = error.response?.data as { message?: string };
-        toast.error(responseData?.message || error.message || "Deposit failed");
-      },
+      toast.success(
+        `${formatCurrency(variables.amount)} ${getApiMessage(response, "added to your wallet.")}`,
+      );
     },
-  );
+    onError: (error) => {
+      const responseData = error.response?.data as { message?: string };
+      toast.error(responseData?.message || error.message || "Deposit failed");
+    },
+  });
 };
 
 /**
@@ -65,30 +61,27 @@ export const useDeposit = () => {
 export const useWithdraw = () => {
   const queryClient = useQueryClient();
 
-  return usePost<{ wallet: Wallet; transaction: Transaction }, WithdrawInput>(
-    API_ROUTES.WALLET_WITHDRAW,
-    {
-      onSuccess: (_data, variables) => {
-        // Invalidate and refetch balance
-        queryClient.invalidateQueries({
-          queryKey: walletQueryKeys.balance(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: walletQueryKeys.transactions(),
-        });
+  return usePost<unknown, WithdrawInput>(API_ROUTES.WALLET_WITHDRAW, {
+    onSuccess: (response, variables) => {
+      // Invalidate and refetch balance
+      queryClient.invalidateQueries({
+        queryKey: walletQueryKeys.balance(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: walletQueryKeys.transactions(),
+      });
 
-        toast.success(
-          `${formatCurrency(variables.amount)} ${(_data as any).message} `,
-        );
-      },
-      onError: (error) => {
-        const responseData = error.response?.data as { message?: string };
-        toast.error(
-          responseData?.message || error.message || "Withdrawal failed",
-        );
-      },
+      toast.success(
+        `${formatCurrency(variables.amount)} ${getApiMessage(response, "withdrawal requested.")}`,
+      );
     },
-  );
+    onError: (error) => {
+      const responseData = error.response?.data as { message?: string };
+      toast.error(
+        responseData?.message || error.message || "Withdrawal failed",
+      );
+    },
+  });
 };
 
 /**
@@ -106,7 +99,7 @@ export const useTransactionHistory = (filter?: TransactionFilter) => {
     ? `${API_ROUTES.WALLET_TRANSACTIONS}?${queryString}`
     : API_ROUTES.WALLET_TRANSACTIONS;
 
-  return useGet<PaginatedResponse<Transaction>>(
+  return useGetPage<Transaction>(
     [
       ...walletQueryKeys.transactions(),
       filter?.type || "",
@@ -123,5 +116,5 @@ export const useTransactionHistory = (filter?: TransactionFilter) => {
  */
 export const useTransactionCount = () => {
   const { data } = useTransactionHistory({ pageSize: 1 });
-  return data?.total || 0;
+  return data?.totalItems || 0;
 };

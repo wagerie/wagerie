@@ -4,7 +4,7 @@ import { BtnComponent } from "@/components/atoms/button-component";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
-import { useGet } from "@/hooks/use-api";
+import { useGetPage } from "@/hooks/use-api";
 import type { Product } from "@/lib/types";
 import { calculatePollMetrics, getPrizeImage } from "@/lib/prize-helpers";
 import { formatCurrency } from "@/lib/utils";
@@ -18,18 +18,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-interface ProductListResponse {
-  data?: {
-    items?: Product[];
-  };
-}
-
 export function LandingPageHero() {
-  const { data, isError, isLoading } = useGet<ProductListResponse>(
+  const { data, isError, isLoading } = useGetPage<Product>(
     ["landing-products"],
     `${API_ROUTES.PRODUCTS}?page=1&limit=12`,
   );
-  const spotlightDraw = (data?.data?.items || []).find(
+  const spotlightDraw = (data?.items || []).find(
     (product) => product.status === "active",
   );
   const metrics = spotlightDraw ? calculatePollMetrics(spotlightDraw) : null;

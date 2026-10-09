@@ -9,7 +9,7 @@ import Link from "next/link";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { usePost } from "@/hooks/use-api";
+import { getApiPayload, usePost } from "@/hooks/use-api";
 import { useRouter } from "next/navigation";
 import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
 import { setCookie } from "@/hooks/use-cookies";
@@ -35,10 +35,17 @@ export default function Login() {
     },
   });
 
-  const { mutate: login, isPending } = usePost(API_ROUTES.SIGNIN, {
-    onSuccess: (data) => {
-      console.log("Login successful:", data);
-      setCookie("wagerie_token", (data as any).data.refreshToken);
+  const { mutate: login, isPending } = usePost<unknown>(API_ROUTES.SIGNIN, {
+    onSuccess: (response) => {
+      const payload = getApiPayload<{
+        accessToken?: string;
+        refreshToken?: string;
+        token?: string;
+      }>(response);
+      const token =
+        payload.accessToken ?? payload.refreshToken ?? payload.token;
+      if (!token) return;
+      setCookie("wagerie_token", token);
       router.push(APP_ROUTES.DASHBOARD);
     },
   });

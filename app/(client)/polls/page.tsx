@@ -26,24 +26,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { useGet } from "@/hooks/use-api";
+import { useGet, useGetPage } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
-import type { CatalogStatsResponse, Category, Product } from "@/lib/types";
+import type { CatalogStats, Category, Product } from "@/lib/types";
 import { PollCard } from "@/components/molecules/poll-card";
 import { calculatePollMetrics } from "@/lib/prize-helpers";
 import { formatCurrency } from "@/lib/utils";
-
-interface ProductListResponse {
-  data?: {
-    items?: Product[];
-    pagination?: { total?: number; totalPages?: number };
-  };
-}
-
-interface CategoryResponse {
-  data?: Category[];
-}
 
 export default function PollsPage() {
   const [pageIndex, setPageIndex] = useState(0);
@@ -55,7 +44,7 @@ export default function PollsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const pageSize = 12;
 
-  const { data: categoryData } = useGet<CategoryResponse>(
+  const { data: categories = [] } = useGet<Category[]>(
     ["product-categories"],
     API_ROUTES.PRODUCT_CATEGORIES,
   );
@@ -65,7 +54,7 @@ export default function PollsPage() {
       ? API_ROUTES.PRODUCTS
       : API_ROUTES.PRODUCTS_BY_CATEGORY.replace(":id", categoryId);
 
-  const { data, isLoading } = useGet<ProductListResponse>(
+  const { data, isLoading } = useGetPage<Product>(
     ["products", categoryId, String(pageIndex + 1)],
     `${productsPath}?page=${pageIndex + 1}&limit=${pageSize}`,
   );
@@ -74,15 +63,16 @@ export default function PollsPage() {
     categoryId === "all"
       ? API_ROUTES.DRAW_STATS
       : API_ROUTES.CATEGORY_STATS.replace(":categoryId", categoryId);
-  const { data: statsResponse, isLoading: statsLoading } =
-    useGet<CatalogStatsResponse>(["catalog-stats", categoryId], statsPath);
+  const { data: statsResponse, isLoading: statsLoading } = useGet<CatalogStats>(
+    ["catalog-stats", categoryId],
+    statsPath,
+  );
 
-  const rawProducts = useMemo(() => data?.data?.items || [], [data]);
-  const categories = categoryData?.data || [];
-  const stats = statsResponse?.data;
+  const rawProducts = useMemo(() => data?.items || [], [data]);
+  const stats = statsResponse;
   const totalDraws =
-    stats?.activeDraws ?? data?.data?.pagination?.total ?? rawProducts.length;
-  const totalPages = data?.data?.pagination?.totalPages || 1;
+    stats?.activeDraws ?? data?.totalItems ?? rawProducts.length;
+  const totalPages = data?.pageCount || 1;
   const statsSummary = [
     {
       id: "active",

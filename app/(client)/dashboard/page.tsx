@@ -18,7 +18,7 @@ import Link from "next/link";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DepositModal } from "@/components/molecules/modals/deposit-modal";
 import { useGetBalance } from "@/hooks/use-wallet";
-import { useGet } from "@/hooks/use-api";
+import { useGetPage } from "@/hooks/use-api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { API_ROUTES } from "@/constants/routes";
@@ -27,24 +27,18 @@ import { cn, formatCurrency } from "@/lib/utils";
 import { PollCard } from "@/components/molecules/poll-card";
 import RecentTransactions from "@/components/molecules/dashboard/recent-transactions";
 
-interface ProductListResponse {
-  data?: {
-    items?: Product[];
-  };
-}
-
 export default function DashboardPage() {
   const [depositOpen, setDepositOpen] = useState(false);
 
   const { data: wallet, isLoading: walletLoading } = useGetBalance();
 
-  const { data: featuredData } = useGet<ProductListResponse>(
+  const { data: featuredData } = useGetPage<Product>(
     ["featured-products"],
     `${API_ROUTES.PRODUCTS}?limit=3`,
   );
 
-  const featuredDraws = featuredData?.data?.items || [];
-  const balance = Number((wallet as any)?.data?.balance) ?? 0;
+  const featuredDraws = featuredData?.items || [];
+  const balance = Number(wallet?.balance) ?? 0;
 
   const statCards = [
     {

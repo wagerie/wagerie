@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/molecules/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useGet } from "@/hooks/use-api";
+import { useGetPage } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
 import { formatCurrency } from "@/lib/utils";
-import type { JoinedDraw, JoinedDrawsResponse } from "@/lib/types";
+import type { JoinedDraw, JoinedDrawsSummary } from "@/lib/types";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
   canClaimDraw,
@@ -21,6 +21,7 @@ import {
 } from "@/components/molecules/my-stakes-grid";
 import { PrizeClaimModal } from "@/components/molecules/prize-claim-modal";
 import { SummaryStatCard } from "@/components/molecules/summary-stat-card";
+import { useDeliveryStatus } from "@/hooks/use-delivery-status";
 import {
   Clock,
   DollarSign,
@@ -39,20 +40,25 @@ export default function MyStakesPage() {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [claimingDraw, setClaimingDraw] = useState<JoinedDraw | null>(null);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
+  const drawHistoryRef = useRef<HTMLDivElement>(null);
+  const { getStatus: getDeliveryStatus, updateStatus: updateDeliveryStatus } =
+    useDeliveryStatus();
   const pageSize = 10;
 
-  const { data, isLoading, isError } = useGet<JoinedDrawsResponse>(
+  const { data, isLoading, isError } = useGetPage<JoinedDraw, JoinedDrawsSummary>(
     ["my-draws", String(pageIndex + 1)],
     `${API_ROUTES.MY_DRAWS}?page=${pageIndex + 1}&limit=${pageSize}`,
   );
 
-  const rawDraws = useMemo(() => data?.data?.items || [], [data]);
-  const summary = data?.data?.summary;
-  const totalPages = data?.data?.pagination?.totalPages ?? 1;
+  const rawDraws = useMemo(() => data?.items || [], [data]);
+  const summary = data?.summary;
+  const totalPages = data?.pageCount ?? 1;
   const drawRows = useMemo<DrawRow[]>(
-    () =>
-      rawDraws.map((draw) => ({ ...draw, drawStatus: getDrawStatus(draw) })),
-    [rawDraws],
+    () => rawDraws.map((draw) => ({
+      ...draw,
+      drawStatus: getDrawStatus(draw, getDeliveryStatus(draw.product.id)),
+    })),
+    [rawDraws, getDeliveryStatus],
   );
 
   // Filter stakes based on selected tab
@@ -67,6 +73,14 @@ export default function MyStakesPage() {
   const handleOpenClaim = (draw: JoinedDraw) => {
     setClaimingDraw(draw);
     setClaimModalOpen(true);
+  };
+
+  const handleReviewWinningDraws = () => {
+    setStatusFilter("won");
+    drawHistoryRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   };
 
   const columns: ColumnDef<DrawRow>[] = [
@@ -137,6 +151,23 @@ export default function MyStakesPage() {
           );
         }
         if (row.original.userParticipation.isWinner) {
+          if (
+            row.original.product.claimType === "physical" &&
+            row.original.product.claimStatus?.startsWith("claimed") &&
+            getDeliveryStatus(row.original.product.id) === "shipped"
+          ) {
+            return (
+              <Button
+                size="sm"
+                onClick={() =>
+                  updateDeliveryStatus(row.original.product.id, "received")
+                }
+                className="bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-500"
+              >
+                Confirm received
+              </Button>
+            );
+          }
           return <DrawStatusBadge status={row.original.drawStatus} />;
         }
         return (
@@ -255,7 +286,7 @@ export default function MyStakesPage() {
                 onClick={() =>
                   claimableDraw
                     ? handleOpenClaim(claimableDraw)
-                    : setStatusFilter("won")
+                    : handleReviewWinningDraws()
                 }
                 className="h-11 rounded-2xl bg-amber-500 px-6 font-black text-slate-950 hover:bg-amber-400 shadow-lg shadow-amber-500/30"
               >
@@ -329,6 +360,7 @@ export default function MyStakesPage() {
         </div>
 
         {/* Content Section */}
+        <div ref={drawHistoryRef} className="scroll-mt-6">
         {isLoading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -358,7 +390,14 @@ export default function MyStakesPage() {
             </Button>
           </div>
         ) : viewMode === "grid" ? (
-          <MyStakesGrid draws={filteredDraws} onClaim={handleOpenClaim} />
+          <MyStakesGrid
+            draws={filteredDraws}
+            onClaim={handleOpenClaim}
+            getDeliveryStatus={getDeliveryStatus}
+            onConfirmReceived={(productId) =>
+              updateDeliveryStatus(productId, "received")
+            }
+          />
         ) : (
           <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
             <DataTable
@@ -372,6 +411,7 @@ export default function MyStakesPage() {
             />
           </div>
         )}
+        </div>
       </div>
 
       {/* Claim Prize Modal */}

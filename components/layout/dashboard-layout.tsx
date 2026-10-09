@@ -23,7 +23,7 @@ export function DashboardLayout({
   const { data: wallet } = useGetBalance();
 
   // If userBalance is not provided or 0, fallback to real fetched balance
-  const activeBalance = Number((wallet as any)?.data?.balance) ?? 0;
+  const activeBalance = Number(wallet?.balance) ?? 0;
 
   return (
     <div className="flex h-screen bg-background text-foreground">

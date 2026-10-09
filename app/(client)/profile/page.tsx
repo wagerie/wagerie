@@ -33,7 +33,7 @@ export default function ProfilePage() {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
   const { data: wallet, isLoading } = useGetBalance();
-  const balance = (wallet as any)?.data?.balance ?? 0;
+  const balance = wallet?.balance ?? 0;
 
   const copyReferral = () => {
     navigator.clipboard.writeText(

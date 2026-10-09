@@ -95,7 +95,30 @@ export interface Product {
   percentage?: number | string;
   raisedAmount: number | string;
   status: PollStatus;
-  winnerUserId?: number | null;
+  winnerUserId?: string | number | null;
+  winnerUser?: {
+    username?: string | null;
+    name?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+  } | null;
+  claimStatus?: string | null;
+  claimType?: "cash" | "physical" | null;
+  claimedAt?: string | null;
+  claimDetails?: {
+    walletId?: string;
+    payoutAmount?: number | string;
+    shippingDetails?: {
+      recipientName?: string;
+      phoneNumber?: string;
+      addressLine1?: string;
+      city?: string;
+      state?: string;
+      country?: string;
+      postalCode?: string;
+    };
+    [key: string]: unknown;
+  } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -109,12 +132,7 @@ export interface ProductEnrollment {
   createdAt: string;
 }
 
-export interface JoinedDrawProduct extends Product {
-  claimStatus?: string | null;
-  claimType?: "cash" | "physical" | null;
-  claimedAt?: string | null;
-  claimDetails?: Record<string, unknown> | null;
-}
+export type JoinedDrawProduct = Product;
 
 export interface JoinedDraw {
   product: JoinedDrawProduct;
@@ -127,25 +145,13 @@ export interface JoinedDraw {
   };
 }
 
-export interface JoinedDrawsResponse {
-  message?: string;
-  data?: {
-    summary?: {
-      activeDrawsCount: number;
-      completedDrawsCount: number;
-      wonDrawsCount: number;
-      totalJoinedDraws: number;
-      totalTicketsBought: number;
-      totalAmountSpent: number | string;
-    };
-    items?: JoinedDraw[];
-    pagination?: {
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    };
-  };
+export interface JoinedDrawsSummary {
+  activeDrawsCount: number;
+  completedDrawsCount: number;
+  wonDrawsCount: number;
+  totalJoinedDraws: number;
+  totalTicketsBought: number;
+  totalAmountSpent: number | string;
 }
 
 export interface DrawClaimInput {
@@ -179,11 +185,6 @@ export interface CatalogStats {
   totalDraws: number;
   totalActivePrizeValue: number | string;
   totalWinnersCount: number;
-}
-
-export interface CatalogStatsResponse {
-  message?: string;
-  data?: CatalogStats;
 }
 
 export interface Prize {
@@ -309,24 +310,6 @@ export interface Notification {
   relatedId?: string; // poll/stake/winner ID
   relatedLink?: string;
   createdAt: Date;
-}
-
-// ============================================
-// API RESPONSE TYPES
-// ============================================
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
-
-export interface ApiError {
-  code: string;
-  message: string;
-  details?: Record<string, unknown>;
 }
 
 // ============================================

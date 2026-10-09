@@ -28,19 +28,9 @@ import { TicketConfirmationModal } from "@/components/molecules/ticket-confirmat
 import { DepositModal } from "@/components/molecules/modals/deposit-modal";
 import { formatCurrency } from "@/lib/utils";
 
-interface ProductDetailResponse {
-  data?: {
-    product?: Product;
-    enrollments?: ProductEnrollment[];
-  };
-}
-
-interface EnrollmentResponse {
-  data?: {
-    enrollment?: ProductEnrollment;
-    product?: Product;
-    newBalance?: number | string;
-  };
+interface ProductDetail {
+  product?: Product;
+  enrollments?: ProductEnrollment[];
 }
 
 export default function ProductDetailPage() {
@@ -61,17 +51,17 @@ export default function ProductDetailPage() {
   const detailPath = API_ROUTES.PRODUCT_DETAIL.replace(":id", params.id);
 
   // Queries & Mutations
-  const { data, isLoading, isError } = useGet<ProductDetailResponse>(
+  const { data, isLoading, isError } = useGet<ProductDetail>(
     ["product", params.id],
     detailPath,
     { enabled: Boolean(params.id) },
   );
 
   const { data: wallet } = useGetBalance();
-  const userBalance = (wallet as any)?.data?.balance || 0;
+  const userBalance = wallet?.balance || 0;
 
   const { mutate: enroll, isPending } = usePost<
-    EnrollmentResponse,
+    unknown,
     { productId: string; tickets: number }
   >(API_ROUTES.ENROLL_PRODUCT, {
     onSuccess: async (response) => {
@@ -86,8 +76,8 @@ export default function ProductDetailPage() {
     },
   });
 
-  const product = data?.data?.product;
-  const enrollments = data?.data?.enrollments || [];
+  const product = data?.product;
+  const enrollments = data?.enrollments || [];
   const metrics = calculatePollMetrics(product);
   const prizeImage = getPrizeImage(product);
 
@@ -191,7 +181,6 @@ export default function ProductDetailPage() {
                         </p>
                       </div>
                     </div>
-
                   </div>
 
                   {/* Product Title & Basic Stats */}
@@ -305,7 +294,9 @@ export default function ProductDetailPage() {
                             "No additional product description is available."}
                         </p>
                         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:max-w-xs">
-                          <span className="text-xs text-slate-400">Product value</span>
+                          <span className="text-xs text-slate-400">
+                            Product value
+                          </span>
                           <p className="font-semibold text-white">
                             {formatCurrency(product.productValueAmount || 0)}
                           </p>
@@ -349,8 +340,8 @@ export default function ProductDetailPage() {
                                 Draw Schedule
                               </p>
                               <p className="text-xs text-slate-400">
-                                Check the product terms for its closing time
-                                and winner-selection method.
+                                Check the product terms for its closing time and
+                                winner-selection method.
                               </p>
                             </div>
                           </div>
@@ -372,7 +363,9 @@ export default function ProductDetailPage() {
 
                     {activeTab === "guarantee" && (
                       <div className="space-y-4 text-sm text-slate-300">
-                        <h3 className="text-base font-bold text-white">Claim Options</h3>
+                        <h3 className="text-base font-bold text-white">
+                          Claim Options
+                        </h3>
                         <p className="leading-relaxed">
                           Choose the cash equivalent or claim the prize itself.
                         </p>

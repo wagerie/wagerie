@@ -118,10 +118,9 @@ export default function TransactionsPage() {
     });
 
   const isLoading = walletLoading || txLoading;
-  const transactions = (transactionsData as any)?.data?.items || [];
-  const totalPages =
-    (transactionsData as any)?.data?.pagination?.totalPages || 1;
-  const balance = (wallet as any)?.data?.balance ?? 0;
+  const transactions = transactionsData?.items || [];
+  const totalPages = transactionsData?.pageCount || 1;
+  const balance = wallet?.balance ?? 0;
   const summaryCards = [
     {
       id: "balance",
@@ -135,7 +134,7 @@ export default function TransactionsPage() {
     {
       id: "records",
       label: "Total Records",
-      value: (transactionsData as any)?.data?.pagination?.total || 0,
+      value: transactionsData?.totalItems || 0,
       icon: Receipt,
       iconClassName: "bg-blue-500/10 text-blue-400",
       className: "rounded-3xl p-5",

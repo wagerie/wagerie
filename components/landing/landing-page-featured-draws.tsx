@@ -1,6 +1,6 @@
 "use client";
 
-import { useGet } from "@/hooks/use-api";
+import { useGetPage } from "@/hooks/use-api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
@@ -9,18 +9,12 @@ import type { Product } from "@/lib/types";
 import { calculatePollMetrics, getPrizeImage } from "@/lib/prize-helpers";
 import { formatCurrency } from "@/lib/utils";
 
-interface ProductListResponse {
-  data?: {
-    items?: Product[];
-  };
-}
-
 export function FeaturedDrawsSection() {
-  const { data, isError, isLoading } = useGet<ProductListResponse>(
+  const { data, isError, isLoading } = useGetPage<Product>(
     ["landing-products"],
     `${API_ROUTES.PRODUCTS}?page=1&limit=12`,
   );
-  const products = (data?.data?.items || [])
+  const products = (data?.items || [])
     .filter((product) => product.status === "active")
     .slice(0, 3);
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit3, Package, Plus, Trash2 } from "lucide-react";
+import { Edit3, Package, Plus, Trash2, Truck } from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { ProductForm } from "@/components/admin/product-form";
 import { DataTable } from "@/components/molecules/data-table";
@@ -11,19 +11,11 @@ import { ModalLayout } from "@/components/layout/modal-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useDelete, useGet, usePost } from "@/hooks/use-api";
+import { useDelete, useGet, useGetPage, usePost } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
 import { formatCurrency } from "@/lib/utils";
 import type { Category, Product, ProductInput } from "@/lib/types";
-
-interface CollectionResponse<T> {
-  data?:
-    | T[]
-    | {
-        items?: T[];
-        pagination?: { total?: number; totalPages?: number };
-      };
-}
+import { useDeliveryStatus } from "@/hooks/use-delivery-status";
 
 const emptyProduct: ProductInput = {
   name: "",
@@ -36,16 +28,6 @@ const emptyProduct: ProductInput = {
   productValueAmount: 0,
 };
 
-function collectionItems<T>(response?: CollectionResponse<T>) {
-  if (Array.isArray(response?.data)) return response.data;
-  return response?.data?.items || [];
-}
-
-function collectionPagination<T>(response?: CollectionResponse<T>) {
-  if (!response?.data || Array.isArray(response.data)) return undefined;
-  return response.data.pagination;
-}
-
 export default function AdminProductsPage() {
   const queryClient = useQueryClient();
   const [productPage, setProductPage] = useState(1);
@@ -56,17 +38,18 @@ export default function AdminProductsPage() {
   const [categoryName, setCategoryName] = useState("");
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const { getStatus: getDeliveryStatus, updateStatus: updateDeliveryStatus } =
+    useDeliveryStatus();
 
   const productPageSize = 10;
-  const { data: productsResponse, isLoading: productsLoading } = useGet<
-    CollectionResponse<Product>
-  >(
+  const { data: productsResponse, isLoading: productsLoading } = useGetPage<Product>(
     ["admin-products", String(productPage)],
     `${API_ROUTES.ADMIN_PRODUCTS}?page=${productPage}&limit=${productPageSize}`,
   );
-  const { data: categoriesResponse, isLoading: categoriesLoading } = useGet<
-    CollectionResponse<Category>
-  >(["admin-categories"], API_ROUTES.ADMIN_CATEGORIES);
+  const { data: categories = [], isLoading: categoriesLoading } = useGet<Category[]>(
+    ["admin-categories"],
+    API_ROUTES.ADMIN_CATEGORIES,
+  );
 
   const refreshCatalog = () => {
     queryClient.invalidateQueries({ queryKey: ["admin-products"] });
@@ -128,9 +111,23 @@ export default function AdminProductsPage() {
     }
   }, [productToDelete, deleteProduct]);
 
-  const products = collectionItems(productsResponse);
-  const categories = collectionItems(categoriesResponse);
-  const productPagination = collectionPagination(productsResponse);
+  const products = productsResponse?.items || [];
+  const winningProducts = products.filter(
+    (product) => product.winnerUserId != null,
+  );
+  const uniqueWinners = new Set(
+    winningProducts.map((product) => String(product.winnerUserId)),
+  ).size;
+  const prizeValueAwarded = winningProducts.reduce(
+    (total, product) => total + Number(product.productValueAmount || 0),
+    0,
+  );
+  const pendingDeliveries = products.filter(
+    (product) =>
+      product.claimType === "physical" &&
+      product.claimStatus?.startsWith("claimed") &&
+      getDeliveryStatus(product.id) !== "received",
+  ).length;
 
   const startCreating = () => {
     setEditingId(null);
@@ -167,56 +164,50 @@ export default function AdminProductsPage() {
       accessorKey: "name",
       header: "Product",
       cell: ({ row }) => (
-        <div>
-          <span className="font-semibold">{row.original.name}</span>
-          <span className="block text-xs text-muted-foreground">
-            {row.original.slug}
+        <div className="min-w-52 max-w-72 space-y-1">
+          <span className="block line-clamp-2 font-semibold leading-snug">
+            {row.original.name}
+          </span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {categories.find(
+              (category) => category.id === row.original.categoryId,
+            )?.name || "Uncategorized"}
           </span>
         </div>
       ),
     },
     {
-      accessorKey: "categoryId",
-      header: "Category",
-      cell: ({ row }) =>
-        categories.find((category) => category.id === row.original.categoryId)
-          ?.name || row.original.categoryId,
+      id: "pricing",
+      header: "Prize / ticket",
+      cell: ({ row }) => (
+        <div className="whitespace-nowrap">
+          <p className="font-semibold">
+            {formatCurrency(row.original.productValueAmount || 0)}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {formatCurrency(row.original.ticketPrice)} / ticket
+          </p>
+        </div>
+      ),
     },
     {
-      accessorKey: "productValueAmount",
-      header: "Product value",
-      cell: ({ row }) => formatCurrency(row.original.productValueAmount || 0),
-    },
-    {
-      accessorKey: "targetAmount",
-      header: "Target",
-      cell: ({ row }) => formatCurrency(row.original.targetAmount),
-    },
-    {
-      accessorKey: "ticketPrice",
-      header: "Ticket price",
-      cell: ({ row }) => formatCurrency(row.original.ticketPrice),
-    },
-    {
-      accessorKey: "totalSlots",
-      header: "Slots left",
-      cell: ({ row }) =>
-        `${Number(row.original.slotsLeft ?? 0).toLocaleString()} / ${Number(
-          row.original.totalSlots ?? 0,
-        ).toLocaleString()}`,
-    },
-    {
-      accessorKey: "percentage",
-      header: "Progress",
+      id: "drawProgress",
+      header: "Draw progress",
       cell: ({ row }) => {
+        const totalSlots = Number(row.original.totalSlots || 0);
+        const slotsLeft = Number(row.original.slotsLeft || 0);
+        const slotsSold = Math.max(0, totalSlots - slotsLeft);
         const percentage = Math.min(
           100,
           Math.max(0, Number(row.original.percentage || 0)),
         );
 
         return (
-          <div className="min-w-28 space-y-1">
-            <span className="text-xs tabular-nums">{percentage}%</span>
+          <div className="min-w-32 space-y-1.5">
+            <div className="flex justify-between gap-3 text-xs tabular-nums">
+              <span>{slotsSold.toLocaleString()} sold</span>
+              <span className="text-muted-foreground">{percentage}%</span>
+            </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-primary"
@@ -230,7 +221,104 @@ export default function AdminProductsPage() {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => <Badge>{row.original.status}</Badge>,
+      cell: ({ row }) => (
+        <Badge className="capitalize">{row.original.status}</Badge>
+      ),
+    },
+    {
+      id: "winner",
+      header: "Winner / prize",
+      cell: ({ row }) => {
+        const product = row.original;
+        if (product.winnerUserId == null) {
+          return (
+            <span className="text-xs text-muted-foreground">Awaiting draw</span>
+          );
+        }
+
+        const winnerName =
+          product.winnerUser?.username ||
+          product.winnerUser?.name ||
+          [product.winnerUser?.firstName, product.winnerUser?.lastName]
+            .filter(Boolean)
+            .join(" ");
+
+        if (product.claimType === "cash") {
+          return (
+            <div className="min-w-36 space-y-1">
+              <p className="truncate text-xs font-semibold">
+                {winnerName || "Winner details unavailable"}
+              </p>
+              <Badge className="border-0 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                Cash claimed
+              </Badge>
+              <p className="text-muted-foreground">
+                {formatCurrency(
+                  product.claimDetails?.payoutAmount ??
+                    product.productValueAmount ??
+                    0,
+                )}
+              </p>
+            </div>
+          );
+        }
+        if (
+          product.claimType !== "physical" ||
+          !product.claimStatus?.startsWith("claimed")
+        ) {
+          return (
+            <div className="min-w-36 space-y-1">
+              <p className="truncate text-xs font-semibold">
+                {winnerName || "Winner details unavailable"}
+              </p>
+              <Badge variant="outline">Claim not submitted</Badge>
+            </div>
+          );
+        }
+
+        const shipping = product.claimDetails?.shippingDetails;
+        const deliveryStatus = getDeliveryStatus(product.id);
+        const address = [
+          shipping?.addressLine1,
+          shipping?.city,
+          shipping?.state,
+          shipping?.country,
+        ]
+          .filter(Boolean)
+          .join(", ");
+        return (
+          <div className="min-w-44 space-y-1.5">
+            <p className="truncate text-xs font-semibold">
+              {winnerName || "Winner details unavailable"}
+            </p>
+            <p
+              className="truncate text-[11px] text-muted-foreground"
+              title={`${shipping?.recipientName || ""} · ${shipping?.phoneNumber || ""} · ${address}`}
+            >
+              {shipping?.recipientName || "Recipient not provided"}
+              {shipping?.city ? ` · ${shipping.city}` : ""}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Truck className="h-3.5 w-3.5 text-muted-foreground" />
+              <select
+                aria-label={`Delivery status for ${product.name}`}
+                value={deliveryStatus}
+                onChange={(event) =>
+                  updateDeliveryStatus(
+                    product.id,
+                    event.target.value as "pending" | "shipped" | "received",
+                  )
+                }
+                className="h-8 min-w-32 rounded-md border border-border bg-background px-2 text-xs"
+              >
+                <option value="pending">Awaiting delivery</option>
+                <option value="shipped">Shipped</option>
+                <option value="received">Received</option>
+              </select>
+            </div>
+          </div>
+        );
+      },
     },
     {
       id: "actions",
@@ -276,6 +364,55 @@ export default function AdminProductsPage() {
               Create, update, and retire the products customers can enroll in.
             </p>
           </header>
+
+          <section className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-lg font-bold">Winner performance</h2>
+                <p className="text-xs text-muted-foreground">
+                  Totals from the products currently loaded. Winner names are
+                  shown when included in the API response.
+                </p>
+              </div>
+              <Badge variant="outline">
+                {pendingDeliveries} awaiting receipt
+              </Badge>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <div className="rounded-lg border border-border bg-muted/40 p-3">
+                <p className="text-xs text-muted-foreground">Winning draws</p>
+                <p className="mt-1 text-xl font-bold tabular-nums">
+                  {winningProducts.length}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border bg-muted/40 p-3">
+                <p className="text-xs text-muted-foreground">Unique winners</p>
+                <p className="mt-1 text-xl font-bold tabular-nums">
+                  {uniqueWinners}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border bg-muted/40 p-3">
+                <p className="text-xs text-muted-foreground">
+                  Prize value awarded
+                </p>
+                <p className="mt-1 text-xl font-bold tabular-nums">
+                  {formatCurrency(prizeValueAwarded)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border bg-muted/40 p-3">
+                <p className="text-xs text-muted-foreground">
+                  Awaiting receipt
+                </p>
+                <p className="mt-1 text-xl font-bold tabular-nums">
+                  {pendingDeliveries}
+                </p>
+              </div>
+            </div>
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              Delivery updates are saved in this browser only until a
+              fulfillment API is available.
+            </p>
+          </section>
 
           <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
             <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -353,7 +490,7 @@ export default function AdminProductsPage() {
               <div>
                 <h2 className="text-lg font-bold">Product catalog</h2>
                 <p className="text-sm text-muted-foreground">
-                  {productPagination?.total ?? products.length} products
+                  {productsResponse?.totalItems ?? products.length} products
                 </p>
               </div>
               <Button type="button" onClick={startCreating}>
@@ -364,7 +501,7 @@ export default function AdminProductsPage() {
             <DataTable
               columns={productColumns}
               data={products}
-              pageCount={productPagination?.totalPages ?? 1}
+              pageCount={productsResponse?.pageCount ?? 1}
               pageIndex={productPage - 1}
               pageSize={productPageSize}
               onPaginationChange={(pagination) =>

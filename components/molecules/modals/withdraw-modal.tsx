@@ -29,7 +29,7 @@ interface WithdrawModalProps {
 export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
   const { mutate: withdraw, isPending } = useWithdraw();
   const { data: wallet } = useGetBalance();
-  const availableBalance = (wallet as any)?.data?.balance || 0;
+  const availableBalance = wallet?.balance || 0;
 
   const form = useForm<WithdrawInput>({
     resolver: zodResolver(withdrawSchema),
