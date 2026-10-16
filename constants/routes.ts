@@ -35,6 +35,9 @@ export const API_ROUTES = {
   ADMIN_CATEGORY_BY_ID: "/admin/categories/:id",
   ADMIN_PRODUCTS: "/admin/products",
   ADMIN_PRODUCT_BY_ID: "/admin/products/:id",
+  ADMIN_PRODUCT_DUPLICATE: "/admin/products/:id/duplicate",
+  ADMIN_PRODUCT_SHIPMENT: "/admin/products/:id/shipment",
+  ADMIN_PRODUCT_SHIP: "/admin/products/:id/ship",
 } as const;
 
 export const APP_ROUTES = {

@@ -68,7 +68,20 @@ export interface Transaction {
 // ============================================
 
 export type PollStatus = "active" | "closed" | "completed" | "cancelled";
+export type ProductStatus = PollStatus | "draft" | "published";
 export type PrizeType = "cash" | "product";
+
+export interface ProductShipment {
+  id?: string;
+  courier?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  shippingStatus?: "pending" | "shipped" | "delivered" | "received" | string;
+  estimatedDeliveryAt?: string | null;
+  notes?: string | null;
+  shippedAt?: string | null;
+  deliveredAt?: string | null;
+}
 
 export interface Category {
   id: string;
@@ -94,7 +107,7 @@ export interface Product {
   slotsLeft?: number;
   percentage?: number | string;
   raisedAmount: number | string;
-  status: PollStatus;
+  status: ProductStatus;
   winnerUserId?: string | number | null;
   winnerUser?: {
     username?: string | null;
@@ -117,6 +130,7 @@ export interface Product {
       country?: string;
       postalCode?: string;
     };
+    shipment?: ProductShipment | null;
     [key: string]: unknown;
   } | null;
   createdAt: string;

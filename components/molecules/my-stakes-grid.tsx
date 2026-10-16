@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { cn, formatCurrency } from "@/lib/utils";
 import { formatDate } from "@/lib/format-date";
 import type { JoinedDraw } from "@/lib/types";
-import type { DeliveryStatus } from "@/hooks/use-delivery-status";
 import {
   CheckCircle,
   Clock,
@@ -74,20 +73,26 @@ const statusBadges: Record<
   },
 };
 
-export function getDrawStatus(
-  draw: JoinedDraw,
-  deliveryStatus: DeliveryStatus = "pending",
-): DrawStatus {
+export function getDrawStatus(draw: JoinedDraw): DrawStatus {
   if (draw.userParticipation.isWinner) {
-    if (draw.product.claimStatus?.startsWith("claimed")) {
-      if (draw.product.claimType === "physical") {
-        if (deliveryStatus === "received") return "received";
-        if (deliveryStatus === "shipped") return "shipped";
-        return "delivery_pending";
+    const claimStatus = draw.product.claimStatus || "";
+    const shippingStatus = draw.product.claimDetails?.shipment?.shippingStatus;
+    if (
+      draw.product.claimType === "physical" &&
+      (claimStatus.startsWith("claimed") ||
+        ["shipped", "delivered", "received"].includes(claimStatus))
+    ) {
+      if (["delivered", "received"].includes(shippingStatus || claimStatus)) {
+        return "received";
       }
+      if (shippingStatus === "shipped" || claimStatus === "shipped")
+        return "shipped";
+      return "delivery_pending";
+    }
+    if (claimStatus.startsWith("claimed")) {
       return "claimed";
     }
-    if (["pending", "processing"].includes(draw.product.claimStatus || "")) {
+    if (["pending", "processing"].includes(claimStatus)) {
       return "pending";
     }
     return "won";
@@ -121,16 +126,9 @@ export function DrawStatusBadge({ status }: { status: DrawStatus }) {
 interface MyStakesGridProps {
   draws: DrawRow[];
   onClaim: (draw: JoinedDraw) => void;
-  getDeliveryStatus: (productId: string) => DeliveryStatus;
-  onConfirmReceived: (productId: string) => void;
 }
 
-export function MyStakesGrid({
-  draws,
-  onClaim,
-  getDeliveryStatus,
-  onConfirmReceived,
-}: MyStakesGridProps) {
+export function MyStakesGrid({ draws, onClaim }: MyStakesGridProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {draws.map((draw) => {
@@ -179,18 +177,17 @@ export function MyStakesGrid({
                 </span>
               </p>
               {draw.product.claimType === "physical" &&
-              draw.product.claimStatus?.startsWith("claimed") ? (
-                <div className="flex items-center gap-2">
-                  {getDeliveryStatus(draw.product.id) === "shipped" && (
-                    <Button
-                      size="sm"
-                      onClick={() => onConfirmReceived(draw.product.id)}
-                      className="rounded-xl bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-500"
-                    >
-                      Confirm received
-                    </Button>
-                  )}
-                </div>
+              draw.drawStatus === "shipped" &&
+              draw.product.claimDetails?.shipment?.trackingUrl ? (
+                <Button asChild size="sm" variant="outline">
+                  <a
+                    href={draw.product.claimDetails.shipment.trackingUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Track shipment
+                  </a>
+                </Button>
               ) : canClaimDraw(draw) ? (
                 <Button
                   size="sm"

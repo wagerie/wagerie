@@ -3,7 +3,16 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Edit3, Package, Plus, Trash2, Truck } from "lucide-react";
+import {
+  Copy,
+  Edit3,
+  Eye,
+  EyeOff,
+  Package,
+  Plus,
+  Trash2,
+  Truck,
+} from "lucide-react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import { ProductForm } from "@/components/admin/product-form";
 import { DataTable } from "@/components/molecules/data-table";
@@ -14,8 +23,250 @@ import { Input } from "@/components/ui/input";
 import { useDelete, useGet, useGetPage, usePost } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
 import { formatCurrency } from "@/lib/utils";
-import type { Category, Product, ProductInput } from "@/lib/types";
-import { useDeliveryStatus } from "@/hooks/use-delivery-status";
+import type { Category, Product, ProductInput, ProductShipment } from "@/lib/types";
+
+interface ShipmentResponse {
+  product?: Product;
+  shipment?: ProductShipment;
+}
+
+interface ShipmentInput {
+  courier: string;
+  trackingNumber: string;
+  trackingUrl: string;
+  shippingStatus: "shipped" | "delivered";
+  estimatedDeliveryAt?: string;
+  notes?: string;
+}
+
+function getProductShipment(product: Product) {
+  return product.claimDetails?.shipment;
+}
+
+function hasPhysicalClaim(product: Product) {
+  return (
+    product.claimType === "physical" &&
+    (product.claimStatus?.startsWith("claimed") === true ||
+      ["shipped", "delivered", "received"].includes(product.claimStatus || ""))
+  );
+}
+
+function formatDateTimeInput(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 16);
+}
+
+function ProductActions({
+  product,
+  onUpdated,
+  onEdit,
+  onDelete,
+  onShipment,
+  deleting,
+}: {
+  product: Product;
+  onUpdated: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onShipment: () => void;
+  deleting: boolean;
+}) {
+  const { mutate: duplicateProduct, isPending: duplicating } = usePost<
+    unknown,
+    { name: string; slug: string; targetAmount: number; ticketPrice: number; productValueAmount: number }
+  >(
+    API_ROUTES.ADMIN_PRODUCT_DUPLICATE.replace(":id", product.id),
+    { onSuccess: onUpdated },
+  );
+  const { mutate: updatePublication, isPending: updatingPublication } = usePost<
+    unknown,
+    { status: "active" | "draft" }
+  >(
+    API_ROUTES.ADMIN_PRODUCT_BY_ID.replace(":id", product.id),
+    { onSuccess: onUpdated },
+    "patch",
+  );
+  const publicationStatus = product.status === "active" || product.status === "published";
+
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label={`Duplicate ${product.name}`}
+        title="Duplicate as draft"
+        disabled={duplicating}
+        onClick={() => {
+          const suffix = Date.now().toString();
+          duplicateProduct({
+            name: `Copy of ${product.name}`,
+            slug: `${product.slug}-copy-${suffix}`,
+            targetAmount: Number(product.targetAmount),
+            ticketPrice: Number(product.ticketPrice),
+            productValueAmount: Number(product.productValueAmount || 0),
+          });
+        }}
+      >
+        <Copy className="h-4 w-4" />
+      </Button>
+      {(product.status === "active" || product.status === "published" || product.status === "draft") && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={publicationStatus ? `Unpublish ${product.name}` : `Publish ${product.name}`}
+          title={publicationStatus ? "Set to draft" : "Publish product"}
+          disabled={updatingPublication}
+          onClick={() => updatePublication({ status: publicationStatus ? "draft" : "active" })}
+        >
+          {publicationStatus ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </Button>
+      )}
+      {product.claimType === "physical" && product.winnerUserId != null && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={`Manage shipment for ${product.name}`}
+          title="Manage shipment"
+          onClick={onShipment}
+        >
+          <Truck className="h-4 w-4" />
+        </Button>
+      )}
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label={`Edit ${product.name}`}
+        onClick={onEdit}
+      >
+        <Edit3 className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label={`Delete ${product.name}`}
+        disabled={deleting}
+        onClick={onDelete}
+      >
+        <Trash2 className="h-4 w-4 text-destructive" />
+      </Button>
+    </div>
+  );
+}
+
+function ShipmentDialog({
+  product,
+  onClose,
+  onUpdated,
+}: {
+  product: Product;
+  onClose: () => void;
+  onUpdated: () => void;
+}) {
+  const route = API_ROUTES.ADMIN_PRODUCT_SHIPMENT.replace(":id", product.id);
+  const { data } = useGet<ShipmentResponse>(["admin-shipment", product.id], route);
+  const shipment = data?.shipment || getProductShipment(product);
+  const [form, setForm] = useState<ShipmentInput>({
+    courier: shipment?.courier || "",
+    trackingNumber: shipment?.trackingNumber || "",
+    trackingUrl: shipment?.trackingUrl || "",
+    shippingStatus:
+      shipment?.shippingStatus === "delivered" || shipment?.shippingStatus === "received"
+        ? "delivered"
+        : "shipped",
+    estimatedDeliveryAt: formatDateTimeInput(shipment?.estimatedDeliveryAt),
+    notes: shipment?.notes || "",
+  });
+  const { mutate: updateShipment, isPending } = usePost<unknown, ShipmentInput>(
+    API_ROUTES.ADMIN_PRODUCT_SHIP.replace(":id", product.id),
+    {
+      onSuccess: () => {
+        onUpdated();
+        onClose();
+      },
+    },
+  );
+
+  useEffect(() => {
+    if (data?.shipment) {
+      setForm((current) => ({
+        ...current,
+        courier: data.shipment?.courier || current.courier,
+        trackingNumber: data.shipment?.trackingNumber || current.trackingNumber,
+        trackingUrl: data.shipment?.trackingUrl || current.trackingUrl,
+        shippingStatus:
+          data.shipment?.shippingStatus === "delivered" || data.shipment?.shippingStatus === "received"
+            ? "delivered"
+            : "shipped",
+        estimatedDeliveryAt: formatDateTimeInput(data.shipment?.estimatedDeliveryAt),
+        notes: data.shipment?.notes || current.notes,
+      }));
+    }
+  }, [data]);
+
+  const updateField = (field: keyof ShipmentInput, value: string) =>
+    setForm((current) => ({ ...current, [field]: value }));
+
+  return (
+    <ModalLayout
+      open
+      onOpenChange={(open) => !open && onClose()}
+      title={`Shipment: ${product.name}`}
+      description="Update carrier, tracking, and delivery status for this physical prize."
+      size="lg"
+    >
+      <form
+        className="grid gap-4 sm:grid-cols-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          updateShipment({
+            ...form,
+            estimatedDeliveryAt: form.estimatedDeliveryAt
+              ? new Date(form.estimatedDeliveryAt).toISOString()
+              : undefined,
+          });
+        }}
+      >
+        <Input value={form.courier} onChange={(event) => updateField("courier", event.target.value)} placeholder="Courier" aria-label="Courier" required disabled={isPending} />
+        <Input value={form.trackingNumber} onChange={(event) => updateField("trackingNumber", event.target.value)} placeholder="Tracking number" aria-label="Tracking number" required disabled={isPending} />
+        <Input className="sm:col-span-2" value={form.trackingUrl} onChange={(event) => updateField("trackingUrl", event.target.value)} placeholder="Tracking URL" aria-label="Tracking URL" type="url" required disabled={isPending} />
+        <label className="grid gap-1 text-sm">
+          <span>Shipping status</span>
+          <select
+            value={form.shippingStatus}
+            onChange={(event) => updateField("shippingStatus", event.target.value)}
+            className="h-10 rounded-md border border-input bg-background px-3"
+            disabled={isPending}
+          >
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+          </select>
+        </label>
+        <label className="grid gap-1 text-sm">
+          <span>Estimated delivery</span>
+          <Input type="datetime-local" value={form.estimatedDeliveryAt || ""} onChange={(event) => updateField("estimatedDeliveryAt", event.target.value)} disabled={isPending} />
+        </label>
+        <textarea
+          className="min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm sm:col-span-2"
+          value={form.notes || ""}
+          onChange={(event) => updateField("notes", event.target.value)}
+          placeholder="Shipment notes"
+          aria-label="Shipment notes"
+          disabled={isPending}
+        />
+        <div className="flex justify-end gap-2 sm:col-span-2">
+          <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>Cancel</Button>
+          <Button type="submit" disabled={isPending}>{isPending ? "Updating..." : "Save shipment"}</Button>
+        </div>
+      </form>
+    </ModalLayout>
+  );
+}
 
 const emptyProduct: ProductInput = {
   name: "",
@@ -38,8 +289,7 @@ export default function AdminProductsPage() {
   const [categoryName, setCategoryName] = useState("");
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
-  const { getStatus: getDeliveryStatus, updateStatus: updateDeliveryStatus } =
-    useDeliveryStatus();
+  const [shipmentProduct, setShipmentProduct] = useState<Product | null>(null);
 
   const productPageSize = 10;
   const { data: productsResponse, isLoading: productsLoading } = useGetPage<Product>(
@@ -124,9 +374,10 @@ export default function AdminProductsPage() {
   );
   const pendingDeliveries = products.filter(
     (product) =>
-      product.claimType === "physical" &&
-      product.claimStatus?.startsWith("claimed") &&
-      getDeliveryStatus(product.id) !== "received",
+      hasPhysicalClaim(product) &&
+      !["delivered", "received"].includes(
+        getProductShipment(product)?.shippingStatus || "",
+      ),
   ).length;
 
   const startCreating = () => {
@@ -221,9 +472,13 @@ export default function AdminProductsPage() {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => (
-        <Badge className="capitalize">{row.original.status}</Badge>
-      ),
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const label = status === "active" || status === "published"
+          ? "Published"
+          : status.charAt(0).toUpperCase() + status.slice(1);
+        return <Badge className="capitalize">{label}</Badge>;
+      },
     },
     {
       id: "winner",
@@ -262,10 +517,7 @@ export default function AdminProductsPage() {
             </div>
           );
         }
-        if (
-          product.claimType !== "physical" ||
-          !product.claimStatus?.startsWith("claimed")
-        ) {
+        if (!hasPhysicalClaim(product)) {
           return (
             <div className="min-w-36 space-y-1">
               <p className="truncate text-xs font-semibold">
@@ -277,7 +529,8 @@ export default function AdminProductsPage() {
         }
 
         const shipping = product.claimDetails?.shippingDetails;
-        const deliveryStatus = getDeliveryStatus(product.id);
+        const shipment = getProductShipment(product);
+        const deliveryStatus = shipment?.shippingStatus || "pending";
         const address = [
           shipping?.addressLine1,
           shipping?.city,
@@ -300,21 +553,10 @@ export default function AdminProductsPage() {
             </p>
             <div className="flex items-center gap-1.5">
               <Truck className="h-3.5 w-3.5 text-muted-foreground" />
-              <select
-                aria-label={`Delivery status for ${product.name}`}
-                value={deliveryStatus}
-                onChange={(event) =>
-                  updateDeliveryStatus(
-                    product.id,
-                    event.target.value as "pending" | "shipped" | "received",
-                  )
-                }
-                className="h-8 min-w-32 rounded-md border border-border bg-background px-2 text-xs"
-              >
-                <option value="pending">Awaiting delivery</option>
-                <option value="shipped">Shipped</option>
-                <option value="received">Received</option>
-              </select>
+              <span className="text-xs capitalize">{deliveryStatus}</span>
+              {shipment?.trackingNumber && (
+                <span className="text-[11px] text-muted-foreground">{shipment.trackingNumber}</span>
+              )}
             </div>
           </div>
         );
@@ -324,27 +566,14 @@ export default function AdminProductsPage() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={`Edit ${row.original.name}`}
-            onClick={() => startEditing(row.original)}
-          >
-            <Edit3 className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={`Delete ${row.original.name}`}
-            disabled={deletingProduct}
-            onClick={() => setProductToDelete(row.original.id)}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-        </div>
+        <ProductActions
+          product={row.original}
+          onUpdated={refreshCatalog}
+          onEdit={() => startEditing(row.original)}
+          onDelete={() => setProductToDelete(row.original.id)}
+          onShipment={() => setShipmentProduct(row.original)}
+          deleting={deletingProduct}
+        />
       ),
     },
   ];
@@ -408,10 +637,6 @@ export default function AdminProductsPage() {
                 </p>
               </div>
             </div>
-            <p className="mt-3 text-[11px] text-muted-foreground">
-              Delivery updates are saved in this browser only until a
-              fulfillment API is available.
-            </p>
           </section>
 
           <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
@@ -535,6 +760,13 @@ export default function AdminProductsPage() {
           onCancel={closeProductDialog}
         />
       </ModalLayout>
+      {shipmentProduct && (
+        <ShipmentDialog
+          product={shipmentProduct}
+          onClose={() => setShipmentProduct(null)}
+          onUpdated={refreshCatalog}
+        />
+      )}
     </AdminLayout>
   );
 }

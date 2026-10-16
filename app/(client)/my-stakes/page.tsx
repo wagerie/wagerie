@@ -21,7 +21,6 @@ import {
 } from "@/components/molecules/my-stakes-grid";
 import { PrizeClaimModal } from "@/components/molecules/prize-claim-modal";
 import { SummaryStatCard } from "@/components/molecules/summary-stat-card";
-import { useDeliveryStatus } from "@/hooks/use-delivery-status";
 import {
   Clock,
   DollarSign,
@@ -41,11 +40,12 @@ export default function MyStakesPage() {
   const [claimingDraw, setClaimingDraw] = useState<JoinedDraw | null>(null);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const drawHistoryRef = useRef<HTMLDivElement>(null);
-  const { getStatus: getDeliveryStatus, updateStatus: updateDeliveryStatus } =
-    useDeliveryStatus();
   const pageSize = 10;
 
-  const { data, isLoading, isError } = useGetPage<JoinedDraw, JoinedDrawsSummary>(
+  const { data, isLoading, isError } = useGetPage<
+    JoinedDraw,
+    JoinedDrawsSummary
+  >(
     ["my-draws", String(pageIndex + 1)],
     `${API_ROUTES.MY_DRAWS}?page=${pageIndex + 1}&limit=${pageSize}`,
   );
@@ -54,11 +54,12 @@ export default function MyStakesPage() {
   const summary = data?.summary;
   const totalPages = data?.pageCount ?? 1;
   const drawRows = useMemo<DrawRow[]>(
-    () => rawDraws.map((draw) => ({
-      ...draw,
-      drawStatus: getDrawStatus(draw, getDeliveryStatus(draw.product.id)),
-    })),
-    [rawDraws, getDeliveryStatus],
+    () =>
+      rawDraws.map((draw) => ({
+        ...draw,
+        drawStatus: getDrawStatus(draw),
+      })),
+    [rawDraws],
   );
 
   // Filter stakes based on selected tab
@@ -153,18 +154,18 @@ export default function MyStakesPage() {
         if (row.original.userParticipation.isWinner) {
           if (
             row.original.product.claimType === "physical" &&
-            row.original.product.claimStatus?.startsWith("claimed") &&
-            getDeliveryStatus(row.original.product.id) === "shipped"
+            row.original.drawStatus === "shipped" &&
+            row.original.product.claimDetails?.shipment?.trackingUrl
           ) {
             return (
-              <Button
-                size="sm"
-                onClick={() =>
-                  updateDeliveryStatus(row.original.product.id, "received")
-                }
-                className="bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-500"
-              >
-                Confirm received
+              <Button asChild size="sm" variant="outline">
+                <a
+                  href={row.original.product.claimDetails.shipment.trackingUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Track shipment
+                </a>
               </Button>
             );
           }
@@ -288,7 +289,7 @@ export default function MyStakesPage() {
                     ? handleOpenClaim(claimableDraw)
                     : handleReviewWinningDraws()
                 }
-                className="h-11 rounded-2xl bg-amber-500 px-6 font-black text-slate-950 hover:bg-amber-400 shadow-lg shadow-amber-500/30"
+                className="h-11 rounded-2xl !bg-amber-500 px-6 font-black text-slate-950 hover:!bg-amber-400 shadow-lg shadow-amber-500/30"
               >
                 {claimableDraw ? "Claim Prize" : "Review Winning Draws"}
               </Button>
@@ -361,56 +362,49 @@ export default function MyStakesPage() {
 
         {/* Content Section */}
         <div ref={drawHistoryRef} className="scroll-mt-6">
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-56 rounded-3xl border border-border bg-card animate-pulse p-4"
+          {isLoading ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-56 rounded-3xl border border-border bg-card animate-pulse p-4"
+                />
+              ))}
+            </div>
+          ) : isError ? (
+            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+              Draw history could not be loaded. Please try again.
+            </div>
+          ) : filteredDraws.length === 0 ? (
+            <div className="flex min-h-[320px] flex-col items-center justify-center rounded-3xl border border-border bg-card p-8 text-center">
+              <Ticket className="h-12 w-12 text-slate-600 mb-3" />
+              <h3 className="text-lg font-bold text-white">No Entries Found</h3>
+              <p className="mt-1 text-xs text-slate-400 max-w-sm">
+                You haven't entered any prize draws matching this filter.
+                Explore live draws to secure your tickets!
+              </p>
+              <Button
+                asChild
+                className="mt-5 rounded-xl bg-blue-600 hover:bg-blue-500"
+              >
+                <Link href="/polls">Browse Live Draws</Link>
+              </Button>
+            </div>
+          ) : viewMode === "grid" ? (
+            <MyStakesGrid draws={filteredDraws} onClaim={handleOpenClaim} />
+          ) : (
+            <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
+              <DataTable
+                columns={columns}
+                data={filteredDraws}
+                pageCount={totalPages}
+                pageIndex={pageIndex}
+                pageSize={pageSize}
+                onPaginationChange={(state) => setPageIndex(state.pageIndex)}
+                emptyMessage="No entries found"
               />
-            ))}
-          </div>
-        ) : isError ? (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
-            Draw history could not be loaded. Please try again.
-          </div>
-        ) : filteredDraws.length === 0 ? (
-          <div className="flex min-h-[320px] flex-col items-center justify-center rounded-3xl border border-border bg-card p-8 text-center">
-            <Ticket className="h-12 w-12 text-slate-600 mb-3" />
-            <h3 className="text-lg font-bold text-white">No Entries Found</h3>
-            <p className="mt-1 text-xs text-slate-400 max-w-sm">
-              You haven't entered any prize draws matching this filter. Explore
-              live draws to secure your tickets!
-            </p>
-            <Button
-              asChild
-              className="mt-5 rounded-xl bg-blue-600 hover:bg-blue-500"
-            >
-              <Link href="/polls">Browse Live Draws</Link>
-            </Button>
-          </div>
-        ) : viewMode === "grid" ? (
-          <MyStakesGrid
-            draws={filteredDraws}
-            onClaim={handleOpenClaim}
-            getDeliveryStatus={getDeliveryStatus}
-            onConfirmReceived={(productId) =>
-              updateDeliveryStatus(productId, "received")
-            }
-          />
-        ) : (
-          <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
-            <DataTable
-              columns={columns}
-              data={filteredDraws}
-              pageCount={totalPages}
-              pageIndex={pageIndex}
-              pageSize={pageSize}
-              onPaginationChange={(state) => setPageIndex(state.pageIndex)}
-              emptyMessage="No entries found"
-            />
-          </div>
-        )}
+            </div>
+          )}
         </div>
       </div>
 

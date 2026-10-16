@@ -26,6 +26,7 @@ import type { Product, Transaction } from "@/lib/types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { PollCard } from "@/components/molecules/poll-card";
 import RecentTransactions from "@/components/molecules/dashboard/recent-transactions";
+import { HowItWorks } from "@/components/molecules/dashboard/how-it-works";
 
 export default function DashboardPage() {
   const [depositOpen, setDepositOpen] = useState(false);
@@ -170,60 +171,7 @@ export default function DashboardPage() {
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
             <RecentTransactions openDepositModal={() => setDepositOpen(true)} />
             {/* Recent Transactions */}
-
-            {/* How Wagerie Works Guide */}
-            <div className="rounded-3xl border border-border bg-card p-6 shadow-xl space-y-4">
-              <div className="border-b border-slate-800 pb-4">
-                <h2 className="text-lg font-bold text-foreground">
-                  How Wagerie Works
-                </h2>
-                <p className="text-xs text-slate-400">
-                  4 simple steps to winning luxury prizes
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {[
-                  {
-                    step: "1",
-                    title: "Fund Wallet",
-                    desc: "Add funds using a payment method available to your account.",
-                  },
-                  {
-                    step: "2",
-                    title: "Choose a Product",
-                    desc: "Compare available products, ticket prices, and entry status.",
-                  },
-                  {
-                    step: "3",
-                    title: "Track Your Entries",
-                    desc: "Review confirmed entries and their status in My Stakes.",
-                  },
-                  {
-                    step: "4",
-                    title: "Review Draw Results",
-                    desc: "Follow published outcomes and the claim options available for each product.",
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.step}
-                    className="flex items-start gap-3 rounded-2xl border border-border bg-muted p-3"
-                  >
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">
-                      {item.step}
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-foreground">
-                        {item.title}
-                      </h4>
-                      <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <HowItWorks />
           </div>
         </div>
       </div>
