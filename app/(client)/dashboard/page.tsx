@@ -23,10 +23,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { API_ROUTES } from "@/constants/routes";
 import type { Product, Transaction } from "@/lib/types";
+import type { JoinedDraw } from "@/lib/types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { PollCard } from "@/components/molecules/poll-card";
 import RecentTransactions from "@/components/molecules/dashboard/recent-transactions";
 import { HowItWorks } from "@/components/molecules/dashboard/how-it-works";
+import { DrawSpotlight } from "@/components/molecules/dashboard/draw-spotlight";
 
 export default function DashboardPage() {
   const [depositOpen, setDepositOpen] = useState(false);
@@ -37,8 +39,28 @@ export default function DashboardPage() {
     ["featured-products"],
     `${API_ROUTES.PRODUCTS}?limit=3`,
   );
+  const { data: joinedDrawsData, isLoading: joinedDrawsLoading } =
+    useGetPage<JoinedDraw>(
+      ["dashboard-joined-draws"],
+      `${API_ROUTES.MY_DRAWS}?page=1&limit=20`,
+    );
 
-  const featuredDraws = featuredData?.items || [];
+  const products = featuredData?.items || [];
+  const activeJoinedDraw = [...(joinedDrawsData?.items || [])]
+    .filter((draw) => draw.product.status === "active")
+    .sort(
+      (first, second) =>
+        Date.parse(second.userParticipation.lastJoinedAt) -
+        Date.parse(first.userParticipation.lastJoinedAt),
+    )[0];
+  const latestActiveProduct = products.find(
+    (product) => product.status === "active",
+  );
+  const spotlightProductId =
+    activeJoinedDraw?.product.id || latestActiveProduct?.id;
+  const featuredDraws = products.filter(
+    (product) => product.id !== spotlightProductId,
+  );
   const balance = Number(wallet?.balance) ?? 0;
 
   const statCards = [
@@ -136,6 +158,12 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+
+          <DrawSpotlight
+            joinedDraw={activeJoinedDraw}
+            fallbackProduct={latestActiveProduct}
+            isLoading={joinedDrawsLoading}
+          />
 
           {/* Featured Draws Showcase */}
           {featuredDraws.length > 0 && (
