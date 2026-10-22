@@ -19,13 +19,13 @@ const steps = [
     step: "3",
     title: "Track Your Entries",
     desc: "Review confirmed entries and their status in My Stakes.",
-    href: APP_ROUTES.MY_STAKES,
+    href: APP_ROUTES.MY_ENTRIES,
   },
   {
     step: "4",
     title: "Review Draw Results",
     desc: "Follow published outcomes and the claim options available for each product.",
-    href: APP_ROUTES.MY_STAKES,
+    href: APP_ROUTES.MY_ENTRIES,
   },
 ];
 

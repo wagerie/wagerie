@@ -21,7 +21,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
-import { API_ROUTES } from "@/constants/routes";
+import { APP_ROUTES, API_ROUTES } from "@/constants/routes";
 import { removeCookie } from "@/hooks/use-cookies";
 import ModalLayout from "@/components/layout/modal-layout";
 import { usePost } from "@/hooks/use-api";
@@ -35,27 +35,27 @@ function Sidebar() {
   const navItems = [
     {
       label: "Dashboard",
-      href: "/dashboard",
+      href: APP_ROUTES.DASHBOARD,
       icon: LayoutDashboard,
     },
     {
       label: "Prize Draws",
-      href: "/polls",
+      href: APP_ROUTES.POLLS,
       icon: Trophy,
     },
     {
       label: "My Entries",
-      href: "/my-stakes",
+      href: APP_ROUTES.MY_ENTRIES,
       icon: Ticket,
     },
     {
       label: "Transactions",
-      href: "/transactions",
+      href: APP_ROUTES.TRANSACTIONS,
       icon: History,
     },
     {
       label: "Profile",
-      href: "/profile",
+      href: APP_ROUTES.PROFILE,
       icon: UserRound,
     },
   ];
@@ -65,7 +65,7 @@ function Sidebar() {
   const { mutate: signOut } = usePost(API_ROUTES.SIGNOUT, {
     onSettled: () => {
       removeCookie("wagerie_token");
-      router.push("/auth/login");
+      router.push(APP_ROUTES.LOGIN);
     },
   });
 
@@ -161,14 +161,14 @@ function Sidebar() {
               href={item.href}
               className={cn(
                 "flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold transition-colors",
-                item.href === "/dashboard" &&
+                item.href === APP_ROUTES.DASHBOARD &&
                   "relative z-10 order-3 h-16.75 justify-end gap-1.5",
-                item.href === "/polls" && "order-1",
-                item.href === "/my-stakes" && "order-2",
-                item.href === "/transactions" && "order-4",
-                item.href === "/profile" && "order-5",
+                item.href === APP_ROUTES.POLLS && "order-1",
+                item.href === APP_ROUTES.MY_ENTRIES && "order-2",
+                item.href === APP_ROUTES.TRANSACTIONS && "order-4",
+                item.href === APP_ROUTES.PROFILE && "order-5",
                 isActive
-                  ? item.href === "/dashboard"
+                  ? item.href === APP_ROUTES.DASHBOARD
                     ? "text-primary"
                     : "bg-blue-600 text-white"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
@@ -177,13 +177,13 @@ function Sidebar() {
               <span
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-xl",
-                  item.href === "/dashboard" &&
+                  item.href === APP_ROUTES.DASHBOARD &&
                     "absolute -top-8 left-1/2 h-16 w-16 -translate-x-1/2 rounded-full border-4 border-background bg-blue-600 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35)]",
                 )}
               >
                 <Icon
                   className={cn(
-                    item.href === "/dashboard" ? "h-5 w-5" : "h-4 w-4",
+                    item.href === APP_ROUTES.DASHBOARD ? "h-5 w-5" : "h-4 w-4",
                   )}
                 />
               </span>

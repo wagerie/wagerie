@@ -1,4 +1,6 @@
 "use client";
+import { finiteAmount, ticketNumbersFromResponse } from "@/lib/account-state";
+import { getApiPayload } from "@/hooks/use-api";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -19,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useGet, usePost } from "@/hooks/use-api";
 import { useGetBalance } from "@/hooks/use-wallet";
-import { API_ROUTES } from "@/constants/routes";
+import { APP_ROUTES, API_ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
 import type { Product, ProductEnrollment } from "@/lib/types";
 import { calculatePollMetrics, getPrizeImage } from "@/lib/prize-helpers";
@@ -46,7 +48,8 @@ export default function ProductDetailPage() {
   const [lastEnrollment, setLastEnrollment] = useState<{
     tickets: number;
     total: number;
-  }>({ tickets: 1, total: 0 });
+    ticketNumbers: number[];
+  }>({ tickets: 1, total: 0, ticketNumbers: [] });
 
   const detailPath = API_ROUTES.PRODUCT_DETAIL.replace(":id", params.id);
 
@@ -57,8 +60,15 @@ export default function ProductDetailPage() {
     { enabled: Boolean(params.id) },
   );
 
-  const { data: wallet } = useGetBalance();
-  const userBalance = wallet?.balance || 0;
+  const {
+    data: wallet,
+    isLoading: walletLoading,
+    isError: walletError,
+  } = useGetBalance();
+  const walletAmount = finiteAmount(wallet?.balance);
+  const userBalance = walletAmount ?? 0;
+  const walletAvailable =
+    !walletLoading && !walletError && walletAmount !== null;
 
   const { mutate: enroll, isPending } = usePost<
     unknown,
@@ -69,8 +79,18 @@ export default function ProductDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ["wallet"] });
       setLastEnrollment({
         tickets,
+        ticketNumbers: ticketNumbersFromResponse(getApiPayload(response)),
         total: tickets * Number(product?.ticketPrice || 0),
       });
+      for (const queryKey of [
+        "my-draws",
+        "dashboard-joined-draws",
+        "products",
+        "public-products",
+        "catalog-stats",
+      ]) {
+        void queryClient.invalidateQueries({ queryKey: [queryKey] });
+      }
       setConfirmationOpen(true);
       setTickets(1);
     },
@@ -86,7 +106,12 @@ export default function ProductDetailPage() {
     metrics.remainingSlots === 0 ||
     product?.status === "closed" ||
     product?.status === "completed";
-  const canEnroll = product?.status === "active" && tickets > 0 && !isSoldOut;
+  const canEnroll =
+    product?.status === "active" &&
+    tickets > 0 &&
+    tickets <= metrics.remainingSlots &&
+    !isSoldOut &&
+    walletAvailable;
   const hasInsufficientBalance = userBalance < totalCost;
 
   const handleEnroll = () => {
@@ -109,7 +134,7 @@ export default function ProductDetailPage() {
           {/* Breadcrumb / Back Link */}
           <div className="mb-6 flex items-center justify-between">
             <Link
-              href="/polls"
+              href={APP_ROUTES.POLLS}
               className="inline-flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -122,8 +147,12 @@ export default function ProductDetailPage() {
                   ● Live Draw
                 </Badge>
               ) : (
-                <Badge className="border-0 bg-slate-800 text-slate-400">
-                  {product?.status || "Ended"}
+                <Badge className="border-0 bg-muted text-muted-foreground">
+                  {isLoading
+                    ? "Loading…"
+                    : isError
+                      ? "Unavailable"
+                      : product?.status || "Unavailable"}
                 </Badge>
               )}
             </div>
@@ -140,11 +169,11 @@ export default function ProductDetailPage() {
             <div className="rounded-3xl border border-red-500/30 bg-red-500/10 p-12 text-center text-red-300">
               <h2 className="text-xl font-bold">Draw Not Found</h2>
               <p className="mt-2 text-sm text-red-200/80">
-                The requested prize poll could not be loaded or may have
+                The requested prize draw could not be loaded or may have
                 expired.
               </p>
               <Button asChild className="mt-6 bg-blue-600 hover:bg-blue-500">
-                <Link href="/polls">Browse Available Draws</Link>
+                <Link href={APP_ROUTES.POLLS}>Browse Available Draws</Link>
               </Button>
             </div>
           ) : (
@@ -197,26 +226,26 @@ export default function ProductDetailPage() {
 
                     {/* Metrics Row */}
                     <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3.5">
-                        <span className="text-[11px] text-slate-400 font-medium">
+                      <div className="rounded-2xl border border-border bg-muted/60 p-3.5">
+                        <span className="text-[11px] text-muted-foreground font-medium">
                           Ticket Price
                         </span>
-                        <p className="mt-1 text-lg font-extrabold text-white">
+                        <p className="mt-1 text-lg font-extrabold text-foreground">
                           {formatCurrency(metrics.pricePerTicket)}
                         </p>
                       </div>
 
-                      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3.5">
-                        <span className="text-[11px] text-slate-400 font-medium">
+                      <div className="rounded-2xl border border-border bg-muted/60 p-3.5">
+                        <span className="text-[11px] text-muted-foreground font-medium">
                           Total Slots
                         </span>
-                        <p className="mt-1 text-lg font-extrabold text-white">
+                        <p className="mt-1 text-lg font-extrabold text-foreground">
                           {metrics.totalSlots.toLocaleString()}
                         </p>
                       </div>
 
-                      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3.5">
-                        <span className="text-[11px] text-slate-400 font-medium">
+                      <div className="rounded-2xl border border-border bg-muted/60 p-3.5">
+                        <span className="text-[11px] text-muted-foreground font-medium">
                           Slots Filled
                         </span>
                         <p className="mt-1 text-lg font-extrabold text-emerald-400">
@@ -224,8 +253,8 @@ export default function ProductDetailPage() {
                         </p>
                       </div>
 
-                      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3.5">
-                        <span className="text-[11px] text-slate-400 font-medium">
+                      <div className="rounded-2xl border border-border bg-muted/60 p-3.5">
+                        <span className="text-[11px] text-muted-foreground font-medium">
                           Remaining
                         </span>
                         <p className="mt-1 text-lg font-extrabold text-amber-400">
@@ -239,7 +268,7 @@ export default function ProductDetailPage() {
                 {/* Interactive Information Tabs */}
                 <div className="rounded-3xl border border-border bg-card p-6 shadow-xl">
                   {/* Tab Navigation */}
-                  <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-4">
+                  <div className="flex flex-wrap gap-2 border-b border-border pb-4">
                     {[
                       {
                         id: "details",
@@ -285,23 +314,23 @@ export default function ProductDetailPage() {
                   {/* Tab Content */}
                   <div className="pt-6">
                     {activeTab === "details" && (
-                      <div className="space-y-4 text-sm text-slate-300">
-                        <h3 className="text-base font-bold text-white">
+                      <div className="space-y-4 text-sm text-muted-foreground">
+                        <h3 className="text-base font-bold text-foreground">
                           Product Details
                         </h3>
                         <p className="leading-relaxed">
                           {product.description ||
                             "No additional product description is available."}
                         </p>
-                        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:max-w-xs">
-                          <span className="text-xs text-slate-400">
+                        <div className="rounded-xl border border-border bg-muted/50 p-3 sm:max-w-xs">
+                          <span className="text-xs text-muted-foreground">
                             Product value
                           </span>
-                          <p className="font-semibold text-white">
+                          <p className="font-semibold text-foreground">
                             {formatCurrency(product.productValueAmount || 0)}
                           </p>
                         </div>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-muted-foreground">
                           Confirm product condition, delivery, and any cash
                           alternative in the published product terms before
                           entering.
@@ -310,8 +339,8 @@ export default function ProductDetailPage() {
                     )}
 
                     {activeTab === "draw" && (
-                      <div className="space-y-4 text-sm text-slate-300">
-                        <h3 className="text-base font-bold text-white">
+                      <div className="space-y-4 text-sm text-muted-foreground">
+                        <h3 className="text-base font-bold text-foreground">
                           Draw Details
                         </h3>
                         <p className="leading-relaxed">
@@ -321,37 +350,37 @@ export default function ProductDetailPage() {
                           product.
                         </p>
                         <div className="space-y-3 pt-2">
-                          <div className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-3.5">
+                          <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/50 p-3.5">
                             <Ticket className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                             <div>
-                              <p className="font-semibold text-white">
+                              <p className="font-semibold text-foreground">
                                 Entry Records
                               </p>
-                              <p className="text-xs text-slate-400">
+                              <p className="text-xs text-muted-foreground">
                                 Confirmed entries are available in your account
                                 history.
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-3.5">
+                          <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/50 p-3.5">
                             <Clock className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                             <div>
-                              <p className="font-semibold text-white">
+                              <p className="font-semibold text-foreground">
                                 Draw Schedule
                               </p>
-                              <p className="text-xs text-slate-400">
+                              <p className="text-xs text-muted-foreground">
                                 Check the product terms for its closing time and
                                 winner-selection method.
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-3.5">
+                          <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/50 p-3.5">
                             <Trophy className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                             <div>
-                              <p className="font-semibold text-white">
+                              <p className="font-semibold text-foreground">
                                 Published Results
                               </p>
-                              <p className="text-xs text-slate-400">
+                              <p className="text-xs text-muted-foreground">
                                 Treat a result as confirmed when it appears in
                                 the product and account records.
                               </p>
@@ -362,14 +391,14 @@ export default function ProductDetailPage() {
                     )}
 
                     {activeTab === "guarantee" && (
-                      <div className="space-y-4 text-sm text-slate-300">
-                        <h3 className="text-base font-bold text-white">
+                      <div className="space-y-4 text-sm text-muted-foreground">
+                        <h3 className="text-base font-bold text-foreground">
                           Claim Options
                         </h3>
                         <p className="leading-relaxed">
                           Choose the cash equivalent or claim the prize itself.
                         </p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-muted-foreground">
                           The cash amount and prize fulfillment details are
                           confirmed during claim processing.
                         </p>
@@ -379,17 +408,17 @@ export default function ProductDetailPage() {
                     {activeTab === "participants" && (
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-base font-bold text-white">
+                          <h3 className="text-base font-bold text-foreground">
                             Recent Entries
                           </h3>
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-muted-foreground">
                             Total {enrollments.length} participant
                             {enrollments.length === 1 ? "" : "s"}
                           </span>
                         </div>
 
                         {enrollments.length === 0 ? (
-                          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-8 text-center text-slate-400">
+                          <div className="rounded-2xl border border-border bg-muted/50 p-8 text-center text-muted-foreground">
                             <Users className="mx-auto mb-2 h-8 w-8 text-slate-600" />
                             <p className="text-sm font-medium">
                               Be the first player to enter this draw!
@@ -400,17 +429,17 @@ export default function ProductDetailPage() {
                             {enrollments.map((entry) => (
                               <div
                                 key={entry.id}
-                                className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs"
+                                className="flex items-center justify-between rounded-xl border border-border bg-muted/60 p-3 text-xs"
                               >
                                 <div className="flex items-center gap-2.5">
                                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600/20 text-blue-400 font-bold">
                                     #
                                   </div>
                                   <div>
-                                    <p className="font-semibold text-white">
+                                    <p className="font-semibold text-foreground">
                                       Player #{entry.userId}
                                     </p>
-                                    <p className="text-[10px] text-slate-500">
+                                    <p className="text-[10px] text-muted-foreground">
                                       {formatDate(
                                         entry.createdAt,
                                         "MMM dd, HH:mm",
@@ -423,7 +452,7 @@ export default function ProductDetailPage() {
                                     {entry.ticketsBought} ticket
                                     {entry.ticketsBought > 1 ? "s" : ""}
                                   </Badge>
-                                  <p className="mt-0.5 text-[10px] text-slate-400">
+                                  <p className="mt-0.5 text-[10px] text-muted-foreground">
                                     {formatCurrency(entry.amountPaid)}
                                   </p>
                                 </div>
@@ -443,25 +472,21 @@ export default function ProductDetailPage() {
                   <div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
-                        Live Entry Terminal
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-xs text-amber-400 font-semibold">
-                        <Clock className="h-3.5 w-3.5" />
-                        Draw on fill
+                        Ticket selection
                       </span>
                     </div>
-                    <h2 className="mt-1 text-2xl font-black text-white">
+                    <h2 className="mt-1 text-2xl font-black text-foreground">
                       Enter This Draw
                     </h2>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Select your ticket quantity to join the pool.
                     </p>
                   </div>
 
                   {/* Progress Tracker Widget */}
-                  <div className="space-y-2 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+                  <div className="space-y-2 rounded-2xl border border-border bg-muted/60 p-4">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-300 font-medium">
+                      <span className="text-muted-foreground font-medium">
                         Draw Progress
                       </span>
                       <span className="font-extrabold text-blue-400">
@@ -469,16 +494,16 @@ export default function ProductDetailPage() {
                       </span>
                     </div>
 
-                    <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
+                    <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-400 transition-all duration-500"
                         style={{
-                          width: `${Math.max(4, metrics.progressPercent)}%`,
+                          width: `${metrics.progressPercent}%`,
                         }}
                       />
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1">
                       <span>{metrics.filledSlots} tickets taken</span>
                       <span className="text-amber-400 font-semibold">
                         {metrics.remainingSlots} tickets left
@@ -487,6 +512,16 @@ export default function ProductDetailPage() {
                   </div>
 
                   {/* Interactive Ticket Stepper */}
+                  {!walletAvailable && (
+                    <p
+                      role="status"
+                      className="mb-4 text-sm text-muted-foreground"
+                    >
+                      {walletLoading
+                        ? "Loading wallet…"
+                        : "Wallet unavailable. Reload or sign in again before entering."}
+                    </p>
+                  )}
                   <TicketStepper
                     tickets={tickets}
                     onChange={setTickets}
@@ -494,21 +529,24 @@ export default function ProductDetailPage() {
                     remainingSlots={metrics.remainingSlots}
                     totalSlots={metrics.totalSlots}
                     userBalance={userBalance}
-                    disabled={isPending || isSoldOut}
-                    onQuickDeposit={handleQuickDeposit}
+                    balanceAvailable={walletAvailable}
+                    disabled={isPending || !canEnroll}
+                    onQuickDeposit={
+                      walletAvailable ? handleQuickDeposit : undefined
+                    }
                   />
 
                   {/* Primary Action Button */}
                   <div>
-                    {hasInsufficientBalance ? (
+                    {hasInsufficientBalance && walletAvailable ? (
                       <Button
                         type="button"
                         onClick={handleQuickDeposit}
                         className="h-14 w-full rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-base font-black text-slate-950 shadow-[0_10px_25px_rgba(245,158,11,0.25)] hover:from-amber-400 hover:to-amber-500 transition-all"
                       >
                         <Coins className="mr-2 h-5 w-5" />
-                        Deposit {formatCurrency(totalCost - userBalance)} &
-                        Enter
+                        Add funds · short by{" "}
+                        {formatCurrency(totalCost - userBalance)}
                       </Button>
                     ) : (
                       <Button
@@ -534,7 +572,7 @@ export default function ProductDetailPage() {
                   </div>
 
                   {/* Trust Micro-Indicators */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80 text-[11px] text-slate-400">
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border text-[11px] text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
                       <span>Entry history available</span>
@@ -556,6 +594,7 @@ export default function ProductDetailPage() {
         open={confirmationOpen}
         onOpenChange={setConfirmationOpen}
         prizeName={product?.name || "Prize"}
+        ticketNumbers={lastEnrollment.ticketNumbers}
         ticketsBought={lastEnrollment.tickets}
         totalPaid={lastEnrollment.total}
         pollId={params.id}

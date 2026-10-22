@@ -1,4 +1,5 @@
 "use client";
+import { useEntryReturnPath } from "@/hooks/use-entry-return-path";
 import React from "react";
 import { BtnComponent } from "@/components/atoms/button-component";
 import InputComponent from "@/components/atoms/input-component";
@@ -44,6 +45,7 @@ const formSchema = z
 
 export default function Register() {
   const router = useRouter();
+  const returnPath = useEntryReturnPath();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     mode: "onChange",
@@ -154,7 +156,9 @@ export default function Register() {
 
   const { mutate: register, isPending } = usePost(API_ROUTES.SIGNUP, {
     onSuccess: (response: any, variables: any) => {
-      router.push(`${APP_ROUTES.OTP_VERIFICATION}?email=${variables?.email}`);
+      const params = new URLSearchParams({ email: variables?.email || "" });
+      if (returnPath) params.set("next", returnPath);
+      router.push(`${APP_ROUTES.OTP_VERIFICATION}?${params.toString()}`);
     },
   });
 
@@ -178,7 +182,9 @@ export default function Register() {
     heading: "Create an account",
     desc: "Already have an account?",
     link_tag: "Login",
-    path: APP_ROUTES.LOGIN,
+    path: returnPath
+      ? `${APP_ROUTES.LOGIN}?next=${encodeURIComponent(returnPath)}`
+      : APP_ROUTES.LOGIN,
   };
 
   return (

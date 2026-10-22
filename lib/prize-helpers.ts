@@ -16,21 +16,33 @@ export interface PrizeCalculation {
 export function calculatePollMetrics(
   product?: Partial<Product> | null,
 ): PrizeCalculation {
-  const targetAmount = Number(product?.targetAmount || 0);
-  const ticketPrice = Number(product?.ticketPrice || 1);
-  const raisedAmount = Number(product?.raisedAmount || 0);
+  const positiveAmount = (value: unknown) => {
+    const amount = Number(value);
+    return Number.isFinite(amount) && amount >= 0 ? amount : 0;
+  };
+  const targetAmount = positiveAmount(product?.targetAmount);
+  const ticketPrice = positiveAmount(product?.ticketPrice);
+  const raisedAmount = positiveAmount(product?.raisedAmount);
 
+  const explicitTotal = Number(product?.totalSlots);
   const totalSlots =
-    ticketPrice > 0 ? Math.max(1, Math.round(targetAmount / ticketPrice)) : 100;
-  const filledSlots =
-    ticketPrice > 0
-      ? Math.min(totalSlots, Math.round(raisedAmount / ticketPrice))
-      : 0;
-  const remainingSlots = Math.max(0, totalSlots - filledSlots);
+    Number.isFinite(explicitTotal) && explicitTotal > 0
+      ? Math.floor(explicitTotal)
+      : ticketPrice > 0
+        ? Math.max(0, Math.round(targetAmount / ticketPrice))
+        : 0;
+  const explicitLeft =
+    product?.slotsLeft == null ? NaN : Number(product.slotsLeft);
+  const remainingSlots = Number.isFinite(explicitLeft)
+    ? Math.max(0, Math.min(totalSlots, Math.floor(explicitLeft)))
+    : Math.max(
+        0,
+        totalSlots -
+          (ticketPrice > 0 ? Math.round(raisedAmount / ticketPrice) : 0),
+      );
+  const filledSlots = totalSlots - remainingSlots;
   const progressPercent =
-    targetAmount > 0
-      ? Math.min(100, Math.round((raisedAmount / targetAmount) * 100))
-      : 0;
+    totalSlots > 0 ? Number(((filledSlots / totalSlots) * 100).toFixed(1)) : 0;
   return {
     totalSlots,
     filledSlots,

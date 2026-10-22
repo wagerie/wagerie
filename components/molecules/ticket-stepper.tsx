@@ -14,6 +14,7 @@ interface TicketStepperProps {
   totalSlots: number;
   userBalance: number;
   disabled?: boolean;
+  balanceAvailable?: boolean;
   onQuickDeposit?: (neededAmount: number) => void;
 }
 
@@ -25,6 +26,7 @@ export function TicketStepper({
   totalSlots,
   userBalance,
   disabled = false,
+  balanceAvailable = true,
   onQuickDeposit,
 }: TicketStepperProps) {
   const maxAllowed = Math.max(1, remainingSlots);
@@ -55,17 +57,17 @@ export function TicketStepper({
   ];
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-950/60 p-5 backdrop-blur-sm">
+    <div className="space-y-4 rounded-2xl border border-border bg-muted/60 p-5 backdrop-blur-sm">
       <div className="flex items-center justify-between">
         <label
           htmlFor="ticket-quantity"
-          className="text-sm font-semibold text-white flex items-center gap-1.5"
+          className="text-sm font-semibold text-foreground flex items-center gap-1.5"
         >
           <Ticket className="h-4 w-4 text-blue-400" />
           Select Tickets
         </label>
-        <span className="text-xs text-slate-400">
-          Max: <strong className="text-slate-200">{maxAllowed}</strong>{" "}
+        <span className="text-xs text-muted-foreground">
+          Max: <strong className="text-foreground">{maxAllowed}</strong>{" "}
           remaining
         </span>
       </div>
@@ -78,7 +80,7 @@ export function TicketStepper({
           size="icon"
           onClick={() => handleDecrement(1)}
           disabled={disabled || tickets <= 1}
-          className="h-12 w-12 shrink-0 rounded-xl border-slate-700 bg-slate-900 text-white hover:bg-slate-800 hover:text-white disabled:opacity-30"
+          className="h-12 w-12 shrink-0 rounded-xl border-border bg-secondary text-foreground hover:bg-muted hover:text-foreground disabled:opacity-30"
           aria-label="Decrease tickets"
         >
           <Minus className="h-5 w-5" />
@@ -93,9 +95,9 @@ export function TicketStepper({
             value={tickets}
             onChange={(e) => setSafeTickets(Number(e.target.value) || 1)}
             disabled={disabled}
-            className="h-12 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 text-center text-xl font-black text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="h-12 w-full rounded-xl border border-border bg-secondary px-4 text-center text-xl font-black text-foreground focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500">
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
             x {formatCurrency(ticketPrice)}
           </span>
         </div>
@@ -106,7 +108,7 @@ export function TicketStepper({
           size="icon"
           onClick={() => handleIncrement(1)}
           disabled={disabled || tickets >= maxAllowed}
-          className="h-12 w-12 shrink-0 rounded-xl border-slate-700 bg-slate-900 text-white hover:bg-slate-800 hover:text-white disabled:opacity-30"
+          className="h-12 w-12 shrink-0 rounded-xl border-border bg-secondary text-foreground hover:bg-muted hover:text-foreground disabled:opacity-30"
           aria-label="Increase tickets"
         >
           <Plus className="h-5 w-5" />
@@ -141,7 +143,7 @@ export function TicketStepper({
 
       {/* Calculation & Win Odds Bar */}
       <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3.5 space-y-2">
-        <div className="flex items-center justify-between text-xs text-slate-300 flex-wrap">
+        <div className="flex items-center justify-between text-xs text-muted-foreground flex-wrap">
           <span className="flex items-center gap-1 shrink-0">
             <Sparkles className="h-3.5 w-3.5 text-amber-400" />
             Winning Probability:
@@ -151,9 +153,9 @@ export function TicketStepper({
           </span>
         </div>
 
-        <div className="flex items-center justify-between border-t border-slate-800/80 pt-2 text-sm">
-          <span className="text-slate-400">Total Entry Cost</span>
-          <span className="text-xl font-black text-white">
+        <div className="flex items-center justify-between border-t border-border pt-2 text-sm">
+          <span className="text-muted-foreground">Total Entry Cost</span>
+          <span className="text-xl font-black text-foreground">
             {formatCurrency(totalCost)}
           </span>
         </div>
@@ -161,8 +163,8 @@ export function TicketStepper({
 
       {/* Wallet Balance Verification */}
       <div className="flex items-center justify-between text-xs px-1">
-        <span className="flex items-center gap-1.5 text-slate-400">
-          <Wallet className="h-3.5 w-3.5 text-slate-500" />
+        <span className="flex items-center gap-1.5 text-muted-foreground">
+          <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
           Wallet balance:
         </span>
         <span
@@ -171,11 +173,11 @@ export function TicketStepper({
             isInsufficient ? "text-amber-400" : "text-slate-200",
           )}
         >
-          {formatCurrency(userBalance)}
+          {balanceAvailable ? formatCurrency(userBalance) : "Unavailable"}
         </span>
       </div>
 
-      {isInsufficient && onQuickDeposit && (
+      {balanceAvailable && isInsufficient && !disabled && onQuickDeposit && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs flex items-center justify-between gap-2">
           <span className="text-amber-200 font-medium">
             Short by {formatCurrency(neededAmount)}

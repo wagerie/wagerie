@@ -135,7 +135,6 @@ Wagerie is ready for launch when:
 - A user can view transactions and withdraw from Profile with correct validation and status handling.
 - An authorized admin can manage the platform through real API data, while a normal user is denied admin access.
 - Every visible navigation item works and all primary flows have loading, empty, error, and success states.
-- The UI is responsive and visually consistent with the approved Peucox-inspired navy/blue system.
 - Production build, type checking, smoke tests, and security checks pass against the live configuration.
 
 ## Verification Log

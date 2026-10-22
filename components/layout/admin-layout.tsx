@@ -1,5 +1,7 @@
 "use client";
 
+import { useAccountProfile } from "@/hooks/use-account-profile";
+import { QueryFeedback } from "@/components/molecules/query-feedback";
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -9,7 +11,7 @@ import { PrimaryLogo } from "@/components/atoms/logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import ModalLayout from "@/components/layout/modal-layout";
-import { API_ROUTES } from "@/constants/routes";
+import { APP_ROUTES, API_ROUTES } from "@/constants/routes";
 import { removeCookie } from "@/hooks/use-cookies";
 import { usePost } from "@/hooks/use-api";
 
@@ -18,11 +20,16 @@ interface AdminLayoutProps {
 }
 
 const navigation = [
-  { label: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
-  { label: "Catalog", href: "/admin/products", icon: Package },
+  {
+    label: "Overview",
+    href: APP_ROUTES.ADMIN_DASHBOARD,
+    icon: LayoutDashboard,
+  },
+  { label: "Catalog", href: APP_ROUTES.ADMIN_PRODUCTS, icon: Package },
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {
+  const profile = useAccountProfile();
   const pathname = usePathname();
   const router = useRouter();
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -30,15 +37,44 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { mutate: signOut } = usePost(API_ROUTES.SIGNOUT, {
     onSettled: () => {
       removeCookie("wagerie_token");
-      router.push("/admin/auth/login");
+      router.push(APP_ROUTES.ADMIN_LOGIN);
     },
   });
+
+  if (
+    profile.isConfigured &&
+    (profile.isLoading || profile.isError || profile.data?.role !== "admin")
+  ) {
+    return (
+      <main className="mx-auto max-w-3xl p-6">
+        <QueryFeedback
+          message={
+            profile.isLoading
+              ? "Checking administrator access…"
+              : "Administrator access could not be confirmed."
+          }
+          onRetry={
+            !profile.isLoading ? () => void profile.refetch() : undefined
+          }
+        />
+        <Link
+          className="mt-4 inline-block text-blue-500 underline"
+          href={APP_ROUTES.DASHBOARD}
+        >
+          Return to your account
+        </Link>
+      </main>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <aside className="hidden w-72 shrink-0 border-r border-border bg-card lg:flex lg:flex-col">
         <div className="flex h-20 items-center border-b border-border px-6">
-          <Link href="/admin/dashboard" className="flex items-center gap-3">
+          <Link
+            href={APP_ROUTES.ADMIN_DASHBOARD}
+            className="flex items-center gap-3"
+          >
             <PrimaryLogo className="text-2xl" />
             <span className="rounded-full bg-warning/15 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-warning">
               Admin

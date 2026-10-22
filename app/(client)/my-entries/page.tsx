@@ -1,5 +1,7 @@
 "use client";
 
+import { ReceiptConfirmation } from "@/components/molecules/receipt-confirmation";
+import { QueryFeedback } from "@/components/molecules/query-feedback";
 import React, { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { DataTable } from "@/components/molecules/data-table";
@@ -7,7 +9,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useGetPage } from "@/hooks/use-api";
-import { API_ROUTES } from "@/constants/routes";
+import { APP_ROUTES, API_ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
 import { formatCurrency } from "@/lib/utils";
 import type { JoinedDraw, JoinedDrawsSummary } from "@/lib/types";
@@ -42,7 +44,7 @@ export default function MyStakesPage() {
   const drawHistoryRef = useRef<HTMLDivElement>(null);
   const pageSize = 10;
 
-  const { data, isLoading, isError } = useGetPage<
+  const { data, isLoading, isError, refetch } = useGetPage<
     JoinedDraw,
     JoinedDrawsSummary
   >(
@@ -90,10 +92,10 @@ export default function MyStakesPage() {
       header: "Prize Draw",
       cell: ({ row }) => (
         <div className="flex flex-col gap-1">
-          <p className="font-bold text-white max-w-xs truncate">
+          <p className="font-bold text-foreground max-w-xs truncate">
             {row.original.product.name}
           </p>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-muted-foreground">
             {row.original.userParticipation.userTicketsBought} tickets
           </span>
         </div>
@@ -105,7 +107,7 @@ export default function MyStakesPage() {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Ticket className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-bold text-white">
+          <span className="text-sm font-bold text-foreground">
             {formatCurrency(row.original.userParticipation.userAmountPaid)}
           </span>
         </div>
@@ -120,7 +122,7 @@ export default function MyStakesPage() {
       accessorKey: "product.productValueAmount",
       header: "Prize Value",
       cell: ({ row }) => (
-        <span className="text-sm text-slate-300 font-medium">
+        <span className="text-sm text-muted-foreground font-medium">
           {formatCurrency(row.original.product.productValueAmount || 0)}
         </span>
       ),
@@ -129,7 +131,7 @@ export default function MyStakesPage() {
       accessorKey: "userParticipation.firstJoinedAt",
       header: "Entry Date",
       cell: ({ row }) => (
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-muted-foreground">
           {formatDate(
             row.original.userParticipation.firstJoinedAt,
             "MMM dd, yyyy",
@@ -140,6 +142,8 @@ export default function MyStakesPage() {
     {
       id: "actions",
       cell: ({ row }) => {
+        if (row.original.drawStatus === "delivered")
+          return <ReceiptConfirmation productId={row.original.product.id} />;
         if (canClaimDraw(row.original)) {
           return (
             <Button
@@ -176,9 +180,16 @@ export default function MyStakesPage() {
             asChild
             size="sm"
             variant="outline"
-            className="rounded-xl border-slate-700 bg-slate-900 text-xs text-slate-300 hover:bg-slate-800 hover:text-white"
+            className="rounded-xl border-border bg-secondary text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
           >
-            <Link href={`/polls/${row.original.product.id}`}>View Draw</Link>
+            <Link
+              href={APP_ROUTES.POLL_DETAIL.replace(
+                ":id",
+                encodeURIComponent(String(row.original.product.id)),
+              )}
+            >
+              View Draw
+            </Link>
           </Button>
         );
       },
@@ -208,29 +219,45 @@ export default function MyStakesPage() {
   const summaryCards = [
     {
       id: "spent",
-      label: "Total Staked",
-      value: formatCurrency(totalStaked),
+      label: "Total entry spend",
+      value: isLoading
+        ? "Loading…"
+        : isError
+          ? "Unavailable"
+          : formatCurrency(totalStaked),
       icon: DollarSign,
       iconClassName: "bg-blue-600/10 text-blue-400",
     },
     {
       id: "active",
       label: "Active Draws",
-      value: activeEntries.toLocaleString(),
+      value: isLoading
+        ? "Loading…"
+        : isError
+          ? "Unavailable"
+          : activeEntries.toLocaleString(),
       icon: Clock,
       iconClassName: "bg-blue-500/10 text-blue-400",
     },
     {
       id: "won",
       label: "Prizes Won",
-      value: wonCount.toLocaleString(),
+      value: isLoading
+        ? "Loading…"
+        : isError
+          ? "Unavailable"
+          : wonCount.toLocaleString(),
       icon: Trophy,
       iconClassName: "bg-amber-500/10 text-amber-400",
     },
     {
       id: "tickets",
       label: "Tickets Bought",
-      value: ticketsBought.toLocaleString(),
+      value: isLoading
+        ? "Loading…"
+        : isError
+          ? "Unavailable"
+          : ticketsBought.toLocaleString(),
       icon: Sparkles,
       iconClassName: "bg-emerald-500/10 text-emerald-400",
     },
@@ -257,7 +284,7 @@ export default function MyStakesPage() {
         </div>
 
         {/* Won Prizes Banner */}
-        {wonCount > 0 && (
+        {!isLoading && !isError && wonCount > 0 && (
           <div className="rounded-3xl border border-amber-500/40 bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent p-6 shadow-[0_10px_30px_rgba(245,158,11,0.15)]">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
@@ -273,11 +300,11 @@ export default function MyStakesPage() {
                       {wonCount}
                     </Badge>
                   </div>
-                  <h3 className="text-xl font-black text-white mt-0.5">
+                  <h3 className="text-xl font-black text-foreground mt-0.5">
                     You have {wonCount} winning draw
                     {wonCount === 1 ? "" : "s"}
                   </h3>
-                  <p className="text-xs text-slate-300">
+                  <p className="text-xs text-muted-foreground">
                     Claim eligibility and status are shown with each draw.
                   </p>
                 </div>
@@ -306,14 +333,29 @@ export default function MyStakesPage() {
 
         {/* Filter Tabs & Controls */}
         <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+          <div
+            aria-busy={isLoading}
+            className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0"
+          >
             {[
               {
                 id: "all",
-                label: `All Draws (${summary?.totalJoinedDraws ?? rawDraws.length})`,
+                label:
+                  isLoading || isError
+                    ? "All Draws"
+                    : `All Draws (${summary?.totalJoinedDraws ?? rawDraws.length})`,
               },
-              { id: "active", label: `Active Draws (${activeEntries})` },
-              { id: "won", label: `Won (${wonCount})` },
+              {
+                id: "active",
+                label:
+                  isLoading || isError
+                    ? "Active Draws"
+                    : `Active Draws (${activeEntries})`,
+              },
+              {
+                id: "won",
+                label: isLoading || isError ? "Won" : `Won (${wonCount})`,
+              },
               { id: "lost", label: "Completed without win" },
             ].map((tab) => (
               <button
@@ -332,9 +374,10 @@ export default function MyStakesPage() {
           </div>
 
           {/* View Toggle */}
-          <div className="flex rounded-xl border border-slate-700 bg-slate-900 p-1 self-end sm:self-auto">
+          <div className="flex rounded-xl border border-border bg-secondary p-1 self-end sm:self-auto">
             <button
               type="button"
+              aria-pressed={viewMode === "grid"}
               onClick={() => setViewMode("grid")}
               className={`rounded-lg p-1.5 transition-colors ${
                 viewMode === "grid"
@@ -347,6 +390,7 @@ export default function MyStakesPage() {
             </button>
             <button
               type="button"
+              aria-pressed={viewMode === "table"}
               onClick={() => setViewMode("table")}
               className={`rounded-lg p-1.5 transition-colors ${
                 viewMode === "table"
@@ -372,14 +416,17 @@ export default function MyStakesPage() {
               ))}
             </div>
           ) : isError ? (
-            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
-              Draw history could not be loaded. Please try again.
-            </div>
+            <QueryFeedback
+              message="Draw history could not be loaded."
+              onRetry={() => void refetch()}
+            />
           ) : filteredDraws.length === 0 ? (
             <div className="flex min-h-[320px] flex-col items-center justify-center rounded-3xl border border-border bg-card p-8 text-center">
               <Ticket className="h-12 w-12 text-slate-600 mb-3" />
-              <h3 className="text-lg font-bold text-white">No Entries Found</h3>
-              <p className="mt-1 text-xs text-slate-400 max-w-sm">
+              <h3 className="text-lg font-bold text-foreground">
+                No Entries Found
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground max-w-sm">
                 You haven't entered any prize draws matching this filter.
                 Explore live draws to secure your tickets!
               </p>
@@ -387,7 +434,7 @@ export default function MyStakesPage() {
                 asChild
                 className="mt-5 rounded-xl bg-blue-600 hover:bg-blue-500"
               >
-                <Link href="/polls">Browse Live Draws</Link>
+                <Link href={APP_ROUTES.POLLS}>Browse Live Draws</Link>
               </Button>
             </div>
           ) : viewMode === "grid" ? (

@@ -1,5 +1,7 @@
 "use client";
 
+import { APP_ROUTES } from "@/constants/routes";
+
 import React from "react";
 import Link from "next/link";
 import {
@@ -20,12 +22,23 @@ interface PollCardProps {
   product: Product;
   categoryName?: string;
   featured?: boolean;
+  href?: string;
+  actionLabel?: string;
+  demo?: boolean;
+  showAction?: boolean;
 }
 
 export function PollCard({
   product,
   categoryName,
   featured = false,
+  href = APP_ROUTES.POLL_DETAIL.replace(
+    ":id",
+    encodeURIComponent(String(product.id)),
+  ),
+  actionLabel,
+  demo = false,
+  showAction = true,
 }: PollCardProps) {
   const metrics = calculatePollMetrics(product);
   const imageUrl = getPrizeImage(product);
@@ -57,6 +70,11 @@ export function PollCard({
 
         {/* Floating Badges */}
         <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
+          {demo && (
+            <Badge className="border-0 bg-amber-500/90 text-xs font-semibold text-slate-950">
+              Demo draw
+            </Badge>
+          )}
           {categoryName && (
             <Badge className="border-0 bg-slate-900/80 text-xs font-medium text-slate-200 backdrop-blur-md">
               {categoryName}
@@ -94,12 +112,12 @@ export function PollCard({
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-2">
           <Link
-            href={`/polls/${product.id}`}
+            href={href}
             className="line-clamp-1 text-lg font-bold text-foreground transition-colors group-hover:text-blue-500 dark:group-hover:text-blue-400"
           >
             {product.name}
           </Link>
-          <p className="line-clamp-2 mt-1 text-xs text-slate-400 leading-relaxed min-h-[32px]">
+          <p className="line-clamp-2 mt-1 text-xs text-muted-foreground leading-relaxed min-h-[32px]">
             {product.description ||
               "Review the product details, ticket price, and current entry availability."}
           </p>
@@ -119,7 +137,14 @@ export function PollCard({
             </span>
           </div>
 
-          <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-800">
+          <div
+            role="progressbar"
+            aria-label={`${product.name} entry progress`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={metrics.progressPercent}
+            className="relative h-2 w-full overflow-hidden rounded-full bg-slate-800"
+          >
             <div
               className={cn(
                 "h-full rounded-full transition-all duration-500",
@@ -127,7 +152,7 @@ export function PollCard({
                   ? "bg-gradient-to-r from-amber-500 to-emerald-400"
                   : "bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-400",
               )}
-              style={{ width: `${Math.max(4, metrics.progressPercent)}%` }}
+              style={{ width: `${metrics.progressPercent}%` }}
             />
           </div>
 
@@ -143,28 +168,30 @@ export function PollCard({
             <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
               Ticket Price
             </span>
-            <p className="text-lg font-extrabold text-white flex items-center gap-1">
+            <p className="text-lg font-extrabold text-foreground flex items-center gap-1">
               <Ticket className="h-4 w-4 text-blue-400" />
               {formatCurrency(metrics.pricePerTicket)}
             </p>
           </div>
 
-          <Button
-            asChild
-            size="sm"
-            disabled={isSoldOut}
-            className={cn(
-              "rounded-xl font-semibold shadow-md transition-all",
-              isSoldOut
-                ? "bg-slate-800 text-slate-500"
-                : "bg-blue-600 text-white hover:bg-blue-500 hover:shadow-[0_8px_20px_rgba(37,99,235,0.35)]",
-            )}
-          >
-            <Link href={`/polls/${product.id}`}>
-              {isSoldOut ? "Draw Ended" : "Enter Draw"}
-              {!isSoldOut && <ArrowRight className="ml-1.5 h-3.5 w-3.5" />}
-            </Link>
-          </Button>
+          {showAction && (
+            <Button
+              asChild
+              size="sm"
+              disabled={isSoldOut}
+              className={cn(
+                "rounded-xl font-semibold shadow-md transition-all",
+                isSoldOut
+                  ? "bg-slate-800 text-slate-500"
+                  : "bg-blue-600 text-white hover:bg-blue-500 hover:shadow-[0_8px_20px_rgba(37,99,235,0.35)]",
+              )}
+            >
+              <Link href={href}>
+                {actionLabel || (isSoldOut ? "Draw Ended" : "Enter Draw")}
+                {!isSoldOut && <ArrowRight className="ml-1.5 h-3.5 w-3.5" />}
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </div>

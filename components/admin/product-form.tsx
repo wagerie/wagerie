@@ -50,7 +50,11 @@ export function ProductForm({
     register,
     getValues,
     setValue,
+    watch,
   } = form;
+
+  const imageUrl = watch("image");
+  const previewName = watch("name");
 
   const updateTicketPrice = (targetAmount: number, slots: number) => {
     if (
@@ -117,7 +121,8 @@ export function ProductForm({
           render={({ field }) => (
             <InputComponent
               {...field}
-              label="Product name"
+              label="Public prize title"
+              hasHelperText="Use a short customer-facing title. Put detailed specifications in the description."
               state={errors.name ? "error" : null}
               disabled={isSaving}
               onChange={(event) => {
@@ -175,6 +180,20 @@ export function ProductForm({
             )}
           />
         </div>
+        {imageUrl && /^https?:\/\//.test(imageUrl) && (
+          <div className="sm:col-span-2 space-y-2">
+            <p className="text-sm font-medium">Customer image preview</p>
+            <img
+              src={imageUrl}
+              alt={previewName || "Prize image preview"}
+              className="h-40 w-full rounded-xl border border-border object-contain bg-muted"
+              onError={(event) => {
+                event.currentTarget.alt =
+                  "Image could not be loaded. Check the URL.";
+              }}
+            />
+          </div>
+        )}
         <div className="sm:col-span-2">
           <Label htmlFor="product-description">Description</Label>
           <textarea
@@ -195,7 +214,8 @@ export function ProductForm({
           render={({ field }) => (
             <InputComponent
               {...field}
-              label="Target amount"
+              label="Internal funding target"
+              hasHelperText="Used to calculate ticket pricing. This is separate from the prize value."
               min="0"
               type="number"
               state={errors.targetAmount ? "error" : null}
@@ -254,7 +274,8 @@ export function ProductForm({
           render={({ field }) => (
             <InputComponent
               {...field}
-              label="Product value amount"
+              label="Prize value"
+              hasHelperText="The value shown to customers; not the funding target."
               min="0.01"
               step="0.01"
               type="number"

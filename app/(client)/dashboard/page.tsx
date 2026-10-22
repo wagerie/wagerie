@@ -1,5 +1,6 @@
 "use client";
 
+import { QueryFeedback } from "@/components/molecules/query-feedback";
 import React, { useState } from "react";
 import {
   ArrowRight,
@@ -18,12 +19,12 @@ import Link from "next/link";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DepositModal } from "@/components/molecules/modals/deposit-modal";
 import { useGetBalance } from "@/hooks/use-wallet";
-import { useGetPage } from "@/hooks/use-api";
+import { useGetPage, useGet } from "@/hooks/use-api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { API_ROUTES } from "@/constants/routes";
+import { APP_ROUTES, API_ROUTES } from "@/constants/routes";
 import type { Product, Transaction } from "@/lib/types";
-import type { JoinedDraw } from "@/lib/types";
+import type { JoinedDraw, JoinedDrawsSummary, CatalogStats } from "@/lib/types";
 import { cn, formatCurrency } from "@/lib/utils";
 import { PollCard } from "@/components/molecules/poll-card";
 import RecentTransactions from "@/components/molecules/dashboard/recent-transactions";
@@ -33,17 +34,26 @@ import { DrawSpotlight } from "@/components/molecules/dashboard/draw-spotlight";
 export default function DashboardPage() {
   const [depositOpen, setDepositOpen] = useState(false);
 
-  const { data: wallet, isLoading: walletLoading } = useGetBalance();
+  const {
+    data: wallet,
+    isLoading: walletLoading,
+    isError: walletError,
+    refetch: refetchWallet,
+  } = useGetBalance();
 
   const { data: featuredData } = useGetPage<Product>(
     ["featured-products"],
     `${API_ROUTES.PRODUCTS}?limit=3`,
   );
-  const { data: joinedDrawsData, isLoading: joinedDrawsLoading } =
-    useGetPage<JoinedDraw>(
-      ["dashboard-joined-draws"],
-      `${API_ROUTES.MY_DRAWS}?page=1&limit=20`,
-    );
+  const {
+    data: joinedDrawsData,
+    isLoading: joinedDrawsLoading,
+    isError: joinedError,
+    refetch: refetchEntries,
+  } = useGetPage<JoinedDraw, JoinedDrawsSummary>(
+    ["dashboard-joined-draws"],
+    `${API_ROUTES.MY_DRAWS}?page=1&limit=20`,
+  );
 
   const products = featuredData?.items || [];
   const activeJoinedDraw = [...(joinedDrawsData?.items || [])]
@@ -61,42 +71,64 @@ export default function DashboardPage() {
   const featuredDraws = products.filter(
     (product) => product.id !== spotlightProductId,
   );
-  const balance = Number(wallet?.balance) ?? 0;
+  const balance = wallet?.balance;
+  const { data: stats, isLoading: statsLoading } = useGet<CatalogStats>(
+    ["catalog-stats", "all"],
+    API_ROUTES.DRAW_STATS,
+  );
+  const accountSummary = joinedDrawsData?.summary;
 
   const statCards = [
     {
       label: "Active Entries",
-      value: "3",
-      hint: "Across 2 guaranteed draws",
+      value: joinedDrawsLoading
+        ? "Loading…"
+        : (accountSummary?.activeDrawsCount?.toLocaleString() ?? "Unavailable"),
+      hint: "Draws with your active entries",
       icon: Ticket,
-      href: "/my-stakes",
+      href: APP_ROUTES.MY_ENTRIES,
       glow: "border-blue-500/30 bg-blue-500/10 text-blue-400",
     },
     {
       label: "Available Balance",
-      value: formatCurrency(balance),
-      hint: "Instant draw liquidity",
+      value: walletLoading
+        ? "Loading…"
+        : walletError || balance == null
+          ? "Unavailable"
+          : formatCurrency(balance, wallet?.currency),
+      hint: "Your available wallet balance",
       icon: Wallet,
-      href: "/transactions",
+      href: APP_ROUTES.TRANSACTIONS,
       glow: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
     },
     {
-      label: "Guaranteed Draws",
-      value: "14",
-      hint: "Ready to enter from $1",
+      label: "Active Draws",
+      value: statsLoading
+        ? "Loading…"
+        : (stats?.activeDraws?.toLocaleString() ?? "Unavailable"),
+      hint: "Available in the catalogue",
       icon: Trophy,
-      href: "/polls",
+      href: APP_ROUTES.POLLS,
       glow: "border-amber-500/30 bg-amber-500/10 text-amber-400",
     },
   ];
 
   return (
-    <DashboardLayout
-      userEmail="player@wagerie.com"
-      onDeposit={() => setDepositOpen(true)}
-    >
+    <DashboardLayout onDeposit={() => setDepositOpen(true)}>
       <div className="min-h-full bg-background text-foreground p-4 lg:p-8 space-y-8">
         <div className="mx-auto max-w-7xl space-y-8">
+          {walletError && (
+            <QueryFeedback
+              message="Wallet balance is unavailable."
+              onRetry={() => void refetchWallet()}
+            />
+          )}
+          {joinedError && (
+            <QueryFeedback
+              message="Your entry summary is unavailable."
+              onRetry={() => void refetchEntries()}
+            />
+          )}
           {/* Welcome Banner */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -110,8 +142,8 @@ export default function DashboardPage() {
                 Welcome back, player.
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Track your active ticket entries, explore guaranteed luxury
-                draws, and manage your balance.
+                Track your ticket entries, explore available prize draws, and
+                manage your balance.
               </p>
             </div>
 
@@ -172,14 +204,14 @@ export default function DashboardPage() {
                 <div>
                   <h2 className="text-xl font-black text-foreground flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-amber-400" />
-                    Featured Guaranteed Draws
+                    Featured Prize Draws
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    High-demand luxury prize pools filling rapidly today
+                    Compare available prizes and ticket prices
                   </p>
                 </div>
                 <Link
-                  href="/polls"
+                  href={APP_ROUTES.POLLS}
                   className="text-xs font-bold text-blue-400 hover:text-blue-300 inline-flex items-center gap-1"
                 >
                   View All Draws

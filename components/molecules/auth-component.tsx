@@ -1,3 +1,4 @@
+import { APP_ROUTES } from "@/constants/routes";
 import Link from "next/link";
 import React from "react";
 import { Separator } from "../ui/separator";
@@ -40,37 +41,13 @@ function AuthComponent({
         >
           {pageInfo?.desc}{" "}
           <Link
-            href={pageInfo?.path ?? "/"}
+            href={pageInfo?.path ?? APP_ROUTES.HOME}
             className="capitalize text-blue-600 font-semibold"
           >
             {pageInfo?.link_tag}
           </Link>
         </p>
       </div>
-      {auths ? (
-        <div className="flex flex-col gap-3">
-          <BtnComponent
-            className="flex gap-4 font-semibold"
-            variant="secondary"
-            size="lg"
-          >
-            <Image
-              src="/assets/brand/google.png"
-              width={20}
-              height={20}
-              draggable={false}
-              alt="google-icon"
-            />
-            Continue with Google
-          </BtnComponent>
-          <div className="relative h-7 flex items-center">
-            <Separator />
-            <span className="bg-background px-2 text-muted-foreground text-sm font-normal absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
-              Or
-            </span>
-          </div>
-        </div>
-      ) : null}
       {children}
     </div>
   );

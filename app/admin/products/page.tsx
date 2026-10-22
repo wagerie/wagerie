@@ -1,5 +1,6 @@
 "use client";
 
+import { QueryFeedback } from "@/components/molecules/query-feedback";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -22,8 +23,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDelete, useGet, useGetPage, usePost } from "@/hooks/use-api";
 import { API_ROUTES } from "@/constants/routes";
+import { calculatePollMetrics } from "@/lib/prize-helpers";
 import { formatCurrency } from "@/lib/utils";
-import type { Category, Product, ProductInput, ProductShipment } from "@/lib/types";
+import type {
+  Category,
+  Product,
+  ProductInput,
+  ProductShipment,
+} from "@/lib/types";
 
 interface ShipmentResponse {
   product?: Product;
@@ -72,13 +79,25 @@ function ProductActions({
   onShipment: () => void;
   deleting: boolean;
 }) {
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
+  const [duplicateName, setDuplicateName] = useState(
+    product.name.replace(/^(?:Copy of\s+)+/i, ""),
+  );
   const { mutate: duplicateProduct, isPending: duplicating } = usePost<
     unknown,
-    { name: string; slug: string; targetAmount: number; ticketPrice: number; productValueAmount: number }
-  >(
-    API_ROUTES.ADMIN_PRODUCT_DUPLICATE.replace(":id", product.id),
-    { onSuccess: onUpdated },
-  );
+    {
+      name: string;
+      slug: string;
+      targetAmount: number;
+      ticketPrice: number;
+      productValueAmount: number;
+    }
+  >(API_ROUTES.ADMIN_PRODUCT_DUPLICATE.replace(":id", product.id), {
+    onSuccess: () => {
+      setDuplicateOpen(false);
+      onUpdated();
+    },
+  });
   const { mutate: updatePublication, isPending: updatingPublication } = usePost<
     unknown,
     { status: "active" | "draft" }
@@ -87,7 +106,8 @@ function ProductActions({
     { onSuccess: onUpdated },
     "patch",
   );
-  const publicationStatus = product.status === "active" || product.status === "published";
+  const publicationStatus =
+    product.status === "active" || product.status === "published";
 
   return (
     <div className="flex items-center gap-1">
@@ -96,32 +116,37 @@ function ProductActions({
         variant="ghost"
         size="icon"
         aria-label={`Duplicate ${product.name}`}
-        title="Duplicate as draft"
+        title="Create a copy"
         disabled={duplicating}
-        onClick={() => {
-          const suffix = Date.now().toString();
-          duplicateProduct({
-            name: `Copy of ${product.name}`,
-            slug: `${product.slug}-copy-${suffix}`,
-            targetAmount: Number(product.targetAmount),
-            ticketPrice: Number(product.ticketPrice),
-            productValueAmount: Number(product.productValueAmount || 0),
-          });
-        }}
+        onClick={() => setDuplicateOpen(true)}
       >
         <Copy className="h-4 w-4" />
       </Button>
-      {(product.status === "active" || product.status === "published" || product.status === "draft") && (
+      {(product.status === "active" ||
+        product.status === "published" ||
+        product.status === "draft") && (
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          aria-label={publicationStatus ? `Unpublish ${product.name}` : `Publish ${product.name}`}
+          aria-label={
+            publicationStatus
+              ? `Unpublish ${product.name}`
+              : `Publish ${product.name}`
+          }
           title={publicationStatus ? "Set to draft" : "Publish product"}
           disabled={updatingPublication}
-          onClick={() => updatePublication({ status: publicationStatus ? "draft" : "active" })}
+          onClick={() =>
+            updatePublication({
+              status: publicationStatus ? "draft" : "active",
+            })
+          }
         >
-          {publicationStatus ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          {publicationStatus ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
         </Button>
       )}
       {product.claimType === "physical" && product.winnerUserId != null && (
@@ -155,6 +180,58 @@ function ProductActions({
       >
         <Trash2 className="h-4 w-4 text-destructive" />
       </Button>
+      <ModalLayout
+        open={duplicateOpen}
+        onOpenChange={setDuplicateOpen}
+        title="Create a product copy"
+        description="Give the copy a short public title. Check its publication status and terms before making it available."
+      >
+        <form
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const name = duplicateName.trim();
+            if (!name) return;
+            const slug = name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "");
+            duplicateProduct({
+              name,
+              slug: `${slug}-${Date.now()}`,
+              targetAmount: Number(product.targetAmount),
+              ticketPrice: Number(product.ticketPrice),
+              productValueAmount: Number(product.productValueAmount || 0),
+            });
+          }}
+        >
+          <label className="block space-y-2 text-sm font-medium">
+            Public prize title
+            <Input
+              value={duplicateName}
+              onChange={(event) => setDuplicateName(event.target.value)}
+              required
+              disabled={duplicating}
+            />
+          </label>
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={duplicating}
+              onClick={() => setDuplicateOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={duplicating || !duplicateName.trim()}
+            >
+              {duplicating ? "Creating…" : "Create copy"}
+            </Button>
+          </div>
+        </form>
+      </ModalLayout>
     </div>
   );
 }
@@ -169,14 +246,18 @@ function ShipmentDialog({
   onUpdated: () => void;
 }) {
   const route = API_ROUTES.ADMIN_PRODUCT_SHIPMENT.replace(":id", product.id);
-  const { data } = useGet<ShipmentResponse>(["admin-shipment", product.id], route);
+  const { data } = useGet<ShipmentResponse>(
+    ["admin-shipment", product.id],
+    route,
+  );
   const shipment = data?.shipment || getProductShipment(product);
   const [form, setForm] = useState<ShipmentInput>({
     courier: shipment?.courier || "",
     trackingNumber: shipment?.trackingNumber || "",
     trackingUrl: shipment?.trackingUrl || "",
     shippingStatus:
-      shipment?.shippingStatus === "delivered" || shipment?.shippingStatus === "received"
+      shipment?.shippingStatus === "delivered" ||
+      shipment?.shippingStatus === "received"
         ? "delivered"
         : "shipped",
     estimatedDeliveryAt: formatDateTimeInput(shipment?.estimatedDeliveryAt),
@@ -200,10 +281,13 @@ function ShipmentDialog({
         trackingNumber: data.shipment?.trackingNumber || current.trackingNumber,
         trackingUrl: data.shipment?.trackingUrl || current.trackingUrl,
         shippingStatus:
-          data.shipment?.shippingStatus === "delivered" || data.shipment?.shippingStatus === "received"
+          data.shipment?.shippingStatus === "delivered" ||
+          data.shipment?.shippingStatus === "received"
             ? "delivered"
             : "shipped",
-        estimatedDeliveryAt: formatDateTimeInput(data.shipment?.estimatedDeliveryAt),
+        estimatedDeliveryAt: formatDateTimeInput(
+          data.shipment?.estimatedDeliveryAt,
+        ),
         notes: data.shipment?.notes || current.notes,
       }));
     }
@@ -232,14 +316,41 @@ function ShipmentDialog({
           });
         }}
       >
-        <Input value={form.courier} onChange={(event) => updateField("courier", event.target.value)} placeholder="Courier" aria-label="Courier" required disabled={isPending} />
-        <Input value={form.trackingNumber} onChange={(event) => updateField("trackingNumber", event.target.value)} placeholder="Tracking number" aria-label="Tracking number" required disabled={isPending} />
-        <Input className="sm:col-span-2" value={form.trackingUrl} onChange={(event) => updateField("trackingUrl", event.target.value)} placeholder="Tracking URL" aria-label="Tracking URL" type="url" required disabled={isPending} />
+        <Input
+          value={form.courier}
+          onChange={(event) => updateField("courier", event.target.value)}
+          placeholder="Courier"
+          aria-label="Courier"
+          required
+          disabled={isPending}
+        />
+        <Input
+          value={form.trackingNumber}
+          onChange={(event) =>
+            updateField("trackingNumber", event.target.value)
+          }
+          placeholder="Tracking number"
+          aria-label="Tracking number"
+          required
+          disabled={isPending}
+        />
+        <Input
+          className="sm:col-span-2"
+          value={form.trackingUrl}
+          onChange={(event) => updateField("trackingUrl", event.target.value)}
+          placeholder="Tracking URL"
+          aria-label="Tracking URL"
+          type="url"
+          required
+          disabled={isPending}
+        />
         <label className="grid gap-1 text-sm">
           <span>Shipping status</span>
           <select
             value={form.shippingStatus}
-            onChange={(event) => updateField("shippingStatus", event.target.value)}
+            onChange={(event) =>
+              updateField("shippingStatus", event.target.value)
+            }
             className="h-10 rounded-md border border-input bg-background px-3"
             disabled={isPending}
           >
@@ -249,7 +360,14 @@ function ShipmentDialog({
         </label>
         <label className="grid gap-1 text-sm">
           <span>Estimated delivery</span>
-          <Input type="datetime-local" value={form.estimatedDeliveryAt || ""} onChange={(event) => updateField("estimatedDeliveryAt", event.target.value)} disabled={isPending} />
+          <Input
+            type="datetime-local"
+            value={form.estimatedDeliveryAt || ""}
+            onChange={(event) =>
+              updateField("estimatedDeliveryAt", event.target.value)
+            }
+            disabled={isPending}
+          />
         </label>
         <textarea
           className="min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm sm:col-span-2"
@@ -260,8 +378,17 @@ function ShipmentDialog({
           disabled={isPending}
         />
         <div className="flex justify-end gap-2 sm:col-span-2">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>Cancel</Button>
-          <Button type="submit" disabled={isPending}>{isPending ? "Updating..." : "Save shipment"}</Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Updating..." : "Save shipment"}
+          </Button>
         </div>
       </form>
     </ModalLayout>
@@ -292,14 +419,21 @@ export default function AdminProductsPage() {
   const [shipmentProduct, setShipmentProduct] = useState<Product | null>(null);
 
   const productPageSize = 10;
-  const { data: productsResponse, isLoading: productsLoading } = useGetPage<Product>(
+  const {
+    data: productsResponse,
+    isLoading: productsLoading,
+    isError: productsError,
+    refetch: refetchProducts,
+  } = useGetPage<Product>(
     ["admin-products", String(productPage)],
     `${API_ROUTES.ADMIN_PRODUCTS}?page=${productPage}&limit=${productPageSize}`,
   );
-  const { data: categories = [], isLoading: categoriesLoading } = useGet<Category[]>(
-    ["admin-categories"],
-    API_ROUTES.ADMIN_CATEGORIES,
-  );
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+    refetch: refetchCategories,
+  } = useGet<Category[]>(["admin-categories"], API_ROUTES.ADMIN_CATEGORIES);
 
   const refreshCatalog = () => {
     queryClient.invalidateQueries({ queryKey: ["admin-products"] });
@@ -375,9 +509,7 @@ export default function AdminProductsPage() {
   const pendingDeliveries = products.filter(
     (product) =>
       hasPhysicalClaim(product) &&
-      !["delivered", "received"].includes(
-        getProductShipment(product)?.shippingStatus || "",
-      ),
+      !["received"].includes(getProductShipment(product)?.shippingStatus || ""),
   ).length;
 
   const startCreating = () => {
@@ -445,13 +577,8 @@ export default function AdminProductsPage() {
       id: "drawProgress",
       header: "Draw progress",
       cell: ({ row }) => {
-        const totalSlots = Number(row.original.totalSlots || 0);
-        const slotsLeft = Number(row.original.slotsLeft || 0);
-        const slotsSold = Math.max(0, totalSlots - slotsLeft);
-        const percentage = Math.min(
-          100,
-          Math.max(0, Number(row.original.percentage || 0)),
-        );
+        const { filledSlots: slotsSold, progressPercent: percentage } =
+          calculatePollMetrics(row.original);
 
         return (
           <div className="min-w-32 space-y-1.5">
@@ -474,9 +601,10 @@ export default function AdminProductsPage() {
       header: "Status",
       cell: ({ row }) => {
         const status = row.original.status;
-        const label = status === "active" || status === "published"
-          ? "Published"
-          : status.charAt(0).toUpperCase() + status.slice(1);
+        const label =
+          status === "active" || status === "published"
+            ? "Published"
+            : status.charAt(0).toUpperCase() + status.slice(1);
         return <Badge className="capitalize">{label}</Badge>;
       },
     },
@@ -555,7 +683,9 @@ export default function AdminProductsPage() {
               <Truck className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-xs capitalize">{deliveryStatus}</span>
               {shipment?.trackingNumber && (
-                <span className="text-[11px] text-muted-foreground">{shipment.trackingNumber}</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {shipment.trackingNumber}
+                </span>
               )}
             </div>
           </div>
@@ -580,6 +710,19 @@ export default function AdminProductsPage() {
 
   return (
     <AdminLayout>
+      {productsError && (
+        <QueryFeedback
+          message="Products could not be loaded; catalogue totals are unavailable."
+          onRetry={() => void refetchProducts()}
+        />
+      )}
+      {categoriesError && (
+        <QueryFeedback
+          message="Categories could not be loaded."
+          onRetry={() => void refetchCategories()}
+        />
+      )}
+
       <div className="min-h-full bg-background p-4 text-foreground lg:p-8">
         <div className="mx-auto max-w-7xl space-y-8">
           <header>
@@ -604,20 +747,33 @@ export default function AdminProductsPage() {
                 </p>
               </div>
               <Badge variant="outline">
-                {pendingDeliveries} awaiting receipt
+                {productsLoading
+                  ? "Loading…"
+                  : productsError
+                    ? "Unavailable"
+                    : pendingDeliveries}{" "}
+                awaiting receipt
               </Badge>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
               <div className="rounded-lg border border-border bg-muted/40 p-3">
                 <p className="text-xs text-muted-foreground">Winning draws</p>
                 <p className="mt-1 text-xl font-bold tabular-nums">
-                  {winningProducts.length}
+                  {productsLoading
+                    ? "Loading…"
+                    : productsError
+                      ? "Unavailable"
+                      : winningProducts.length}
                 </p>
               </div>
               <div className="rounded-lg border border-border bg-muted/40 p-3">
                 <p className="text-xs text-muted-foreground">Unique winners</p>
                 <p className="mt-1 text-xl font-bold tabular-nums">
-                  {uniqueWinners}
+                  {productsLoading
+                    ? "Loading…"
+                    : productsError
+                      ? "Unavailable"
+                      : uniqueWinners}
                 </p>
               </div>
               <div className="rounded-lg border border-border bg-muted/40 p-3">
@@ -625,7 +781,11 @@ export default function AdminProductsPage() {
                   Prize value awarded
                 </p>
                 <p className="mt-1 text-xl font-bold tabular-nums">
-                  {formatCurrency(prizeValueAwarded)}
+                  {productsLoading
+                    ? "Loading…"
+                    : productsError
+                      ? "Unavailable"
+                      : formatCurrency(prizeValueAwarded)}
                 </p>
               </div>
               <div className="rounded-lg border border-border bg-muted/40 p-3">
@@ -633,7 +793,11 @@ export default function AdminProductsPage() {
                   Awaiting receipt
                 </p>
                 <p className="mt-1 text-xl font-bold tabular-nums">
-                  {pendingDeliveries}
+                  {productsLoading
+                    ? "Loading…"
+                    : productsError
+                      ? "Unavailable"
+                      : pendingDeliveries}
                 </p>
               </div>
             </div>
@@ -668,6 +832,7 @@ export default function AdminProductsPage() {
                   value={categoryName}
                   onChange={(event) => setCategoryName(event.target.value)}
                   placeholder="Category name"
+                  aria-label="New category name"
                   disabled={creatingCategory}
                 />
                 <Button

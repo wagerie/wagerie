@@ -31,18 +31,14 @@ export interface AuthPayload {
 // ============================================
 
 export type TransactionType =
-  | "deposit"
-  | "withdrawal"
-  | "stake"
-  | "refund"
-  | "winnings";
+  "deposit" | "withdrawal" | "stake" | "refund" | "winnings";
 export type TransactionStatus = "pending" | "completed" | "failed";
 
 export interface Wallet {
   id: string;
   userId: string;
   balance: number;
-  currency: "USD";
+  currency: "USD" | "USDT";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +48,7 @@ export interface Transaction {
   walletId: number;
   amount: string; // stored as string to avoid floating point issues
   type: TransactionType;
+  direction?: "credit" | "debit";
   status: TransactionStatus;
   provider: string;
   paymentDetails: {
@@ -93,6 +90,7 @@ export interface Category {
 }
 
 export interface Product {
+  allowedClaimTypes?: ("cash" | "physical")[];
   id: string;
   categoryId: string;
   name: string;
@@ -360,4 +358,13 @@ export interface AdminStats {
   totalRevenue: number;
   recentTransactions: Transaction[];
   recentStakes: Stake[];
+}
+
+export interface PublicWinner {
+  id: string;
+  displayName: string;
+  prizeName: string;
+  prizeValue: number;
+  ticketCount: number;
+  wonAt: string;
 }

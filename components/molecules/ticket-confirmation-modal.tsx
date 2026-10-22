@@ -1,5 +1,7 @@
 "use client";
 
+import { APP_ROUTES } from "@/constants/routes";
+
 import React from "react";
 import Link from "next/link";
 import { CheckCircle2, Copy, Sparkles, Ticket, Trophy } from "lucide-react";
@@ -27,21 +29,18 @@ export function TicketConfirmationModal({
   ticketNumbers = [],
   pollId,
 }: TicketConfirmationModalProps) {
-  // Generate visual fallback ticket numbers if not explicitly provided by backend
-  const displayNumbers =
-    ticketNumbers.length > 0
-      ? ticketNumbers
-      : Array.from(
-          { length: ticketsBought },
-          (_, i) => 100 + i + Math.floor(Math.random() * 50),
-        );
-
+  const displayNumbers = ticketNumbers;
   const copyNumbers = () => {
     const text = displayNumbers
       .map((n) => `#${String(n).padStart(3, "0")}`)
       .join(", ");
-    navigator.clipboard.writeText(text);
-    toast.success("Ticket numbers copied to clipboard!");
+    navigator.clipboard.writeText(text).then(
+      () => toast.success("Ticket numbers copied to clipboard!"),
+      () =>
+        toast.error(
+          "Could not copy ticket numbers. Please copy them manually.",
+        ),
+    );
   };
 
   return (
@@ -51,7 +50,7 @@ export function TicketConfirmationModal({
       title="You're In the Draw!"
       description={`Successfully confirmed ${ticketsBought} ticket${ticketsBought > 1 ? "s" : ""} for ${prizeName}.`}
       size="md"
-      className="border-slate-800 bg-[#0f1426] text-white"
+      className="border-border bg-card text-foreground"
     >
       <div className="space-y-6 pt-2">
         {/* Celebration Header Graphic */}
@@ -59,31 +58,43 @@ export function TicketConfirmationModal({
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-slate-950 shadow-[0_0_30px_rgba(16,185,129,0.4)]">
             <Trophy className="h-7 w-7" />
           </div>
-          <h3 className="text-xl font-black text-white">Entry Confirmed</h3>
-          <p className="mt-1 text-xs text-slate-300">
+          <h3 className="text-xl font-black text-foreground">
+            Entry Confirmed
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
             Total Paid:{" "}
-            <strong className="text-white">{formatCurrency(totalPaid)}</strong>
+            <strong className="text-foreground">
+              {formatCurrency(totalPaid)}
+            </strong>
           </p>
         </div>
 
         {/* Assigned Ticket Numbers */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Ticket className="h-3.5 w-3.5 text-blue-400" />
               Your Ticket Numbers
             </span>
-            <button
+            <Button
+              variant="link"
+              disabled={displayNumbers.length === 0}
               type="button"
               onClick={copyNumbers}
               className="inline-flex items-center gap-1 text-xs font-semibold text-blue-400 hover:text-blue-300"
             >
               <Copy className="h-3 w-3" />
               Copy All
-            </button>
+            </Button>
           </div>
 
-          <div className="flex max-h-32 flex-wrap gap-2 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950/80 p-3">
+          <div className="flex max-h-32 flex-wrap gap-2 overflow-y-auto rounded-xl border border-border bg-muted/80 p-3">
+            {displayNumbers.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                Ticket numbers are not available in this response. Check My
+                Entries for the recorded allocation.
+              </p>
+            )}
             {displayNumbers.map((num) => (
               <span
                 key={num}
@@ -93,9 +104,8 @@ export function TicketConfirmationModal({
               </span>
             ))}
           </div>
-          <p className="text-[11px] text-slate-500">
-            These unique numbers are registered under your account and will be
-            included in the automated provably-fair draw.
+          <p className="text-[11px] text-muted-foreground">
+            Only ticket numbers returned by the server are displayed here.
           </p>
         </div>
 
@@ -105,14 +115,14 @@ export function TicketConfirmationModal({
             asChild
             className="flex-1 rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-500"
           >
-            <Link href="/my-stakes">View in My Stakes</Link>
+            <Link href={APP_ROUTES.MY_ENTRIES}>View My Entries</Link>
           </Button>
 
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
+            className="rounded-xl border-border bg-secondary text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             Done
           </Button>

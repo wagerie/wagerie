@@ -42,6 +42,21 @@ export const API_ROUTES = {
 
 export const APP_ROUTES = {
   HOME: "/",
+  HOME_HOW_IT_WORKS: "/#how-it-works",
+  HOME_FAQ: "/#faq",
+  AUTH_ROOT: "/auth",
+  ADMIN_ROOT: "/admin",
+  ADMIN_AUTH_ROOT: "/admin/auth",
+  ADMIN_LOGIN: "/admin/auth/login",
+  ADMIN_PRODUCTS: "/admin/products",
+  DRAWS: "/draws",
+  DRAW_DETAIL: "/draws/:id",
+  CATEGORY_DETAIL: "/categories/:slug",
+  WINNERS: "/winners",
+  SUPPORT: "/support",
+  ABOUT: "/about",
+  TERMS: "/terms",
+  PRIVACY: "/privacy",
   LOGIN: "/auth/login",
   OTP_VERIFICATION: "/auth/otp-verification",
   REGISTER: "/auth/register",
@@ -51,7 +66,27 @@ export const APP_ROUTES = {
   DASHBOARD: "/dashboard",
   PROFILE: "/profile",
   POLLS: "/polls",
-  MY_STAKES: "/my-stakes",
+  POLL_DETAIL: "/polls/:id",
+  MY_ENTRIES: "/my-entries",
   TRANSACTIONS: "/transactions",
   ADMIN_DASHBOARD: "/admin/dashboard",
 } as const;
+
+/** Matches a route root without treating similarly prefixed paths as children. */
+export function isRouteWithin(pathname: string, root: string): boolean {
+  return pathname === root || pathname.startsWith(`${root}/`);
+}
+
+/** Matches a concrete pathname against a central :parameter route template. */
+export function matchesAppRoute(pathname: string, template: string): boolean {
+  const segments = pathname.split("/");
+  const expected = template.split("/");
+  return (
+    segments.length === expected.length &&
+    expected.every((segment, index) =>
+      segment.startsWith(":")
+        ? /^[^/?#]+$/.test(segments[index])
+        : segment === segments[index],
+    )
+  );
+}

@@ -74,15 +74,15 @@ export function DepositModal({
       open={open}
       onOpenChange={onOpenChange}
       title="Fund Wallet"
-      description="Add funds instantly to enter live prize draws and stake entries."
+      description="Submit a funding request. Check Transactions for its settlement status."
       size="md"
-      className="border-slate-800 bg-[#0f1426] text-white sm:max-w-125"
+      className="border-border bg-card text-foreground sm:max-w-125"
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-1">
           {/* Quick Preset Amount Chips */}
           <div className="space-y-2">
-            <span className="text-xs font-semibold text-slate-400">
+            <span className="text-xs font-semibold text-muted-foreground">
               Quick Select Amount
             </span>
             <div className="grid grid-cols-5 gap-1.5">
@@ -111,7 +111,7 @@ export function DepositModal({
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-semibold text-slate-300">
+                <FormLabel className="text-xs font-semibold text-muted-foreground">
                   Custom Amount (USD)
                 </FormLabel>
                 <FormControl>
@@ -128,10 +128,10 @@ export function DepositModal({
                     disabled={isPending}
                   />
                 </FormControl>
-                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
                   <span>Minimum $1.00</span>
                   <span className="text-emerald-400 font-medium">
-                    0% Deposit Fee
+                    Fees: provider dependent
                   </span>
                 </div>
                 <FormMessage />
@@ -139,7 +139,7 @@ export function DepositModal({
             )}
           />
 
-          {/* <Separator className="bg-slate-800" /> */}
+          {/* <Separator className="bg-muted" /> */}
 
           {/* Payment Method */}
           {/* <FormField
@@ -147,7 +147,7 @@ export function DepositModal({
             name="paymentMethod"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-semibold text-slate-300">
+                <FormLabel className="text-xs font-semibold text-muted-foreground">
                   Payment Method
                 </FormLabel>
                 <Select
@@ -156,11 +156,11 @@ export function DepositModal({
                   disabled={isPending}
                 >
                   <FormControl>
-                    <SelectTrigger className="h-11 rounded-xl border-slate-700 bg-slate-900 text-sm text-white">
+                    <SelectTrigger className="h-11 rounded-xl border-border bg-secondary text-sm text-foreground">
                       <SelectValue placeholder="Select payment method" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="border-slate-800 bg-slate-900 text-white">
+                  <SelectContent className="border-border bg-secondary text-foreground">
                     {paymentMethods.map((method) => (
                       <SelectItem key={method.id} value={method.id}>
                         {method.label}
@@ -175,9 +175,9 @@ export function DepositModal({
 
           {/* Card Details (show only for credit_card) */}
           {/* {selectedMethod === "credit_card" && (
-            <div className="space-y-4 rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4">
+            <div className="space-y-4 rounded-2xl border border-border bg-muted/60 p-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <CreditCard className="h-4 w-4 text-blue-400" />
                   Card Information
                 </h4>
@@ -231,14 +231,14 @@ export function DepositModal({
           )} */}
 
           {/* Security Guarantee Strip */}
-          <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-[11px] text-slate-400">
+          <div className="flex items-center justify-between rounded-xl border border-border bg-muted/50 p-3 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4 text-emerald-400" />
-              PCI-DSS Level 1 Encrypted
+              Provider details pending Review payment details
             </span>
             <span className="flex items-center gap-1.5">
               <Zap className="h-4 w-4 text-amber-400" />
-              Available Immediately
+              Settlement status in Transactions
             </span>
           </div>
 
@@ -254,7 +254,7 @@ export function DepositModal({
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+              className="rounded-xl border border-border bg-secondary px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               disabled={isPending}
             >
               Cancel

@@ -29,10 +29,7 @@ export function LandingPageHero() {
   const metrics = spotlightDraw ? calculatePollMetrics(spotlightDraw) : null;
   const progress = Math.min(
     100,
-    Math.max(
-      0,
-      Number(spotlightDraw?.percentage ?? metrics?.progressPercent ?? 0),
-    ),
+    Math.max(0, Number(metrics?.progressPercent ?? 0)),
   );
   const slotsLeft = Number(
     spotlightDraw?.slotsLeft ?? metrics?.remainingSlots ?? 0,
@@ -61,8 +58,7 @@ export function LandingPageHero() {
 
           <p className="max-w-xl text-base sm:text-lg leading-relaxed text-muted-foreground">
             Compare product values, ticket prices, and current availability
-            before creating an account to enter. Track confirmed entries from
-            your account.
+            before choosing a draw. Track confirmed entries from your account.
           </p>
 
           <div className="flex flex-col gap-3 sm:flex-row pt-2">
@@ -71,8 +67,8 @@ export function LandingPageHero() {
               className="rounded-2xl bg-blue-600 text-base font-black hover:bg-blue-500 shadow-lg shadow-blue-600/30"
               asChild
             >
-              <Link href={APP_ROUTES.REGISTER}>
-                Create an Account to Enter
+              <Link href={APP_ROUTES.DRAWS}>
+                Explore draws
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </BtnComponent>
@@ -82,7 +78,7 @@ export function LandingPageHero() {
               className="rounded-2xl border-border bg-secondary text-secondary-foreground hover:bg-accent"
               asChild
             >
-              <Link href="#how-it-works">See How It Works</Link>
+              <Link href={APP_ROUTES.HOME_HOW_IT_WORKS}>See How It Works</Link>
             </BtnComponent>
           </div>
 
@@ -181,8 +177,13 @@ export function LandingPageHero() {
                 asChild
                 className="h-12 w-full rounded-xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500"
               >
-                <Link href={APP_ROUTES.REGISTER}>
-                  Create an Account to Enter
+                <Link
+                  href={APP_ROUTES.DRAW_DETAIL.replace(
+                    ":id",
+                    encodeURIComponent(String(spotlightDraw.id)),
+                  )}
+                >
+                  View draw
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

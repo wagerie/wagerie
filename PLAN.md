@@ -103,3 +103,11 @@ These items exist in the code; production behavior and live API contracts still 
 - Admin authorization and catalog operations are enforced and verified by the backend.
 - Public copy is supported by published product terms and operational evidence.
 - Type checks, tests, build, and desktop/mobile smoke tests pass against the release configuration.
+
+## UI/UX review implementation — 22 October 2026
+
+Frontend fixes now cover server-only ticket numbers, explicit balance/loading/error states, transaction aliases and credit/debit signs, removal of fictional profile/security/referral claims and inactive OAuth, authoritative dashboard summaries, API-backed claim eligibility, distinct delivered/received states, and receipt-confirmation integration readiness. Public browsing and signed-in navigation, product-copy naming, image previews, shared theme tokens, and mobile header controls have also been adjusted.
+
+Backend work is tracked separately in [docs/BACKEND_HANDOFF.md](docs/BACKEND_HANDOFF.md), with code references in `lib/todo.ts`. Draw terms are informational and do not disable entry. Missing allowed claim methods currently disable claim submission pending separate API alignment. Profile and receipt endpoint integrations require confirmed paths/configuration. Catalogue-wide search, operational analytics, live result feeds, uploads, real company/support policies, payment settlement, and server authorization remain backend/business integration requirements.
+
+Run `npm test`, `npx tsc --noEmit`, and `npm run build` for validation. Browser checks cover the supplied review account without submitting purchases, payments, claims, or product mutations.

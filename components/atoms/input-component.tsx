@@ -32,6 +32,8 @@ const InputComponent = forwardRef<HTMLInputElement, InputProp>(
       rhk,
       inputSize,
       className,
+      onFocus,
+      onBlur,
       ...props
     },
     ref,
@@ -73,11 +75,11 @@ const InputComponent = forwardRef<HTMLInputElement, InputProp>(
                 )}
                 onFocus={(e) => {
                   setFocus(true);
-                  props.onFocus?.(e);
+                  onFocus?.(e);
                 }}
                 onBlur={(e) => {
                   setFocus(false);
-                  props.onBlur?.(e);
+                  onBlur?.(e);
                 }}
                 ref={ref}
                 {...props}
@@ -88,7 +90,15 @@ const InputComponent = forwardRef<HTMLInputElement, InputProp>(
                 {type === "email" ? (
                   icons.mail_linear
                 ) : type === "password" ? (
-                  <button type="button" onClick={togglePassword}>
+                  <button
+                    type="button"
+                    aria-label={
+                      inputType === "password"
+                        ? "Show password"
+                        : "Hide password"
+                    }
+                    onClick={togglePassword}
+                  >
                     {inputType === "password"
                       ? icons.eye_slash_linear
                       : icons.eye_linear}

@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  transactionLabel,
+  transactionAmount,
+  transactionAmountClass,
+  TRANSACTION_DATE_FORMAT,
+} from "@/lib/transaction-presentation";
+import { TransactionStatusBadge } from "@/components/atoms/transaction-status-badge";
+import { QueryFeedback } from "@/components/molecules/query-feedback";
 import React, { useState, useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import formatDate from "@/lib/format-date";
@@ -59,45 +67,7 @@ function getTransactionIcon(type: TransactionType) {
     case "refund":
       return <ArrowDownRight className="w-4 h-4 text-blue-400" />;
     default:
-      return <Coins className="w-4 h-4 text-slate-400" />;
-  }
-}
-
-function getTransactionLabel(type: TransactionType) {
-  const labels: Record<TransactionType, string> = {
-    deposit: "Wallet Deposit",
-    withdrawal: "Bank Withdrawal",
-    stake: "Draw Ticket Entry",
-    winnings: "Prize Win Claim",
-    refund: "Draw Refund",
-  };
-  return labels[type] || type;
-}
-
-function getStatusBadge(status: TransactionStatus) {
-  switch (status) {
-    case "completed":
-      return (
-        <Badge className="border-0 bg-emerald-500/15 text-emerald-400 font-semibold">
-          Completed
-        </Badge>
-      );
-    case "pending":
-      return (
-        <Badge className="border-0 bg-amber-500/15 text-amber-400 font-semibold">
-          Processing
-        </Badge>
-      );
-    case "failed":
-      return (
-        <Badge className="border-0 bg-red-500/15 text-red-400 font-semibold">
-          Failed
-        </Badge>
-      );
-    default:
-      return (
-        <Badge className="border-0 bg-slate-800 text-slate-400">{status}</Badge>
-      );
+      return <Coins className="w-4 h-4 text-muted-foreground" />;
   }
 }
 
@@ -108,24 +78,36 @@ export default function TransactionsPage() {
   );
   const [page, setPage] = useState(1);
 
-  const { data: wallet, isLoading: walletLoading } = useGetBalance();
-  const { data: transactionsData, isLoading: txLoading } =
-    useTransactionHistory({
-      type: selectedType || undefined,
-      status: selectedStatus || undefined,
-      page,
-      pageSize: 10,
-    });
+  const {
+    data: wallet,
+    isLoading: walletLoading,
+    isError: walletError,
+  } = useGetBalance();
+  const {
+    data: transactionsData,
+    isLoading: txLoading,
+    isError: txError,
+    refetch,
+  } = useTransactionHistory({
+    type: selectedType || undefined,
+    status: selectedStatus || undefined,
+    page,
+    pageSize: 10,
+  });
 
   const isLoading = walletLoading || txLoading;
   const transactions = transactionsData?.items || [];
   const totalPages = transactionsData?.pageCount || 1;
-  const balance = wallet?.balance ?? 0;
+  const balance = wallet?.balance;
   const summaryCards = [
     {
       id: "balance",
       label: "Available Balance",
-      value: formatCurrency(balance),
+      value: walletLoading
+        ? "Loading…"
+        : walletError || balance == null
+          ? "Unavailable"
+          : formatCurrency(balance, wallet?.currency),
       icon: Wallet,
       iconClassName: "bg-emerald-500/10 text-emerald-400",
       className: "rounded-3xl p-5",
@@ -134,7 +116,11 @@ export default function TransactionsPage() {
     {
       id: "records",
       label: "Total Records",
-      value: transactionsData?.totalItems || 0,
+      value: txLoading
+        ? "Loading…"
+        : txError
+          ? "Unavailable"
+          : transactionsData?.totalItems || 0,
       icon: Receipt,
       iconClassName: "bg-blue-500/10 text-blue-400",
       className: "rounded-3xl p-5",
@@ -143,7 +129,7 @@ export default function TransactionsPage() {
     {
       id: "currency",
       label: "Operating Currency",
-      value: "USDT ($)",
+      value: wallet?.currency || "Not available",
       icon: Sparkles,
       iconClassName: "bg-amber-500/10 text-amber-400",
       className: "rounded-3xl p-5",
@@ -159,14 +145,14 @@ export default function TransactionsPage() {
         header: "Type/ Provider",
         cell: ({ row }) => (
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 border border-slate-800 shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary border border-border shrink-0">
               {getTransactionIcon(row.original.type)}
             </div>
             <div>
-              <span className="font-bold text-white text-xs block capitalize">
-                {getTransactionLabel(row.original.type)}
+              <span className="font-bold text-foreground text-xs block capitalize">
+                {transactionLabel(row.original.type)}
               </span>
-              <span className="text-[10px] text-slate-500 capitalize">
+              <span className="text-[10px] text-muted-foreground capitalize">
                 {row.original.provider}
               </span>
             </div>
@@ -178,20 +164,14 @@ export default function TransactionsPage() {
         accessorKey: "amount",
         header: "Amount",
         cell: ({ row }) => {
-          const isPositive =
-            row.original.type === "deposit" ||
-            row.original.type === "refund" ||
-            row.original.type === "winnings";
-
           return (
             <span
               className={cn(
                 "text-sm font-black tabular-nums",
-                isPositive ? "text-emerald-400" : "text-slate-200",
+                transactionAmountClass(row.original),
               )}
             >
-              {isPositive ? "+" : "-"}
-              {formatCurrency(parseFloat(row.original.amount))}
+              {transactionAmount(row.original)}
             </span>
           );
         },
@@ -199,14 +179,16 @@ export default function TransactionsPage() {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => getStatusBadge(row.original.status),
+        cell: ({ row }) => (
+          <TransactionStatusBadge status={row.original.status} />
+        ),
       },
       {
         accessorKey: "createdAt",
         header: "Timestamp",
         cell: ({ row }) => (
-          <span className="text-xs text-slate-400">
-            {formatDate(row.original.createdAt, "MMM dd, yyyy • HH:mm")}
+          <span className="text-xs text-muted-foreground">
+            {formatDate(row.original.createdAt, TRANSACTION_DATE_FORMAT)}
           </span>
         ),
       },
@@ -215,7 +197,7 @@ export default function TransactionsPage() {
   );
 
   return (
-    <DashboardLayout userEmail="player@wagerie.com">
+    <DashboardLayout>
       <div className="min-h-full bg-background text-foreground p-4 lg:p-8 space-y-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
@@ -226,12 +208,12 @@ export default function TransactionsPage() {
                 Ledger
               </Badge>
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+            <h1 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
               Wallet Transactions
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
               Complete verifiable ledger of deposits, draw entries, prize
-              winnings, and bank withdrawals.
+              winnings, and wallet withdrawals.
             </p>
           </div>
 
@@ -243,42 +225,52 @@ export default function TransactionsPage() {
           </div>
 
           {/* Filters Bar */}
-          {/* <div className="rounded-2xl border border-border bg-card p-4 lg:p-5">
+          <div className="rounded-2xl border border-border bg-card p-4 lg:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <SelectComponent
                 label="Filter by Type"
                 value={selectedType}
-                onValueChange={(value: any) =>
-                  setSelectedType(value === "all" ? "" : value)
-                }
+                onValueChange={(value: any) => {
+                  setSelectedType(value === "all" ? "" : value);
+                  setPage(1);
+                }}
                 options={transactionTypeOptions}
                 placeholder="All transaction types"
               />
               <SelectComponent
                 label="Filter by Status"
                 value={selectedStatus}
-                onValueChange={(value: any) =>
-                  setSelectedStatus(value === "all" ? "" : value)
-                }
+                onValueChange={(value: any) => {
+                  setSelectedStatus(value === "all" ? "" : value);
+                  setPage(1);
+                }}
                 options={transactionStatusOptions}
                 placeholder="All statuses"
               />
             </div>
-          </div> */}
-
-          {/* Transactions Table Container */}
-          <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
-            <DataTable
-              columns={columns}
-              data={transactions}
-              pageCount={totalPages}
-              pageIndex={page - 1}
-              pageSize={10}
-              isLoading={isLoading}
-              emptyMessage="No transactions recorded yet"
-              onPaginationChange={(state) => setPage(state.pageIndex + 1)}
-            />
           </div>
+
+          {txError && (
+            <QueryFeedback
+              message="Transaction history could not be loaded."
+              onRetry={() => void refetch()}
+            />
+          )}
+          {/* Transactions Table Container */}
+          {!txError && (
+            <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
+              <DataTable
+                columns={columns}
+                data={transactions}
+                pageCount={totalPages}
+                pageIndex={page - 1}
+                pageSize={10}
+                isLoading={isLoading}
+                emptyMessage="No transactions recorded yet"
+                onPaginationChange={(state) => setPage(state.pageIndex + 1)}
+              />
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

@@ -1,5 +1,8 @@
 "use client";
 
+import { APP_ROUTES } from "@/constants/routes";
+
+import { ReceiptConfirmation } from "@/components/molecules/receipt-confirmation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +27,7 @@ export type DrawStatus =
   | "pending"
   | "delivery_pending"
   | "shipped"
+  | "delivered"
   | "received";
 export type DrawRow = JoinedDraw & { drawStatus: DrawStatus };
 
@@ -33,12 +37,13 @@ const statusBadges: Record<
 > = {
   active: {
     label: "Live Entry",
-    className: "border-0 bg-blue-500/15 text-blue-300",
+    className: "border-0 bg-blue-500/15 text-blue-700 dark:text-blue-300",
     icon: Clock,
   },
   won: {
     label: "Won!",
-    className: "border-0 bg-amber-500/20 text-amber-300 font-bold",
+    className:
+      "border-0 bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold",
     icon: Trophy,
   },
   lost: {
@@ -48,69 +53,40 @@ const statusBadges: Record<
   },
   claimed: {
     label: "Prize Claimed",
-    className: "border-0 bg-emerald-500/20 text-emerald-300",
+    className:
+      "border-0 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
     icon: CheckCircle,
   },
   pending: {
     label: "Claim Processing",
-    className: "border-0 bg-blue-500/15 text-blue-300",
+    className: "border-0 bg-blue-500/15 text-blue-700 dark:text-blue-300",
     icon: Clock,
   },
   delivery_pending: {
     label: "Awaiting delivery",
-    className: "border-0 bg-blue-500/15 text-blue-300",
+    className: "border-0 bg-blue-500/15 text-blue-700 dark:text-blue-300",
     icon: Clock,
   },
   shipped: {
     label: "Shipped",
-    className: "border-0 bg-cyan-500/15 text-cyan-300",
+    className: "border-0 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300",
+    icon: PackageCheck,
+  },
+  delivered: {
+    label: "Delivered · receipt unconfirmed",
+    className: "border-0 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300",
     icon: PackageCheck,
   },
   received: {
     label: "Received",
-    className: "border-0 bg-emerald-500/20 text-emerald-300",
+    className:
+      "border-0 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
     icon: CheckCircle,
   },
 };
 
-export function getDrawStatus(draw: JoinedDraw): DrawStatus {
-  if (draw.userParticipation.isWinner) {
-    const claimStatus = draw.product.claimStatus || "";
-    const shippingStatus = draw.product.claimDetails?.shipment?.shippingStatus;
-    if (
-      draw.product.claimType === "physical" &&
-      (claimStatus.startsWith("claimed") ||
-        ["shipped", "delivered", "received"].includes(claimStatus))
-    ) {
-      if (["delivered", "received"].includes(shippingStatus || claimStatus)) {
-        return "received";
-      }
-      if (shippingStatus === "shipped" || claimStatus === "shipped")
-        return "shipped";
-      return "delivery_pending";
-    }
-    if (claimStatus.startsWith("claimed")) {
-      return "claimed";
-    }
-    if (["pending", "processing"].includes(claimStatus)) {
-      return "pending";
-    }
-    return "won";
-  }
-
-  return draw.product.status === "active" ? "active" : "lost";
-}
-
-export function canClaimDraw(draw: JoinedDraw) {
-  const claimStatus = draw.product.claimStatus;
-
-  return (
-    draw.userParticipation.isWinner &&
-    (claimStatus == null ||
-      claimStatus === "unclaimed" ||
-      claimStatus === "rejected")
-  );
-}
+export { getDrawStatus, canClaimDraw } from "@/lib/draw-status";
+import { canClaimDraw } from "@/lib/draw-status";
 
 export function DrawStatusBadge({ status }: { status: DrawStatus }) {
   const { label, className, icon: Icon } = statusBadges[status];
@@ -145,40 +121,42 @@ export function MyStakesGrid({ draws, onClaim }: MyStakesGridProps) {
           >
             <div className="mb-3 flex items-start justify-between gap-2">
               <div>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {formatDate(
                     draw.userParticipation.firstJoinedAt,
                     "MMM dd, yyyy",
                   )}
                 </span>
-                <h3 className="mt-0.5 line-clamp-1 text-base font-bold text-white">
+                <h3 className="mt-0.5 line-clamp-1 text-base font-bold text-foreground">
                   {draw.product.name}
                 </h3>
               </div>
               <DrawStatusBadge status={draw.drawStatus} />
             </div>
 
-            <div className="my-3 space-y-1.5 rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-400">
+            <div className="my-3 space-y-1.5 rounded-2xl border border-border bg-muted/60 p-3">
+              <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground">
                 <Ticket className="h-3 w-3 text-blue-400" />
                 {draw.userParticipation.userTicketsBought} tickets bought
               </span>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-muted-foreground">
                 Product value:{" "}
                 {formatCurrency(draw.product.productValueAmount || 0)}
               </p>
             </div>
 
-            <div className="mt-auto flex items-center justify-between border-t border-slate-800/80 pt-3 text-xs">
+            <div className="mt-auto flex items-center justify-between border-t border-border pt-3 text-xs">
               <p>
-                <span className="text-slate-400">Staked:</span>
-                <span className="ml-1 font-bold text-white">
+                <span className="text-muted-foreground">Entry spend:</span>
+                <span className="ml-1 font-bold text-foreground">
                   {formatCurrency(draw.userParticipation.userAmountPaid)}
                 </span>
               </p>
-              {draw.product.claimType === "physical" &&
-              draw.drawStatus === "shipped" &&
-              draw.product.claimDetails?.shipment?.trackingUrl ? (
+              {draw.drawStatus === "delivered" ? (
+                <ReceiptConfirmation productId={draw.product.id} />
+              ) : draw.product.claimType === "physical" &&
+                draw.drawStatus === "shipped" &&
+                draw.product.claimDetails?.shipment?.trackingUrl ? (
                 <Button asChild size="sm" variant="outline">
                   <a
                     href={draw.product.claimDetails.shipment.trackingUrl}
@@ -203,9 +181,16 @@ export function MyStakesGrid({ draws, onClaim }: MyStakesGridProps) {
                   asChild
                   size="sm"
                   variant="ghost"
-                  className="rounded-xl text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
+                  className="rounded-xl text-blue-400 hover:bg-blue-500/10 hover:text-blue-700 dark:text-blue-300"
                 >
-                  <Link href={`/polls/${draw.product.id}`}>View Draw</Link>
+                  <Link
+                    href={APP_ROUTES.POLL_DETAIL.replace(
+                      ":id",
+                      encodeURIComponent(String(draw.product.id)),
+                    )}
+                  >
+                    View Draw
+                  </Link>
                 </Button>
               )}
             </div>

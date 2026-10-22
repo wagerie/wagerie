@@ -1,9 +1,10 @@
 "use client";
 
+import { LiveWinners } from "@/components/public/live-winners";
+import { Collections } from "@/components/public/collections";
 import { ScrollToTopButton } from "@/components/atoms/scroll-to-top-button";
 import { FAQSection } from "@/components/landing/landing-page-faq";
 import { FairnessSection } from "@/components/landing/landing-page-fairness";
-import { FeaturedDrawsSection } from "@/components/landing/landing-page-featured-draws";
 import { LandingPageFooter } from "@/components/landing/landing-page-footer";
 import { LandingPageHeader } from "@/components/landing/landing-page-header";
 import { LandingPageHero } from "@/components/landing/landing-page-hero";
@@ -19,9 +20,10 @@ export function LandingPage() {
         <LandingPageHeader />
         <LandingPageHero />
         <TrustMechanismsSection />
-        <FeaturedDrawsSection />
+        <Collections />
         <HowItWorksSection />
         <FairnessSection />
+        <LiveWinners />
         <WinnersSection />
         <FAQSection />
         <LandingPageFooter />

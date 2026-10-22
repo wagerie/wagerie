@@ -1,43 +1,33 @@
+import { APP_ROUTES } from "@/constants/routes";
+import {
+  transactionLabel,
+  transactionAmount,
+  transactionAmountClass,
+  TRANSACTION_DATE_FORMAT,
+} from "@/lib/transaction-presentation";
+import { TransactionStatusBadge } from "@/components/atoms/transaction-status-badge";
+import { QueryFeedback } from "@/components/molecules/query-feedback";
 import { useTransactionHistory } from "@/hooks/use-wallet";
 import React from "react";
 import Link from "next/link";
-import { Loader, Ticket, TrendingUp, Trophy, Wallet, Zap } from "lucide-react";
+import { Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Transaction } from "@/lib/types";
 import formatDate from "@/lib/format-date";
-import { cn, formatCurrency } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-
-function getTransactionColor(type: string) {
-  switch (type) {
-    case "deposit":
-      return "text-emerald-400";
-    case "withdrawal":
-      return "text-red-400";
-    case "stake":
-      return "text-amber-400";
-    case "winnings":
-      return "text-emerald-400 font-extrabold";
-    case "refund":
-      return "text-blue-400";
-    default:
-      return "text-slate-400";
-  }
-}
-
-function getTransactionSign(type: string) {
-  if (type === "deposit" || type === "refund" || type === "winnings") {
-    return "+";
-  }
-  return "-";
-}
+import { cn } from "@/lib/utils";
 
 function RecentTransactions({
   openDepositModal,
 }: {
   openDepositModal: () => void;
 }) {
-  const { data: transactionsData, isLoading } = useTransactionHistory({
+  const {
+    data: transactionsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useTransactionHistory({
+    page: 1,
     pageSize: 5,
   });
 
@@ -50,7 +40,7 @@ function RecentTransactions({
           Recent Transactions
         </h2>
         <Link
-          href="/transactions"
+          href={APP_ROUTES.TRANSACTIONS}
           className="text-xs font-semibold text-blue-400 hover:text-blue-300"
         >
           View All
@@ -61,6 +51,11 @@ function RecentTransactions({
         <div className="flex min-h-40 items-center justify-center">
           <Loader className="h-6 w-6 animate-spin text-blue-500" />
         </div>
+      ) : isError ? (
+        <QueryFeedback
+          message="Transaction history is unavailable."
+          onRetry={() => void refetch()}
+        />
       ) : recentTransactions.length === 0 ? (
         <div className="flex min-h-40 flex-col items-center justify-center text-center">
           <p className="mb-3 text-xs text-slate-400">
@@ -83,25 +78,25 @@ function RecentTransactions({
             >
               <div>
                 <p className="font-bold text-foreground capitalize">
-                  {tx.type}
+                  {transactionLabel(tx.type)}
                 </p>
-                <p className="mt-0.5 text-[11px] text-slate-500">
-                  {formatDate(tx.createdAt, "MMM dd, yyyy • HH:mm")}
+                <p className="mt-0.5 text-[11px] text-muted-foreground capitalize">
+                  {tx.provider}
+                </p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  {formatDate(tx.createdAt, TRANSACTION_DATE_FORMAT)}
                 </p>
               </div>
               <div className="text-right">
                 <p
                   className={cn(
                     "font-black text-sm",
-                    getTransactionColor(tx.type),
+                    transactionAmountClass(tx),
                   )}
                 >
-                  {getTransactionSign(tx.type)}
-                  {formatCurrency(tx.amount)}
+                  {transactionAmount(tx)}
                 </p>
-                <Badge className="border-0 bg-slate-800/80 text-[10px] text-slate-400 capitalize mt-0.5">
-                  {tx.status}
-                </Badge>
+                <TransactionStatusBadge status={tx.status} />
               </div>
             </div>
           ))}

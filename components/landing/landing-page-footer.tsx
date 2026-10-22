@@ -35,19 +35,19 @@ export function LandingPageFooter() {
           </p>
           <div className="mt-3 space-y-2 text-sm">
             <Link
-              href="#featured"
+              href={APP_ROUTES.DRAWS}
               className="block transition hover:text-foreground"
             >
               Live Draws
             </Link>
             <Link
-              href="#how-it-works"
+              href={APP_ROUTES.HOME_HOW_IT_WORKS}
               className="block transition hover:text-foreground"
             >
               How It Works
             </Link>
             <Link
-              href="#winners"
+              href={APP_ROUTES.WINNERS}
               className="block transition hover:text-foreground"
             >
               Winners
@@ -61,16 +61,16 @@ export function LandingPageFooter() {
           </p>
           <div className="mt-3 space-y-2 text-sm">
             <Link
-              href="#faq"
+              href={APP_ROUTES.HOME_FAQ}
               className="block transition hover:text-foreground"
             >
               FAQ
             </Link>
             <Link
-              href="#fairness"
+              href={APP_ROUTES.SUPPORT}
               className="block transition hover:text-foreground"
             >
-              Fairness
+              Contact Support
             </Link>
             <Link
               href={APP_ROUTES.LOGIN}
@@ -86,13 +86,22 @@ export function LandingPageFooter() {
             Company
           </p>
           <div className="mt-3 space-y-2 text-sm">
-            <Link href="#" className="block transition hover:text-foreground">
+            <Link
+              href={APP_ROUTES.ABOUT}
+              className="block transition hover:text-foreground"
+            >
               About
             </Link>
-            <Link href="#" className="block transition hover:text-foreground">
+            <Link
+              href={APP_ROUTES.PRIVACY}
+              className="block transition hover:text-foreground"
+            >
               Privacy
             </Link>
-            <Link href="#" className="block transition hover:text-foreground">
+            <Link
+              href={APP_ROUTES.TERMS}
+              className="block transition hover:text-foreground"
+            >
               Terms
             </Link>
           </div>

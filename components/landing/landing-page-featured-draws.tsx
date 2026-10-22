@@ -3,7 +3,7 @@
 import { useGetPage } from "@/hooks/use-api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { API_ROUTES, APP_ROUTES } from "@/constants/routes";
+import { APP_ROUTES, API_ROUTES } from "@/constants/routes";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { calculatePollMetrics, getPrizeImage } from "@/lib/prize-helpers";
@@ -55,10 +55,7 @@ export function FeaturedDrawsSection() {
             const metrics = calculatePollMetrics(product);
             const progress = Math.min(
               100,
-              Math.max(
-                0,
-                Number(product.percentage ?? metrics.progressPercent),
-              ),
+              Math.max(0, Number(metrics.progressPercent)),
             );
             const totalSlots = Number(product.totalSlots ?? metrics.totalSlots);
             const slotsLeft = Number(
@@ -131,8 +128,13 @@ export function FeaturedDrawsSection() {
                     asChild
                     className="w-full bg-blue-600 font-bold text-white hover:bg-blue-500"
                   >
-                    <Link href={APP_ROUTES.REGISTER}>
-                      Create an account to enter
+                    <Link
+                      href={APP_ROUTES.DRAW_DETAIL.replace(
+                        ":id",
+                        encodeURIComponent(String(product.id)),
+                      )}
+                    >
+                      View draw details
                     </Link>
                   </Button>
                 </div>

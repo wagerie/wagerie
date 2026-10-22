@@ -1,35 +1,25 @@
-import { icons } from "@/public/assets/icons/icons";
-import React from "react";
+import { Ticket, Wallet, Trophy } from "lucide-react";
 
-function AuthTestimonials() {
+export default function AuthTestimonials() {
   return (
-    <div className="shadow-testimonial bg-[#11162b] text-[#edf3ff] rounded-3xl p-8 flex flex-col gap-8 items-center mx-auto">
-      <span className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
-        {icons.message_bold}
-      </span>
-      <div className="flex flex-col gap-6 items-center w-72.5">
-        <p className="text-[#edf3ff] font-normal text-center">
-          Wagerie has completely transformed the way I win products and cash
-          prizes. it is a game changer in the world of digitalized raffle draw
-          system
-        </p>
-
-        <div className="flex flex-col gap-1 items-center">
-          <h1 className="text-sm font-semibold text-[#edf3ff]">
-            Ariana Grande
-          </h1>
-          <p className="text-xs font-normal text-[#9aa8bf]">
-            Visual Designer, Google
-          </p>
-        </div>
-      </div>
-      <div className="flex gap-2.5">
-        <span className="rounded-full w-2 h-2 bg-blue-600"></span>
-        <span className="rounded-full w-2 h-2 bg-border"></span>
-        <span className="rounded-full w-2 h-2 bg-border"></span>
-      </div>
+    <div className="space-y-6 text-white">
+      <h2 className="text-3xl font-bold">Your entries, in one place.</h2>
+      <p className="max-w-md text-sm leading-relaxed text-slate-300">
+        Explore prize draws, review ticket prices, and follow your confirmed
+        entries from your account.
+      </p>
+      <ul className="space-y-4 text-sm">
+        {[
+          { Icon: Ticket, text: "Track recorded tickets" },
+          { Icon: Wallet, text: "Review wallet transactions" },
+          { Icon: Trophy, text: "Follow results and prize claims" },
+        ].map(({ Icon, text }) => (
+          <li key={text} className="flex items-center gap-3">
+            <Icon className="h-5 w-5 text-blue-300" aria-hidden="true" />
+            {text}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
-
-export default AuthTestimonials;

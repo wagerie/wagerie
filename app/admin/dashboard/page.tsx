@@ -1,5 +1,7 @@
 "use client";
 
+import { APP_ROUTES } from "@/constants/routes";
+
 import React, { useState } from "react";
 import { AdminLayout } from "@/components/layout/admin-layout";
 import {
@@ -17,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { DemoNotice } from "@/components/atoms/demo-notice";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -127,8 +130,8 @@ export default function AdminDashboardPage() {
                 Platform Overview
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Monitor product listings, platform activity, and player
-                liquidity.
+                Preview operator metrics and activity. All overview data below
+                is illustrative.
               </p>
             </div>
 
@@ -137,14 +140,18 @@ export default function AdminDashboardPage() {
                 asChild
                 className="rounded-xl bg-blue-600 hover:bg-blue-500 font-bold text-white shadow-lg shadow-blue-600/30"
               >
-                <Link href="/polls">
+                <Link href={APP_ROUTES.ADMIN_PRODUCTS}>
                   <Plus className="mr-1.5 h-4 w-4" />
-                  Explore Public Draws
+                  Manage catalogue
                 </Link>
               </Button>
             </div>
           </div>
 
+          <DemoNotice>
+            All overview metrics, activity, and liquidity information on this
+            page are illustrative. Use Catalog for API-backed product records.
+          </DemoNotice>
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {statCards.map((card) => {
@@ -185,11 +192,11 @@ export default function AdminDashboardPage() {
                     Active Prize Draws
                   </h2>
                   <p className="text-xs text-slate-400">
-                    Real-time fill progress and draw readiness
+                    Sample fill progress and draw readiness
                   </p>
                 </div>
                 <Link
-                  href="/polls"
+                  href={APP_ROUTES.ADMIN_PRODUCTS}
                   className="text-xs font-semibold text-blue-400 hover:text-blue-300"
                 >
                   View Catalog
@@ -285,8 +292,8 @@ export default function AdminDashboardPage() {
                     Automated Liquidity Health
                   </span>
                   <p className="text-[11px] text-slate-400 leading-relaxed">
-                    All user prize reserves and escrow deposits are 100% matched
-                    against platform balances.
+                    Sample reserve panel. Coverage has not been connected or
+                    verified.
                   </p>
                 </div>
               </div>

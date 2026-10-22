@@ -21,7 +21,7 @@ export function FairnessSection() {
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
             Entries are connected to your account, pool progress is visible, and
             your entry history remains available in the workspace. We show the
-            product, price, target, and current pool status before you decide to
+            product, price, and current pool status before you decide to
             participate.
           </p>
         </div>

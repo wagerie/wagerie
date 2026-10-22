@@ -1,3 +1,4 @@
+import { APP_ROUTES } from "@/constants/routes";
 import Link from "next/link";
 import { ArrowRight, Ticket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -102,7 +103,12 @@ export function DrawSpotlight({
         </div>
 
         <Button asChild className="w-full sm:w-auto">
-          <Link href={`/polls/${product.id}`}>
+          <Link
+            href={APP_ROUTES.POLL_DETAIL.replace(
+              ":id",
+              encodeURIComponent(String(product.id)),
+            )}
+          >
             {joinedDraw ? "View your draw" : "Explore draw"}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>

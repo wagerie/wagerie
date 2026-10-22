@@ -1,5 +1,6 @@
 "use client";
 
+import { QueryFeedback } from "@/components/molecules/query-feedback";
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
@@ -27,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useGet, useGetPage } from "@/hooks/use-api";
-import { API_ROUTES } from "@/constants/routes";
+import { APP_ROUTES, API_ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
 import type { CatalogStats, Category, Product } from "@/lib/types";
 import { PollCard } from "@/components/molecules/poll-card";
@@ -54,7 +55,7 @@ export default function PollsPage() {
       ? API_ROUTES.PRODUCTS
       : API_ROUTES.PRODUCTS_BY_CATEGORY.replace(":id", categoryId);
 
-  const { data, isLoading } = useGetPage<Product>(
+  const { data, isLoading, isError, refetch } = useGetPage<Product>(
     ["products", categoryId, String(pageIndex + 1)],
     `${productsPath}?page=${pageIndex + 1}&limit=${pageSize}`,
   );
@@ -155,7 +156,10 @@ export default function PollsPage() {
             </div>
             <div className="min-w-0">
               <Link
-                href={`/polls/${row.original.id}`}
+                href={APP_ROUTES.POLL_DETAIL.replace(
+                  ":id",
+                  encodeURIComponent(String(row.original.id)),
+                )}
                 className="block max-w-xs truncate font-bold text-white hover:text-blue-400 transition-colors"
               >
                 {row.original.name}
@@ -227,7 +231,14 @@ export default function PollsPage() {
           size="sm"
           className="rounded-xl bg-blue-600 font-semibold text-white hover:bg-blue-500"
         >
-          <Link href={`/polls/${row.original.id}`}>Enter Draw</Link>
+          <Link
+            href={APP_ROUTES.POLL_DETAIL.replace(
+              ":id",
+              encodeURIComponent(String(row.original.id)),
+            )}
+          >
+            Enter Draw
+          </Link>
         </Button>
       ),
     },
@@ -384,6 +395,11 @@ export default function PollsPage() {
               </div>
             ))}
           </div>
+        ) : isError ? (
+          <QueryFeedback
+            message="Prize draws could not be loaded."
+            onRetry={() => void refetch()}
+          />
         ) : filteredProducts.length === 0 ? (
           <div className="flex min-h-[320px] flex-col items-center justify-center rounded-3xl border border-border bg-card p-8 text-center">
             <Package className="h-12 w-12 text-slate-600 mb-3" />

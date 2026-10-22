@@ -17,7 +17,7 @@ import { ModeToggle } from "@/components/atoms/toggle-theme";
 import Link from "next/link";
 import { DepositModal } from "./modals/deposit-modal";
 import ModalLayout from "@/components/layout/modal-layout";
-import { API_ROUTES } from "@/constants/routes";
+import { APP_ROUTES, API_ROUTES } from "@/constants/routes";
 import { removeCookie } from "@/hooks/use-cookies";
 import { usePost } from "@/hooks/use-api";
 import { formatCurrency } from "@/lib/utils";
@@ -26,9 +26,15 @@ function Header({
   userEmail,
   userBalance,
   isAdmin,
+  balanceLoading,
+  balanceError,
+  currency,
 }: {
   userEmail: string;
-  userBalance: number;
+  userBalance: number | null;
+  balanceLoading?: boolean;
+  balanceError?: boolean;
+  currency?: string;
   isAdmin: boolean;
 }) {
   const router = useRouter();
@@ -38,7 +44,7 @@ function Header({
   const { mutate: signOut } = usePost(API_ROUTES.SIGNOUT, {
     onSettled: () => {
       removeCookie("wagerie_token");
-      router.push("/auth/login");
+      router.push(APP_ROUTES.LOGIN);
     },
   });
 
@@ -51,7 +57,7 @@ function Header({
       {/* Theme Toggle */}
 
       <div className="flex items-center gap-3">
-        <Link href="/dashboard" className="flex items-center">
+        <Link href={APP_ROUTES.DASHBOARD} className="flex items-center">
           <PrimaryLogo className="text-xl font-bold sm:text-2xl" />
         </Link>
       </div>
@@ -60,13 +66,17 @@ function Header({
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Wallet Balance Display (Always visible on mobile & desktop) */}
         <Link
-          href="/transactions"
+          href={APP_ROUTES.TRANSACTIONS}
           title="View wallet & transactions"
           className="flex items-center gap-1.5 rounded-xl border border-blue-500/25 bg-blue-500/10 px-2.5 py-1.5 text-xs font-bold text-blue-700 shadow-sm transition hover:border-blue-500/50 dark:text-blue-300 sm:gap-2 sm:px-3.5 sm:py-2 sm:text-sm"
         >
           <Coins className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
           <span className="font-bold text-foreground tabular-nums">
-            {formatCurrency(userBalance)}
+            {balanceLoading
+              ? "Loading balance…"
+              : balanceError || userBalance === null
+                ? "Balance unavailable"
+                : formatCurrency(userBalance, currency)}
           </span>
         </Link>
 
@@ -80,10 +90,13 @@ function Header({
           <span>Deposit</span>
         </Button>
 
+        <ModeToggle />
+
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
+              aria-label="Open account menu"
               variant="ghost"
               className="h-9 w-9 rounded-full p-0 hover:bg-accent"
             >
@@ -105,7 +118,7 @@ function Header({
                 Signed in as
               </span>
               <span className="truncate text-sm font-semibold text-foreground">
-                {userEmail}
+                {userEmail || "Account details unavailable"}
               </span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-border" />
@@ -113,31 +126,31 @@ function Header({
               asChild
               className="hover:bg-accent focus:bg-accent"
             >
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href={APP_ROUTES.DASHBOARD}>Dashboard</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               asChild
               className="hover:bg-accent focus:bg-accent"
             >
-              <Link href="/polls">Browse Draws</Link>
+              <Link href={APP_ROUTES.POLLS}>Browse Draws</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               asChild
               className="hover:bg-accent focus:bg-accent"
             >
-              <Link href="/my-stakes">My Entries & Numbers</Link>
+              <Link href={APP_ROUTES.MY_ENTRIES}>My Entries & Numbers</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               asChild
               className="hover:bg-accent focus:bg-accent"
             >
-              <Link href="/transactions">Wallet & Transactions</Link>
+              <Link href={APP_ROUTES.TRANSACTIONS}>Wallet & Transactions</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               asChild
               className="hover:bg-accent focus:bg-accent"
             >
-              <Link href="/profile">Profile & Settings</Link>
+              <Link href={APP_ROUTES.PROFILE}>Profile & Settings</Link>
             </DropdownMenuItem>
             {isAdmin && (
               <>
@@ -147,7 +160,7 @@ function Header({
                   className="hover:bg-slate-800/80 focus:bg-slate-800/80"
                 >
                   <Link
-                    href="/admin/dashboard"
+                    href={APP_ROUTES.ADMIN_DASHBOARD}
                     className="font-semibold text-warning"
                   >
                     Admin Workspace

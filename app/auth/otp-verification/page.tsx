@@ -1,5 +1,6 @@
 "use client";
 
+import { safeAccountReturnPath } from "@/lib/account-state";
 import { BtnComponent } from "@/components/atoms/button-component";
 import AuthLayout from "@/components/layout/auth-layout";
 import AuthComponent from "@/components/molecules/auth-component";
@@ -48,7 +49,12 @@ function OtpVerificationContent() {
 
   const { mutate: verifyOtp, isPending } = usePost(API_ROUTES.VERIFY_OTP, {
     onSuccess: () => {
-      router.push(APP_ROUTES.LOGIN);
+      const next = safeAccountReturnPath(searchParams.get("next"));
+      router.push(
+        next
+          ? `${APP_ROUTES.LOGIN}?next=${encodeURIComponent(next)}`
+          : APP_ROUTES.LOGIN,
+      );
     },
   });
   const { mutate: resendOtp, isPending: isResendPending } = usePost(

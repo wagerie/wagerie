@@ -46,8 +46,7 @@ export default function AdminLoginPage() {
           refreshToken?: string;
           token?: string;
         }>(response);
-        const token =
-          payload.accessToken ?? payload.refreshToken ?? payload.token;
+        const token = payload.accessToken ?? payload.token;
 
         if (!token) {
           toast.error("Admin login succeeded without a session token");
@@ -69,7 +68,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Header Branding */}
         <div className="text-center space-y-2">
-          <Link href="/" className="inline-block">
+          <Link href={APP_ROUTES.HOME} className="inline-block">
             <PrimaryLogo className="text-2xl font-black" />
           </Link>
           <div className="flex items-center justify-center gap-1.5 pt-1">
@@ -157,7 +156,7 @@ export default function AdminLoginPage() {
 
           <div className="border-t border-border pt-4 text-center">
             <Link
-              href="/auth/login"
+              href={APP_ROUTES.LOGIN}
               className="text-xs font-medium text-slate-400 hover:text-white transition-colors"
             >
               ← Back to Player Login

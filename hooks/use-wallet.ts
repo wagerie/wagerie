@@ -6,6 +6,7 @@ import { Wallet, Transaction, TransactionFilter } from "@/lib/types";
 import { DepositInput, WithdrawInput } from "@/lib/schemas";
 import { API_ROUTES } from "@/constants/routes";
 import { getApiMessage, useGet, useGetPage, usePost } from "./use-api";
+import { normalizeTransactionType } from "@/lib/account-state";
 import { formatCurrency } from "@/lib/utils";
 
 // ============================================
@@ -45,7 +46,10 @@ export const useDeposit = () => {
       });
 
       toast.success(
-        `${formatCurrency(variables.amount)} ${getApiMessage(response, "added to your wallet.")}`,
+        getApiMessage(
+          response,
+          "Deposit request received. Check Transactions for settlement status.",
+        ),
       );
     },
     onError: (error) => {
@@ -108,6 +112,17 @@ export const useTransactionHistory = (filter?: TransactionFilter) => {
       filter?.pageSize?.toString() || "",
     ],
     url,
+    {
+      select: (page) => ({
+        ...page,
+        items: page.items.map((transaction) => ({
+          ...transaction,
+          type: normalizeTransactionType(
+            transaction.type,
+          ) as Transaction["type"],
+        })),
+      }),
+    },
   );
 };
 
